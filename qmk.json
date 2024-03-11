@@ -1,6 +1,6 @@
 {
     "userspace_version": "1.0",
     "build_targets": [
-        ["annepro2/c18", "bhemod"]
+        ["annepro2/c18", "macvim"]
     ]
 }
