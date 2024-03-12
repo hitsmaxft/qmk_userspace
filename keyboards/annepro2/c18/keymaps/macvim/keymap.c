@@ -64,11 +64,11 @@ enum anne_pro_layers {
   * ,-----------------------------------------------------------------------------------------.
   * |  `  |  F1 |  F2 |  F3 |  F4 |  F5 |  F6 |  F7 |  F8 |  F9 | F10 | F11 | F12 |  DELETE   |
   * |-----------------------------------------------------------------------------------------+
-  * | Tab    |  q  |MS_UP|  e  |  r  |  t  |  y  |  u  |  i  |  o  | PS | HOME | END |   \    |
+  * | Tab    |  q  |MS_UP|  e  |  r  |  t  |  y  |  u  | KC_MS_WH_UP | KC_MS_WH_DOWN | PS | HOME | END |   \    |
   * |-----------------------------------------------------------------------------------------+
-  * | Esc    |MS_LEFT|MS_DOWN|MS_RIGHT|  f  |KC_MS_WH_UP|left|up|down|right| PGUP|PGDN |    Enter   |
+  * | Esc    |MS_LEFT|MS_DOWN|MS_RIGHT|  f  |     |left|up|down|right| PGUP|PGDN |    Enter   |
   * |-----------------------------------------------------------------------------------------+
-  * | Shift      |V-UP |V-DWN|MUTE |  v  |KC_MS_WH_UP|MS_BTN1|MS_BTN2|  ,  |INSRT| DEL |    Shift   |
+  * | Shift      |V-UP |V-DWN|MUTE |  v  |     |MS_BTN1|MS_BTN2|  ,  |INSRT| DEL |    Shift   |
   * |-----------------------------------------------------------------------------------------+
   * | Ctrl  |  L1   |  Alt  |               space             |  Alt  |  FN2  |       | ~     |
   * \-----------------------------------------------------------------------------------------/
@@ -76,9 +76,9 @@ enum anne_pro_layers {
   */
  [FN1] = LAYOUT_60_ansi( /* FN1 */
     KC_GRV,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  KC_DEL,
-    _______, _______, KC_MS_U,   _______, _______, _______, _______,KC_MS_WH_DOWN,  _______, _______, KC_PSCR, KC_HOME, KC_END,  _______,
+    _______, _______, KC_MS_U,   _______, _______, _______, _______,_______,  KC_MS_WH_DOWN, KC_MS_WH_UP, KC_PSCR, KC_HOME, KC_END,  _______,
     _______, KC_MS_L, KC_MS_D, KC_MS_R, _______, _______,KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_PGUP, KC_PGDN, _______,
-    _______,          KC_VOLU, KC_VOLD, KC_MUTE, _______,KC_MS_WH_UP, KC_MS_BTN1, KC_MS_BTN2,_______, KC_INS,  KC_DEL,  _______,
+    _______,          KC_VOLU, KC_VOLD, KC_MUTE, _______,_______, KC_MS_BTN1, KC_MS_BTN2,_______, KC_INS,  KC_DEL,  _______,
     _______, _______, _______,                            _______,                   _______, MO(FN2), _______, _______
 ),
 
