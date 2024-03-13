@@ -10,5 +10,5 @@
 //#define MATRIX_IO_DELAY 40
 //#define DEBUG_MATRIX_SCAN_RATE
 
-#define DEBOUNCE 6
+#define DEBOUNCE 5
 
