@@ -1,5 +1,0 @@
-VIA_ENABLE = no
-LTO_ENABLE = yes
-VIAL_ENABLE = no
-VIAL_INSECURE = no
-
