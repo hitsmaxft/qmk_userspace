@@ -18,9 +18,9 @@
 
 enum anne_pro_layers {
     BASE,
-    FN1,
     FN2,
     FN3,
+    FN1,
 };
 
 // clang-format off
@@ -51,7 +51,7 @@ enum anne_pro_layers {
 * |       |       |       |                                 |       |       |       |       |
 * \-----------------------------------------------------------------------------------------/
 */
- const uint16_t keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  [BASE] = LAYOUT_60_ansi( /* Base */
     KC_ESC,           KC_1,    KC_2,    KC_3, KC_4, KC_5, KC_6,   KC_7, KC_8, KC_9,    KC_0,             KC_MINS,          KC_EQL,        KC_BSPC,
     KC_TAB,           KC_Q,    KC_W,    KC_E, KC_R, KC_T, KC_Y,   KC_U, KC_I, KC_O,    KC_P,             KC_LBRC,          KC_RBRC,       KC_BSLS,
@@ -112,18 +112,5 @@ enum anne_pro_layers {
     _______, _______,    _______,                                     _______,                   _______,       MO(FN2),       MO(FN1),       _______
  ),
 };
-
-void keyboard_post_init_user(void) {
-  // Customise these values to desired behaviour
-  //debug_enable=true;
-  //debug_matrix=true;
-  //debug_keyboard=true;
-  //debug_mouse=true;
-}
-
-void reset_to_iap(void) {
-    //this will write eeprom make keyboard boot into iap mode
-    bootloader_jump();
-}
 
 // clang-format on

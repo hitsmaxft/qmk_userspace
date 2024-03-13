@@ -23,3 +23,9 @@ QMK_SETTINGS = yes
 TAP_DANCE_ENABLE = no
 COMBO_ENABLE = no
 KEY_OVERRIDE_ENABLE = no
+
+
+# custom DEBOUNCE
+DEBOUNCE_TYPE = asym_eager_defer_pk
+
+SRC += custom.c os_autoconfig.c
