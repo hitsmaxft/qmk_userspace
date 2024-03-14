@@ -4,7 +4,6 @@
 
 void  reset_to_iap(void);
 
-
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case KC_AP_IAP:
@@ -34,32 +33,30 @@ void reset_to_iap(void) {
 }
 
 
+const ap2_led_t leader_blink_color = {
+    .p.blue  = 0xff,
+    .p.red   = 0x00,
+    .p.green = 0x00,
+    .p.alpha = 0xff,
+};
+
 void leader_start_user(void) {
-    const ap2_led_t blue = {
-        .p.blue  = 0xff,
-        .p.red   = 0x00,
-        .p.green = 0x00,
-        .p.alpha = 0xff,
-    };
-    ap2_led_blink(4, 6, blue, 3, 50);
+    ap2_led_blink(4, 6, leader_blink_color, 3, 50);
     // Do something when the leader key is pressed
 }
 
 void leader_end_user(void) {
-    const ap2_led_t blue = {
-        .p.blue  = 0xff,
-        .p.red   = 0x00,
-        .p.green = 0x00,
-        .p.alpha = 0xff,
-    };
-    ap2_led_blink(4, 6, blue, 0, 50);
-    if (leader_sequence_two_keys(KC_G, KC_P)) {
-        // Leader, f => Types the below string
+    ap2_led_blink(4, 6, leader_blink_color, 0, 50);
+
+    if (leader_sequence_two_keys(KC_V, KC_Y)) {
+        SEND_STRING("\"+y");
+    } else if (leader_sequence_two_keys(KC_V, KC_P)) {
+        SEND_STRING("\"+gp");
+    } else if (leader_sequence_two_keys(KC_G, KC_P)) {
         SEND_STRING("git push\n");
     } else if (leader_sequence_two_keys(KC_G, KC_U)) {
         SEND_STRING("git add -u\n");
     } else if (leader_sequence_three_keys(KC_G, KC_A, KC_I)) {
-        // Leader, d, d, s => Types the below string
         SEND_STRING("git ai-commit\n");
     } else if (leader_sequence_two_keys(KC_D, KC_D)) {
         return;
