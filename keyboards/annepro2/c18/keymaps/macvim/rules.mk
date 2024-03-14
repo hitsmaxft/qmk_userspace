@@ -4,6 +4,8 @@
 BOOTLOADER = custom
 PROGRAM_CMD = annepro2_tools --boot $(BUILD_DIR)/$(TARGET).bin
 
+LEADER_ENABLE = yes
+
 # Build Options
 #   change yes to no to disable
 #
@@ -29,3 +31,4 @@ KEY_OVERRIDE_ENABLE = no
 DEBOUNCE_TYPE = asym_eager_defer_pk
 
 SRC += custom.c os_autoconfig.c
+
