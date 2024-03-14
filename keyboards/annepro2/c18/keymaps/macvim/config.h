@@ -12,3 +12,7 @@
 
 #define DEBOUNCE 7
 
+
+//per key timeout for leader key
+#define LEADER_PER_KEY_TIMING
+#define LEADER_TIMEOUT 250

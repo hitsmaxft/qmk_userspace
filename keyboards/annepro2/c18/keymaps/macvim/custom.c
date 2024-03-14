@@ -35,10 +35,24 @@ void reset_to_iap(void) {
 
 
 void leader_start_user(void) {
+    const ap2_led_t blue = {
+        .p.blue  = 0xff,
+        .p.red   = 0x00,
+        .p.green = 0x00,
+        .p.alpha = 0xff,
+    };
+    ap2_led_blink(4, 6, blue, 3, 50);
     // Do something when the leader key is pressed
 }
 
 void leader_end_user(void) {
+    const ap2_led_t blue = {
+        .p.blue  = 0xff,
+        .p.red   = 0x00,
+        .p.green = 0x00,
+        .p.alpha = 0xff,
+    };
+    ap2_led_blink(4, 6, blue, 0, 50);
     if (leader_sequence_two_keys(KC_G, KC_P)) {
         // Leader, f => Types the below string
         SEND_STRING("git push\n");
