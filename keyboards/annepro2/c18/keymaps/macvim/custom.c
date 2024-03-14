@@ -44,7 +44,6 @@ void leader_end_user(void) {
         SEND_STRING("git push\n");
     } else if (leader_sequence_two_keys(KC_G, KC_U)) {
         SEND_STRING("git add -u\n");
-        return;
     } else if (leader_sequence_three_keys(KC_G, KC_A, KC_I)) {
         // Leader, d, d, s => Types the below string
         SEND_STRING("git ai-commit\n");
