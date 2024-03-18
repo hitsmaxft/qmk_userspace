@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "notes": "layout, 14+14+13+12+8",
-  "documentation": "layout 0: default layer\nlayout 1: addition key layer\nlayout 2: 40 key layer(testing)\nlayout 3: anneap2 layer\nlayout 4: debug layer",
+  "notes": "gh60(61key) layout, 14+14+13+12+8",
+  "documentation": "layout 0: default layer\nlayout 1: addition key layer\nlayout 2: 40 key layer(testing)\nlayout 3: configuration layer\nlayout 4: debug layer",
   "keyboard": "annepro2/c18",
   "keymap": "macvim",
   "layout": "LAYOUT_60_ansi",
@@ -35,12 +35,12 @@
       "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO"
     ],
     [
-      "KC_GRV", "ANY(KC_AP2_BT1)", "ANY(KC_AP2_BT2)", "ANY(KC_AP2_BT3)", "ANY(KC_AP2_BT4)", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "ANY(KC_AP_RGB_MOD)", "ANY(KC_AP_RGB_TOG)", "ANY(KC_AP_RGB_VAD)", "ANY(KC_AP_RGB_VAI)", "KC_TRNS",
+      "KC_AP2_BT_UNPAIR", "ANY(KC_AP2_BT1)", "ANY(KC_AP2_BT2)", "ANY(KC_AP2_BT3)", "ANY(KC_AP2_BT4)", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "ANY(KC_AP_RGB_MOD)", "ANY(KC_AP_RGB_TOG)", "ANY(KC_AP_RGB_VAD)", "ANY(KC_AP_RGB_VAI)", "KC_TRNS",
       "MO(3)", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_PSCR", "KC_HOME", "KC_END", "KC_TRNS",
-      "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_PGUP", "KC_PGDN", "KC_TRNS",
-      "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_INS", "KC_DEL", "KC_TRNS",
+      "KC_TRNS", "RGB_MOD", "RGB_VAI", "RGB_HUI", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_PGUP", "KC_PGDN", "KC_TRNS",
+      "KC_TRNS", "RGB_RMOD", "RGB_VAD", "RGB_HUD", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_INS", "KC_DEL", "KC_TRNS",
       "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS"
     ]
   ],
-  "author": ""
+  "author": "hitsmaxft"
 }
