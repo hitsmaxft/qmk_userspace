@@ -10,10 +10,10 @@ LEADER_ENABLE = yes
 #   change yes to no to disable
 #
 BOOTMAGIC_ENABLE = no # Enable Bootmagic Lite
-MOUSEKEY_ENABLE = yes # Mouse keys
+MOUSEKEY_ENABLE = no # Mouse keys
 EXTRAKEY_ENABLE = no # Audio control and System control
 CONSOLE_ENABLE = no # Console for debug
-COMMAND_ENABLE = no # Commands for debug and configuration
+COMMAND_ENABLE = no	# Commands for debug and configuration
 NKRO_ENABLE = no            # Enable N-Key Rollover
 
 OS_DETECTION_ENABLE = yes
@@ -28,5 +28,6 @@ KEY_OVERRIDE_ENABLE = no
 
 # custom DEBOUNCE
 DEBOUNCE_TYPE = asym_eager_defer_pk
+
 SRC += custom.c os_autoconfig.c
 

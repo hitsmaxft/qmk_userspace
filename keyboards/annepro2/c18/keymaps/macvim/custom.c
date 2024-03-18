@@ -1,6 +1,7 @@
 #include QMK_KEYBOARD_H
 
 #include "macvim.h"
+#include "print.h"
 
 void  reset_to_iap(void);
 
@@ -37,9 +38,9 @@ void reset_to_iap(void) {
 }
 
 const ap2_led_t layer_color = {
-    .p.blue  = 0x00,
-    .p.red   = 0x00,
-    .p.green = 0x00,
+    .p.blue  = 0xff,
+    .p.red   = 0xff,
+    .p.green = 0xff,
     .p.alpha = 0xff,
 };
 
@@ -80,7 +81,16 @@ void leader_end_user(void) {
 layer_state_t layer_state_set_user(layer_state_t state) {
     uint8_t layer_num = get_highest_layer(state);
 
-    ap2_led_blink(0, layer_num + 1, layer_color,3, 80);
+    dprintf("on layer %d\n", layer_num);
+
+    if (IS_LAYER_ON_STATE(state, layer_num)) {
+        dprintf("blink layer %d\n", layer_num);
+        // light on number key
+        ap2_led_blink(0, layer_num + 1, layer_color, 1, 90);
+    } else if (IS_LAYER_OFF_STATE(state, layer_num)) {
+        dprintf("off layer %d\n", layer_num);
+        //todo remove layer
+    }
 
     return state;
 }
