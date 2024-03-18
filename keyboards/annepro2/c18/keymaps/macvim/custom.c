@@ -3,21 +3,27 @@
 #include "macvim.h"
 #include "print.h"
 
+
+// store all masked layer
+uint8_t layer_mask[20];
+
+
 void  reset_to_iap(void);
 
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  switch (keycode) {
-    case KC_AP_IAP:
-      if (record->event.pressed) {
-          reset_to_iap();
-          return false;
-      } else {
-        // Do something else when release
-      }
-      return true; // Let QMK send the enter press/release events
-    default:
-      return true; // Process all other keycodes normally
-  }
+    switch (keycode) {
+        case KC_AP_IAP:
+            if (record->event.pressed) {
+                reset_to_iap();
+                return false;
+            } else {
+                // Do something else when release
+            }
+            return true; // Let QMK send the enter press/release events
+        default:
+            return true; // Process all other keycodes normally
+    }
 }
 
 
@@ -25,24 +31,17 @@ void keyboard_pre_init_user(void) {
 }
 
 void keyboard_post_init_user(void) {
-  // Customise these values to desired behaviour
-  //debug_enable=true;
-  //debug_matrix=true;
-  //debug_keyboard=true;
-  //debug_mouse=true;
+    // Customise these values to desired behaviour
+    //debug_enable=true;
+    //debug_matrix=true;
+    //debug_keyboard=true;
+    //debug_mouse=true;
 }
 
 void reset_to_iap(void) {
     //this will write eeprom make keyboard boot into iap mode
     bootloader_jump();
 }
-
-const ap2_led_t layer_color = {
-    .p.blue  = 0xff,
-    .p.red   = 0xff,
-    .p.green = 0xff,
-    .p.alpha = 0xff,
-};
 
 
 const ap2_led_t leader_blink_color = {
@@ -78,19 +77,74 @@ void leader_end_user(void) {
     }
 }
 
+const ap2_led_t no_color = {
+    .p.blue  = 0x00,
+    .p.red   = 0x00,
+    .p.green = 0x00,
+    .p.alpha = 0x00, // alpha zero to mark off
+};
+const ap2_led_t layer_color = {
+    .p.blue  = 0xff,
+    .p.red   = 0xFF,
+    .p.green = 0xff,
+    .p.alpha = 0xff,
+};
+
+static uint8_t last_layer_default = 0;
+
+layer_state_t default_layer_state_set_user(layer_state_t state) {
+
+    uint8_t layer_num = get_highest_layer(state);
+    dprintf("set default layer to %d\n", layer_num);
+    uint8_t last_dl = last_layer_default;
+    ap2_led_mask_set_key(0, last_dl, no_color);
+
+    last_layer_default = layer_num;
+    if (layer_num > 0 ) {
+        //will not reset by  layer_state_set_user
+        layer_mask[layer_num] = 2;
+        ap2_led_mask_set_key(0, layer_num, layer_color);
+    }
+
+    //remove mark
+    layer_mask[last_dl] = 0;
+    return state;
+}
+
 layer_state_t layer_state_set_user(layer_state_t state) {
     uint8_t layer_num = get_highest_layer(state);
 
-    dprintf("on layer %d\n", layer_num);
-
     if (IS_LAYER_ON_STATE(state, layer_num)) {
-        dprintf("blink layer %d\n", layer_num);
+        dprintf("entering layer %d\n", layer_num);
         // light on number key
-        ap2_led_blink(0, layer_num + 1, layer_color, 1, 90);
+        //reset other keys
+        for (int i =0 ; i <20 ; i++) {
+            if (layer_mask[i] == 1) {
+                //reset color
+                layer_mask[i] = 0;
+                dprintf("reset layer %d led to off\n", i);
+                ap2_led_mask_set_key(0, i, no_color);
+            }
+        }
+        if ( 0 == layer_num) {
+            //default layer
+            //layer zero just blink
+            ap2_led_blink(0, last_layer_default , layer_color, 1, 20);
+        } else {
+            //set color mask on key
+            ap2_led_mask_set_key(0, layer_num, layer_color);
+            layer_mask[layer_num] = 1;
+        }
+
+
     } else if (IS_LAYER_OFF_STATE(state, layer_num)) {
-        dprintf("off layer %d\n", layer_num);
-        //todo remove layer
+        dprintf("leaving layer %d\n", layer_num);
+        layer_mask[layer_num] = 0;
+        ap2_led_mask_set_key(0, layer_num, no_color);
+    } else {
+        dprintf("skip layer %d\n", layer_num);
     }
+
 
     return state;
 }
