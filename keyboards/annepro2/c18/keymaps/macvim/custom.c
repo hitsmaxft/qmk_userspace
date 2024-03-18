@@ -19,6 +19,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   }
 }
 
+
+void keyboard_pre_init_user(void) {
+}
+
 void keyboard_post_init_user(void) {
   // Customise these values to desired behaviour
   //debug_enable=true;
@@ -31,6 +35,13 @@ void reset_to_iap(void) {
     //this will write eeprom make keyboard boot into iap mode
     bootloader_jump();
 }
+
+const ap2_led_t layer_color = {
+    .p.blue  = 0x00,
+    .p.red   = 0x00,
+    .p.green = 0x00,
+    .p.alpha = 0xff,
+};
 
 
 const ap2_led_t leader_blink_color = {
@@ -64,4 +75,12 @@ void leader_end_user(void) {
         // Leader, a, s => GUI+S
         tap_code16(LGUI(KC_S));
     }
+}
+
+layer_state_t layer_state_set_user(layer_state_t state) {
+    uint8_t layer_num = get_highest_layer(state);
+
+    ap2_led_blink(0, layer_num + 1, layer_color,3, 80);
+
+    return state;
 }
