@@ -85,10 +85,10 @@
 
     // layer 9: configuration layer
     [
-      "KC_AP2_BT_UNPAIR", "ANY(KC_AP2_BT1)", "ANY(KC_AP2_BT2)", "ANY(KC_AP2_BT3)", "DF(1)", "KC_NO", "DF(0)", "KC_NO", "KC_NO", "ANY(KC_AP_RGB_MOD)", "ANY(KC_AP_RGB_TOG)", "ANY(KC_AP_RGB_VAD)", "ANY(KC_AP_RGB_VAI)", "KC_NO",
+      "KC_AP2_BT_UNPAIR", "KC_AP2_BT1", "KC_AP2_BT2", "KC_AP2_BT3", "DF(1)", "KC_NO", "DF(0)", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "MO(10)", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_PSCR", "KC_NO", "KC_NO", "KC_NO",
       "KC_NO", "RGB_MOD", "RGB_VAI", "RGB_HUI", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
-      "KC_NO", "RGB_RMOD", "RGB_VAD", "RGB_HUD", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_INS", "KC_DEL", "KC_NO",
+      "RGB_TOG", "RGB_RMOD", "RGB_VAD", "RGB_HUD", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO"
     ],
     // layer 10: debug layer
