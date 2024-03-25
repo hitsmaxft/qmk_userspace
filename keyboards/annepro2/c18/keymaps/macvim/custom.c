@@ -3,13 +3,26 @@
 #include "macvim.h"
 #include "print.h"
 
+#ifndef __INDICATOR_COLOR__
+    #define __INDICATOR_COLOR__ {0x42, 0xf5, 0xf5, 0xff}
+#endif
+
 
 // store all masked layer
-uint8_t layer_mask[20];
+const ap2_led_t no_color = {
+    .pv  = 0x00,
+};
 
+const ap2_led_t layer_color = {
+    .pv = __INDICATOR_COLOR__,
+};
+
+
+/* layer settings */
+uint8_t layer_mask[20];
+static uint8_t last_layer_default = 0;
 
 void  reset_to_iap(void);
-
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
@@ -52,12 +65,12 @@ const ap2_led_t leader_blink_color = {
 };
 
 void leader_start_user(void) {
-    ap2_led_blink(4, 6, leader_blink_color, 3, 50);
+    ap2_led_mask_set_key(4, 6, leader_blink_color);
     // Do something when the leader key is pressed
 }
 
 void leader_end_user(void) {
-    ap2_led_blink(4, 6, leader_blink_color, 0, 50);
+    ap2_led_mask_set_key(4, 6, no_color);
 
     if (leader_sequence_two_keys(KC_V, KC_Y)) {
         SEND_STRING("\"+y");
@@ -77,20 +90,6 @@ void leader_end_user(void) {
     }
 }
 
-const ap2_led_t no_color = {
-    .p.blue  = 0x00,
-    .p.red   = 0x00,
-    .p.green = 0x00,
-    .p.alpha = 0x00, // alpha zero to mark off
-};
-const ap2_led_t layer_color = {
-    .p.blue  = 0xff,
-    .p.red   = 0xFF,
-    .p.green = 0xff,
-    .p.alpha = 0xff,
-};
-
-static uint8_t last_layer_default = 0;
 
 layer_state_t default_layer_state_set_user(layer_state_t state) {
 
