@@ -11,12 +11,14 @@
 //#define MATRIX_IO_DELAY 40
 //#define DEBUG_MATRIX_SCAN_RATE
 
-#define DEBOUNCE 7
+#define DEBOUNCE 5
 
 
 //per key timeout for leader key
 #define LEADER_PER_KEY_TIMING
 #define LEADER_TIMEOUT 250
 
-#define TAPPING_TERM 120
+#define TAPPING_TERM 100
 
+#define PERMISSIVE_HOLD
+#undef HOLD_ON_OTHER_KEY_PRESS

@@ -16,6 +16,7 @@ NKRO_ENABLE = no            # Enable N-Key Rollover
 
 OS_DETECTION_ENABLE = yes
 
+
 # Custom RGB matrix handling
 RGB_MATRIX_ENABLE = yes
 
@@ -27,6 +28,9 @@ KEY_OVERRIDE_ENABLE = no
 
 # custom DEBOUNCE
 DEBOUNCE_TYPE = asym_eager_defer_pk
+
+
+# home mod tapping
 
 SRC += custom.c os_autoconfig.c
 
