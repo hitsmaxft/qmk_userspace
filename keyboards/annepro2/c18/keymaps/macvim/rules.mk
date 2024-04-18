@@ -16,7 +16,6 @@ NKRO_ENABLE = no            # Enable N-Key Rollover
 
 OS_DETECTION_ENABLE = yes
 
-
 # Custom RGB matrix handling
 RGB_MATRIX_ENABLE = yes
 
@@ -32,7 +31,8 @@ KEY_OVERRIDE_ENABLE = no
 
 # home mod tapping
 
-SRC += custom.c os_autoconfig.c
 
 CONSOLE_ENABLE = no # Console for debug
 COMMAND_ENABLE = no # Commands for debug and configuration
+
+SRC += custom.c os_autoconfig.c
