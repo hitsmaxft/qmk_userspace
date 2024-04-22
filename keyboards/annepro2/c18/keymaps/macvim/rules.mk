@@ -30,8 +30,6 @@ KEY_OVERRIDE_ENABLE = no
 
 
 # home mod tapping
-
-
 CONSOLE_ENABLE = no # Console for debug
 COMMAND_ENABLE = no # Commands for debug and configuration
 
