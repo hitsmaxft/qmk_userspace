@@ -26,7 +26,7 @@ KEY_OVERRIDE_ENABLE = no
 
 
 # custom DEBOUNCE
-# DEBOUNCE_TYPE = asym_eager_defer_pk
+DEBOUNCE_TYPE = asym_eager_defer_pk
 
 
 # home mod tapping

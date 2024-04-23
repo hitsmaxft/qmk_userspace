@@ -11,7 +11,7 @@
 //#define MATRIX_IO_DELAY 40
 //#define DEBUG_MATRIX_SCAN_RATE
 
-#define DEBOUNCE 5
+#define DEBOUNCE 10
 
 //per key timeout for leader key
 #define LEADER_PER_KEY_TIMING
