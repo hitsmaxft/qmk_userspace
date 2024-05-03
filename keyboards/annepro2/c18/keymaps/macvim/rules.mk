@@ -28,7 +28,9 @@ KEY_OVERRIDE_ENABLE = no
 # custom DEBOUNCE
 DEBOUNCE_TYPE = asym_eager_defer_pk
 
-SRC += custom.c os_autoconfig.c
 
+# home mod tapping
 CONSOLE_ENABLE = no # Console for debug
 COMMAND_ENABLE = no # Commands for debug and configuration
+
+SRC += custom.c os_autoconfig.c
