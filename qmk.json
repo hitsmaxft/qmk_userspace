@@ -2,7 +2,8 @@
     "userspace_version": "1.0",
     "build_targets": [
         ["annepro2/c18", "macvim"],
-        ["keychron/q2/ansi_encoder", "macvim"]
-        ["gh61ble", "macvim"]
+        ["keychron/q2/ansi_encoder", "macvim"],
+        ["gh61ble", "macvim"],
+        ["stnc401redemo", "default"]
     ]
 }
