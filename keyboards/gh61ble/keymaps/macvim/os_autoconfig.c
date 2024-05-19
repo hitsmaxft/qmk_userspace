@@ -1,6 +1,5 @@
 #include QMK_KEYBOARD_H
 
-
 bool process_detected_host_os_kb(os_variant_t detected_os) {
     if (!process_detected_host_os_user(detected_os)) {
         return false;
@@ -10,19 +9,19 @@ bool process_detected_host_os_kb(os_variant_t detected_os) {
 
     switch (detected_os) {
         case OS_WINDOWS:
-            if (!keymap_config.swap_lalt_lgui){
-                keymap_config.swap_lalt_lgui = true;
+            if (!keymap_config.swap_ctl_gui){
+                keymap_config.swap_ctl_gui = true;
                 eeconfig_update_keymap(keymap_config.raw);
             }
-            keymap_config.swap_lalt_lgui = true;
+            keymap_config.swap_ctl_gui = true;
             eeconfig_update_keymap(keymap_config.raw);
             break;
         case OS_MACOS:
         case OS_IOS:
         case OS_LINUX:
         case OS_UNSURE:
-            if (keymap_config.swap_lalt_lgui){
-                keymap_config.swap_lalt_lgui = false;
+            if (keymap_config.swap_ctl_gui){
+                keymap_config.swap_ctl_gui = false;
                 eeconfig_update_keymap(keymap_config.raw);
             }
             break;
