@@ -4,7 +4,8 @@
 #include "print.h"
 
 #ifndef __INDICATOR_COLOR__
-    #define __INDICATOR_COLOR__ {0x42, 0xf5, 0xf5, 0xff}
+//order BGR
+    #define __INDICATOR_COLOR__ {0xFF, 0x00, 0x00, 0xff}
 #endif
 
 
