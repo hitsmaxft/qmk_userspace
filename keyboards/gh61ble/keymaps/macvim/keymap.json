@@ -15,7 +15,7 @@
       "KC_TAB"  , "KC_Q"    , "KC_W", "KC_E", "KC_R", "KC_T", "KC_Y", "KC_U", "KC_I", "KC_O", "KC_P", "KC_LBRC", "KC_RBRC", "KC_BSLS",
       "KC_LCTL", "LCTL_T(KC_A)", "LALT_T(KC_S)", "LGUI_T(KC_D)", "LSFT_T(KC_F)", "KC_G", "KC_H", "RSFT_T(KC_J)", "RGUI_T(KC_K)", "RALT_T(KC_L)", "RCTL_T(KC_SCLN)", "KC_QUOT", "KC_ENT",
       "KC_LSFT", "KC_Z"    , "KC_X", "KC_C", "KC_V", "KC_B", "KC_N", "KC_M", "KC_COMM", "KC_DOT", "KC_SLSH", "KC_RSFT",
-      "KC_LGUI"     , "KC_LALT", "MO(2)", "LT(8, KC_SPC)", "MO(3)", "MO(9)", "MO(8)", "KC_GRV"
+      "KC_NO"     , "KC_LALT", "MO(2)", "LT(8, KC_SPC)", "MO(3)", "MO(9)", "KC_NO", "KC_GRV"
     ],
     // layer 1: 40% layer normal
     [
@@ -24,7 +24,7 @@
       "KC_TAB", "KC_Q", "KC_W", "KC_E", "KC_R", "KC_T", "KC_Y", "KC_U", "KC_I", "KC_O", "KC_P", "KC_BSPC", "KC_NO", "KC_BSPC",
       "KC_LCTL", "LCTL_T(KC_A)", "LALT_T(KC_S)", "LGUI_T(KC_D)", "LSFT_T(KC_F)", "KC_G", "KC_H", "RSFT_T(KC_J)", "RGUI_T(KC_K)", "RALT_T(KC_L)", "RCTL_T(KC_SCLN)", "KC_QUOT", "KC_ENT",
       "KC_LSFT", "KC_Z", "KC_X", "KC_C", "KC_V", "KC_B", "KC_N", "KC_M", "KC_COMM", "KC_DOT", "KC_SLSH", "MT(MOD_RSFT, KC_NO)",
-      "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_SPC", "MO(3)", "MO(9)", "MO(8)", "MO(1)"
+      "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_SPC", "MO(3)", "MO(9)", "MO(3)", "MO(1)"
     ],
     // layer 2: 40% layer lower
     [
@@ -87,7 +87,7 @@
     // layer 9: configuration layer
     [
       "KC_AP2_BT_UNPAIR", "KC_AP2_BT1", "KC_AP2_BT2", "KC_AP2_BT3", "DF(1)", "KC_NO", "DF(0)", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
-      "MO(10)", "MAGIC_UNSWAP_CTL_GUI", "MAGIC_SWAP_CTL_GUI", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_PSCR", "KC_NO", "KC_NO", "KC_NO",
+      "MO(10)", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_PSCR", "KC_NO", "KC_NO", "KC_NO",
       "KC_NO", "RGB_MOD", "RGB_VAI", "RGB_HUI", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "RGB_TOG", "RGB_RMOD", "RGB_VAD", "RGB_HUD", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO"
@@ -95,7 +95,7 @@
     // layer 10: debug layer
     [
       "KC_0", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
-      "KC_TRNS", "KC_NO", "KC_NO", "KC_NO", "QK_BOOT", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
+      "KC_TRNS", "MAGIC_UNSWAP_CTL_GUI", "MAGIC_SWAP_CTL_GUI", "KC_NO", "QK_BOOT", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "KC_NO", "KC_NO", "KC_NO", "DB_TOGG", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "QK_BOOT", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO"
