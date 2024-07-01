@@ -1,13 +1,18 @@
-// im
-// clang-format off
-
 #include "keycodes.h"
 #include "keymap_us.h"
+#include "quantum_keycodes.h"
+#include "send_string_keycodes.h"
 #include QMK_KEYBOARD_H
 
 #include "keycode.h"
 
 #define XXXXXX KC_NO
+
+enum lily_58_custom_keycode {
+    // vim yank
+    UK_VYANK = SAFE_RANGE,
+    UK_SCRCAP
+};
 
 #define LBASE 0
 #define LRAISE 1
@@ -18,7 +23,7 @@
 #define LDEBUG 4
 
 #define TRS_GRV MT(MOD_RSFT, KC_GRV)
-#define TU_BSPC LT(LRAISE,KC_BSPC)
+#define TU_BSPC LT(LRAISE, KC_BSPC)
 #define LCT_A LCTL_T(KC_A)
 #define LAT_S LALT_T(KC_S)
 #define LGT_D LGUI_T(KC_D)
@@ -30,8 +35,25 @@
 #define RST_J RSFT_T(KC_J)
 #define UK_SPC LT(LFUNC, KC_SPC)
 
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case UK_VYANK:
+            if (record->event.pressed) {
+                SEND_STRING(SS_DOWN(X_LSFT) SS_TAP(X_QUOT) SS_DELAY(200) SS_UP(X_LSFT) SS_TAP(X_KP_PLUS) "y");
+            } else {
+            }
+            break;
+        case UK_SCRCAP:
+            if (record->event.pressed) {
+                SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_DOWN(X_LCTL) "4" SS_UP(X_LGUI) SS_UP(X_LSFT) SS_UP(X_LCTL));
+            }
+            break;
+    }
+    return true;
+};
 // Default keymap. This can be changed in Vial. Use oled.c to change beavior that Vial cannot change.
 
+// clang-format off
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -39,7 +61,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_ESC , KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
   KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
   KC_LCTL, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                   KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
-  KC_LSFT, KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   , KC_NO , KC_ENT,  KC_N   , KC_M   , KC_COMM, KC_DOT , KC_SLSH, TRS_GRV,
+  KC_LSFT, KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   , UK_VYANK , UK_SCRCAP,  KC_N   , KC_M   , KC_COMM, KC_DOT , KC_SLSH, TRS_GRV,
                              KC_LALT, KC_LGUI, MO(LLW), UK_SPC,  KC_ENT , MO(LRAISE), KC_LBRC, KC_RBRC
 ),
 
@@ -61,8 +83,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 ),
 [LFUNC] = LAYOUT(
   KC_NO   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_GRV ,
- MO(LDEBUG), KC_NO  , KC_NO , KC_MS_U, KC_PGUP, KC_PGDN ,                  KC_Y   , KC_U   , KC_MS_WH_UP,  KC_MS_WH_DOWN, KC_P   , KC_MINS,
-  KC_NO  , KC_MS_L, KC_MS_L, KC_MS_D, KC_MS_R, KC_F6  ,                   KC_LEFT , KC_DOWN, KC_UP  , KC_DOWN, KC_SCLN, KC_QUOT,
+ MO(LDEBUG), KC_NO  , KC_NO , KC_MS_U, KC_PGUP, KC_PGDN ,                  KC_NO  , KC_MS_WH_UP,  KC_MS_WH_DOWN, KC_NO, KC_P , KC_MINS,
+  KC_NO  , KC_MS_L, KC_MS_L, KC_MS_D, KC_MS_R, KC_F6  ,                   KC_LEFT , KC_DOWN, KC_UP  , KC_RIGHT, KC_SCLN, KC_QUOT,
   KC_NO  , KC_Z   , KC_X   , KC_C   , KC_HOME, KC_END , KC_LBRC, KC_RBRC, KC_MS_BTN1, KC_MS_BTN2, KC_COMM, KC_DOT , KC_SLSH, KC_RSFT,
                              KC_LALT, KC_LGUI, _______, KC_SPC , KC_ENT , _______, _______, _______
 ),
@@ -76,9 +98,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
-    [0] = { ENCODER_CCW_CW(   KC_TAB,   LSFT(KC_TAB)), ENCODER_CCW_CW(   KC_PGUP ,    KC_PGDN) },
+    [0] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(   LSFT(KC_TAB), KC_TAB) },
     [1] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [2] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [3] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [4] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
 };
+
+
