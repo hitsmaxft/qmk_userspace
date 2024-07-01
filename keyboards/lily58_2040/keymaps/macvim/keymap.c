@@ -1,8 +1,12 @@
+#include QMK_KEYBOARD_H
 #include "keycodes.h"
 #include "keymap_us.h"
 #include "quantum_keycodes.h"
 #include "send_string_keycodes.h"
-#include QMK_KEYBOARD_H
+#include "lily.h"
+#ifdef OLED_ENABLE
+#include "oled_driver.h"
+#endif
 
 #include "keycode.h"
 
@@ -35,7 +39,58 @@ enum lily_58_custom_keycode {
 #define RST_J RSFT_T(KC_J)
 #define UK_SPC LT(LFUNC, KC_SPC)
 
+#ifdef OLED_ENABLE
+bool oled_task_user(void)  {
+    oled_write_P(PSTR("Layer: "), false);
+
+
+    uint16_t layer_id = get_highest_layer(layer_state);
+    switch (layer_id) {
+        case LBASE:
+            oled_write_P(PSTR("Default\n"), false);
+            break;
+        case LLOWER:
+            oled_write_P(PSTR("LOWER\n"), false);
+            break;
+        case LRAISE:
+            oled_write_P(PSTR("RAISE\n"), false);
+            break;
+        case LFUNC:
+            oled_write_P(PSTR("FUNC\n"), false);
+            break;
+        case LDEBUG:
+            oled_write_P(PSTR("DEBUG\n"), false);
+            break;
+        default:
+            // Or use the write_ln shortcut over adding '\n' to the end of your string
+            oled_write_P(PSTR("Undefined\n"), false);
+    }
+
+    //char buffer[200];
+    //snprintf_keymap(layer_id, buffer, 200);
+    //oled_write_P(PSTR(buffer), false);
+    //
+    //sprintf(buffer, "RgbMode %d\n", rgb_matrix_config.mode);
+    //oled_write_P(PSTR(buffer), false);
+    oled_write_P(PSTR(read_keylogs()), false);
+    //sprint_recent_keycodes(buffer, 24);
+    //oled_write_P(PSTR(buffer), false);
+    //   oled_write_ln_P(PSTR("\n"), false);
+    // Host Keyboard LED Status
+    //led_t led_state = host_keyboard_led_state();
+    //oled_write_P(led_state.num_lock ? PSTR("NUM ") : PSTR("    "), false);
+    //oled_write_P(led_state.caps_lock ? PSTR("CAP ") : PSTR("    "), false);
+    //oled_write_P(led_state.scroll_lock ? PSTR("SCR ") : PSTR("    "), false);
+
+    return false;
+}
+#endif
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+#ifdef OLED_ENABLE
+    set_keylog(keycode, record);
+#endif
+
     switch (keycode) {
         case UK_VYANK:
             if (record->event.pressed) {
@@ -61,7 +116,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_ESC , KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
   KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
   KC_LCTL, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                   KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
-  KC_LSFT, KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   , UK_VYANK , UK_SCRCAP,  KC_N   , KC_M   , KC_COMM, KC_DOT , KC_SLSH, TRS_GRV,
+  KC_LSFT, KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VYANK, UK_SCRCAP,  KC_N   , KC_M   , KC_COMM, KC_DOT , KC_SLSH, TRS_GRV,
                              KC_LALT, KC_LGUI, MO(LLW), UK_SPC,  KC_ENT , MO(LRAISE), KC_LBRC, KC_RBRC
 ),
 
