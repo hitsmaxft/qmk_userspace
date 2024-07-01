@@ -126,7 +126,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_NO  , KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_PIPE,
   _______, KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_NO  , KC_MINS, KC_EQL , KC_LBRC, KC_RBRC, KC_NO ,
   _______, KC_F7  , KC_F8  , KC_F9  , KC_NO  , KC_F6  , _______, _______, KC_N   , KC_M   , KC_LABK, KC_RABK, KC_QUES, _______,
-                             _______, _______, _______, _______, _______, _______, _______, _______
+                             _______, _______, _______, _______, _______, KC_NO  , KC_NO  , KC_NO
 ),
 
 [LLOWER] = LAYOUT(
@@ -141,14 +141,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  MO(LDEBUG), KC_NO  , KC_NO , KC_MS_U, KC_PGUP, KC_PGDN ,                  KC_NO  , KC_MS_WH_UP,  KC_MS_WH_DOWN, KC_NO, KC_P , KC_MINS,
   KC_NO  , KC_MS_L, KC_MS_L, KC_MS_D, KC_MS_R, KC_F6  ,                   KC_LEFT , KC_DOWN, KC_UP  , KC_RIGHT, KC_SCLN, KC_QUOT,
   KC_NO  , KC_Z   , KC_X   , KC_C   , KC_HOME, KC_END , KC_LBRC, KC_RBRC, KC_MS_BTN1, KC_MS_BTN2, KC_COMM, KC_DOT , KC_SLSH, KC_RSFT,
-                             KC_LALT, KC_LGUI, _______, KC_SPC , KC_ENT , _______, _______, _______
+                             KC_LALT, KC_LGUI, _______, KC_SPC , KC_ENT , KC_ACL0, KC_ACL1, KC_ACL2
 ),
 [LDEBUG] = LAYOUT(
   KC_F   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_GRV ,
   KC_NO  , KC_NO  , KC_NO  , KC_MS_U, KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_MINS,
   KC_NO  , KC_MS_L, KC_MS_L, KC_MS_D, KC_MS_R, KC_F6  ,                   KC_LEFT, KC_DOWN, KC_UP  , KC_DOWN, KC_SCLN, KC_QUOT,
   KC_NO  , KC_Z   , KC_X   , KC_C   , KC_HOME, QK_BOOT, KC_LBRC, KC_RBRC, KC_N   , KC_M   , KC_COMM, KC_DOT , KC_SLSH, KC_RSFT,
-                             KC_LALT, KC_LGUI, _______, KC_SPC , KC_ENT , _______, _______, _______
+                             KC_LALT, KC_LGUI, _______, KC_SPC , KC_ENT , KC_NO  , KC_NO  , KC_NO
 ),
 };
 
