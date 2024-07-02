@@ -40,7 +40,14 @@ enum lily_58_custom_keycode {
 #define UK_SPC LT(LFUNC, KC_SPC)
 
 #ifdef OLED_ENABLE
+
 bool oled_task_user(void)  {
+
+    if (!is_keyboard_master()) {
+        oled_write(read_logo(), false);
+        return false;
+    }
+
     oled_write_P(PSTR("Layer: "), false);
 
 
@@ -72,7 +79,9 @@ bool oled_task_user(void)  {
     //
     //sprintf(buffer, "RgbMode %d\n", rgb_matrix_config.mode);
     //oled_write_P(PSTR(buffer), false);
-    oled_write_P(PSTR(read_keylogs()), false);
+    oled_write_ln_P(PSTR(read_keylogs()), false);
+    oled_write_ln_P(PSTR(read_keymods()), false);
+    oled_write_ln_P(PSTR(read_keylog()), false);
     //sprint_recent_keycodes(buffer, 24);
     //oled_write_P(PSTR(buffer), false);
     //   oled_write_ln_P(PSTR("\n"), false);
