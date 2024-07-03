@@ -39,19 +39,47 @@ enum lily_58_custom_keycode {
 #define RST_J RSFT_T(KC_J)
 #define UK_SPC LT(LFUNC, KC_SPC)
 
+int logo_show_delay = 50;
+
+
+uint32_t hide_logo(uint32_t trigger_time, void *cb_arg) {
+    /* do something */
+    logo_show_delay = 0;
+    return 0;
+}
+
+void keyboard_post_init_user(void) {
+#ifdef OLED_ENABLE
+    oled_write(read_logo(), false);
+    defer_exec(3000, hide_logo, NULL);
+#endif
+}
+
 #ifdef OLED_ENABLE
 
+bool shutdown_user(bool jump_to_bootloader) {
+    logo_show_delay=1;
+    oled_write(read_logo(), false);
+    return true;
+
+}
+
 bool oled_task_user(void)  {
+
+    if (logo_show_delay> 0) {
+        return false;
+    }
 
     if (!is_keyboard_master()) {
         oled_write(read_logo(), false);
         return false;
     }
 
+    uint16_t layer_id = get_highest_layer(layer_state);
+
     oled_write_P(PSTR("Layer: "), false);
 
 
-    uint16_t layer_id = get_highest_layer(layer_state);
     switch (layer_id) {
         case LBASE:
             oled_write_P(PSTR("Default\n"), false);
@@ -73,23 +101,9 @@ bool oled_task_user(void)  {
             oled_write_P(PSTR("Undefined\n"), false);
     }
 
-    //char buffer[200];
-    //snprintf_keymap(layer_id, buffer, 200);
-    //oled_write_P(PSTR(buffer), false);
-    //
-    //sprintf(buffer, "RgbMode %d\n", rgb_matrix_config.mode);
-    //oled_write_P(PSTR(buffer), false);
+    oled_write_ln_P(PSTR(read_keylog()), false);
     oled_write_ln_P(PSTR(read_keylogs()), false);
     oled_write_ln_P(PSTR(read_keymods()), false);
-    oled_write_ln_P(PSTR(read_keylog()), false);
-    //sprint_recent_keycodes(buffer, 24);
-    //oled_write_P(PSTR(buffer), false);
-    //   oled_write_ln_P(PSTR("\n"), false);
-    // Host Keyboard LED Status
-    //led_t led_state = host_keyboard_led_state();
-    //oled_write_P(led_state.num_lock ? PSTR("NUM ") : PSTR("    "), false);
-    //oled_write_P(led_state.caps_lock ? PSTR("CAP ") : PSTR("    "), false);
-    //oled_write_P(led_state.scroll_lock ? PSTR("SCR ") : PSTR("    "), false);
 
     return false;
 }
@@ -97,7 +111,9 @@ bool oled_task_user(void)  {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef OLED_ENABLE
-    set_keylog(keycode, record);
+    if (record->event.pressed) {
+        set_keylog(keycode, record);
+    }
 #endif
 
     switch (keycode) {
