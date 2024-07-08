@@ -1,11 +1,14 @@
+#include <stdint.h>
 #include QMK_KEYBOARD_H
 #include "keycodes.h"
 #include "keymap_us.h"
 #include "quantum_keycodes.h"
 #include "send_string_keycodes.h"
 #include "lily.h"
+
 #ifdef OLED_ENABLE
 #include "oled_driver.h"
+
 #endif
 
 #include "keycode.h"
@@ -39,8 +42,21 @@ enum lily_58_custom_keycode {
 #define RST_J RSFT_T(KC_J)
 #define UK_SPC LT(LFUNC, KC_SPC)
 
-int logo_show_delay = 50;
+#define OLED_APM_INTERVAL 60000
 
+static int logo_show_delay = 50;
+
+static uint16_t press_key_count = 0;
+static uint8_t keycode_apm = 0;
+
+bool is_master = false;
+
+uint32_t calc_apm(uint32_t trigger_time, void *cb_arg) {
+    /* do something */
+    keycode_apm = press_key_count;
+    press_key_count = 0;
+    return 60000;
+}
 
 uint32_t hide_logo(uint32_t trigger_time, void *cb_arg) {
     /* do something */
@@ -49,9 +65,13 @@ uint32_t hide_logo(uint32_t trigger_time, void *cb_arg) {
 }
 
 void keyboard_post_init_user(void) {
+
+    is_master = is_keyboard_master();
+
 #ifdef OLED_ENABLE
     oled_write(read_logo(), false);
     defer_exec(3000, hide_logo, NULL);
+    defer_exec(60000, calc_apm, NULL);
 #endif
 }
 
@@ -65,6 +85,7 @@ bool shutdown_user(bool jump_to_bootloader) {
 }
 
 bool oled_task_user(void)  {
+    char charbuffer[21]  = {0};
 
     if (logo_show_delay> 0) {
         return false;
@@ -77,9 +98,10 @@ bool oled_task_user(void)  {
 
     uint16_t layer_id = get_highest_layer(layer_state);
 
-    oled_write_P(PSTR("Layer: "), false);
+    sprintf(charbuffer, "apm: %d ", keycode_apm);
 
-
+    oled_write_P(PSTR(charbuffer), false);
+    oled_write_P(PSTR(" "), false);
     switch (layer_id) {
         case LBASE:
             oled_write_P(PSTR("Default\n"), false);
@@ -103,7 +125,7 @@ bool oled_task_user(void)  {
 
     oled_write_ln_P(PSTR(read_keylog()), false);
     oled_write_ln_P(PSTR(read_keylogs()), false);
-    oled_write_ln_P(PSTR(read_keymods()), false);
+
 
     return false;
 }
@@ -112,6 +134,8 @@ bool oled_task_user(void)  {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef OLED_ENABLE
     if (record->event.pressed) {
+        logo_show_delay = 0;
+        press_key_count ++;
         set_keylog(keycode, record);
     }
 #endif

@@ -14,7 +14,7 @@ PROGRAM_CMD =  pico-dfu -y $(BUILD_DIR)/$(TARGET).uf2
 SRC +=  ./lib/rgb_state_reader.c \
         ./lib/layer_state_reader.c \
         ./lib/logo_reader.c \
-        ./lib/keylogger.c
+        keyloggermod.c
 
 OPT_DEFS += -DMK_KINETIC_SPEED -DMOUSEKEY_INITIAL_SPEED=420 -DOLED_FONT_H="\"lib/glcdfont_lily.c\""
 
