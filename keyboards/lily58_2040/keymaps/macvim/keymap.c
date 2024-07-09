@@ -140,7 +140,11 @@ bool oled_task_user(void)  {
     }
 
     oled_write_P(PSTR(read_keylogs()), false);
-    oled_write_ln_P(PSTR(read_keylog()), false);
+    if (debug_enable) {
+        oled_write_ln_P(PSTR(read_keylog()), false);
+    } else {
+        oled_write_ln_P(PSTR("Lily58 QMK"), false);
+    }
 
 
     return false;
@@ -211,7 +215,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [LDEBUG] = LAYOUT(
   KC_F   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_GRV ,
   KC_NO  , KC_NO  , KC_NO  , KC_MS_U, KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_MINS,
-  KC_NO  , KC_MS_L, KC_MS_L, KC_MS_D, KC_MS_R, KC_F6  ,                   KC_LEFT, KC_DOWN, KC_UP  , KC_DOWN, KC_SCLN, KC_QUOT,
+  KC_NO  , KC_MS_L, KC_MS_L, DB_TOGG, KC_MS_R, KC_F6  ,                   KC_LEFT, KC_DOWN, KC_UP  , KC_DOWN, KC_SCLN, KC_QUOT,
   KC_NO  , KC_Z   , KC_X   , KC_C   , KC_HOME, QK_BOOT, KC_LBRC, KC_RBRC, KC_N   , KC_M   , KC_COMM, KC_DOT , KC_SLSH, KC_RSFT,
                              KC_LALT, KC_LGUI, _______, KC_SPC , KC_ENT , KC_NO  , KC_NO  , KC_NO
 ),
