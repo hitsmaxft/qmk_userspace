@@ -46,7 +46,7 @@ const char code_to_name[60] = {' ', ' ', ' ', ' ', 'a', 'b', 'c', 'd', 'e', 'f',
 
 char find_keytable(uint16_t keycode) {
 
-    static char name = ' ';
+    char name = ' ';
     if (keycode < 0x3C) {
         name = code_to_name[keycode];
     } else {
@@ -78,24 +78,27 @@ void set_keylog(uint16_t keycode, keyrecord_t *record) {
         inited = 1;
     }
 
-    static int tap_layer;
+    int tap_layer = -1;
 
-    tap_layer = -1;
     if (IS_QK_MOD_TAP(keycode)) {
         if (record->tap.count) {
-            keycode = QK_MOD_TAP_GET_TAP_KEYCODE(keycode);
+          keycode = QK_MOD_TAP_GET_TAP_KEYCODE(keycode);
         } else {
+          //keycode = 0xE0 + biton(QK_MOD_TAP_GET_MODS(keycode) & 0xF) + biton(QK_MOD_TAP_GET_MODS(keycode) & 0x10);
         }
+    } else if (IS_QK_LAYER_TAP(keycode) && record->tap.count) {
+        keycode = QK_LAYER_TAP_GET_TAP_KEYCODE(keycode);
     } else if (IS_QK_LAYER_TAP(keycode)) {
-        if (record->tap.count) {
-            keycode = QK_LAYER_TAP_GET_TAP_KEYCODE(keycode);
-        } else {
-            tap_layer = QK_LAYER_TAP_GET_LAYER(keycode);
-        }
+        tap_layer = QK_LAYER_TAP_GET_LAYER(keycode);
+    } else if (IS_QK_MODS(keycode)) {
+        //keycode = QK_MODS_GET_BASIC_KEYCODE(keycode);
+    } else if (IS_QK_ONE_SHOT_MOD(keycode)) {
+        //keycode = 0xE0 + biton(QK_ONE_SHOT_MOD_GET_MODS(keycode) & 0xF) + biton(QK_ONE_SHOT_MOD_GET_MODS(keycode) & 0x10);
     }
-    static char name = ' ';
-    static char mod = ' ';
-    static int add_sep = 0;
+
+    char name = ' ';
+    char mod = ' ';
+    int add_sep = 0;
 
     name = find_keytable(keycode);
 
