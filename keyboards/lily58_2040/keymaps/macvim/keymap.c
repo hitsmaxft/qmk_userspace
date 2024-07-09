@@ -42,20 +42,36 @@ enum lily_58_custom_keycode {
 #define RST_J RSFT_T(KC_J)
 #define UK_SPC LT(LFUNC, KC_SPC)
 
-#define OLED_APM_INTERVAL 60000
+#define OLED_APM_INTERVAL 1000
 
 static int logo_show_delay = 50;
 
-static uint16_t press_key_count = 0;
+#define APM_BUCKET_SIZE 60
+static uint8_t apm_bucket_idx = 0 ;
+static uint8_t apm_buckets[APM_BUCKET_SIZE] = {0} ;
+static uint8_t press_key_count = 0;
 static uint8_t keycode_apm = 0;
 
 bool is_master = false;
 
+/**
+ * calculate apm by 6 slot;
+ */
 uint32_t calc_apm(uint32_t trigger_time, void *cb_arg) {
-    /* do something */
-    keycode_apm = press_key_count;
+    apm_buckets[apm_bucket_idx] = press_key_count;
     press_key_count = 0;
-    return 60000;
+
+    //next update slot
+    apm_bucket_idx = (apm_bucket_idx + 1) % APM_BUCKET_SIZE;
+
+    uint8_t sum = 0;
+    for (int i =0 ; i < APM_BUCKET_SIZE ; i++ ){
+        sum += apm_buckets[i];
+    }
+
+    //reset
+    keycode_apm = sum;
+    return OLED_APM_INTERVAL;
 }
 
 uint32_t hide_logo(uint32_t trigger_time, void *cb_arg) {
@@ -71,7 +87,7 @@ void keyboard_post_init_user(void) {
 #ifdef OLED_ENABLE
     oled_write(read_logo(), false);
     defer_exec(3000, hide_logo, NULL);
-    defer_exec(60000, calc_apm, NULL);
+    defer_exec(OLED_APM_INTERVAL, calc_apm, NULL);
 #endif
 }
 
@@ -98,33 +114,33 @@ bool oled_task_user(void)  {
 
     uint16_t layer_id = get_highest_layer(layer_state);
 
-    sprintf(charbuffer, "apm: %d ", keycode_apm);
+    sprintf(charbuffer, "APM: %3d ", keycode_apm);
 
     oled_write_P(PSTR(charbuffer), false);
-    oled_write_P(PSTR(" "), false);
+    oled_write_P(PSTR(""), false);
     switch (layer_id) {
         case LBASE:
-            oled_write_P(PSTR("Default\n"), false);
+            oled_write_P(PSTR("Def\n"), false);
             break;
         case LLOWER:
-            oled_write_P(PSTR("LOWER\n"), false);
+            oled_write_P(PSTR("LOW\n"), false);
             break;
         case LRAISE:
-            oled_write_P(PSTR("RAISE\n"), false);
+            oled_write_P(PSTR("UP \n"), false);
             break;
         case LFUNC:
-            oled_write_P(PSTR("FUNC\n"), false);
+            oled_write_P(PSTR("FN \n"), false);
             break;
         case LDEBUG:
-            oled_write_P(PSTR("DEBUG\n"), false);
+            oled_write_P(PSTR("DBG\n"), false);
             break;
         default:
             // Or use the write_ln shortcut over adding '\n' to the end of your string
             oled_write_P(PSTR("Undefined\n"), false);
     }
 
+    oled_write_P(PSTR(read_keylogs()), false);
     oled_write_ln_P(PSTR(read_keylog()), false);
-    oled_write_ln_P(PSTR(read_keylogs()), false);
 
 
     return false;
@@ -173,16 +189,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [LRAISE] = LAYOUT(
   KC_NO  , KC_TILD, KC_EXLM, KC_AT  , KC_HASH, KC_DLR ,                   KC_PERC, KC_CIRC, KC_AMPR, KC_UNDS, KC_PLUS, _______,
   KC_NO  , KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_PIPE,
-  _______, KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_NO  , KC_MINS, KC_EQL , KC_LBRC, KC_RBRC, KC_NO ,
-  _______, KC_F7  , KC_F8  , KC_F9  , KC_NO  , KC_F6  , _______, _______, KC_N   , KC_M   , KC_LABK, KC_RABK, KC_QUES, _______,
+  _______, KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_NO  , KC_MINS, KC_EQL , KC_NO  , KC_NO  , KC_NO ,
+  _______, KC_F7  , KC_F8  , KC_F9  , KC_NO  , KC_F6  , _______, _______, KC_LBRC, KC_RBRC, KC_LABK, KC_RABK, KC_QUES, _______,
                              _______, _______, _______, _______, _______, KC_NO  , KC_NO  , KC_NO
 ),
 
 [LLOWER] = LAYOUT(
   _______, KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,                   KC_NO  , KC_F7  , KC_F8  , KC_MINS, KC_EQL , KC_GRV ,
   MO(LFN), KC_EXLM, KC_AT  , KC_HASH, KC_DLR , KC_PERC,                   KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_PIPE,
-  _______, KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_BSPC, KC_UNDS, KC_PLUS, KC_LCBR, KC_RCBR, KC_QUOT,
-  _______, KC_F7  , KC_F8  , KC_F9  , KC_NO  , KC_F6  , KC_LBRC, KC_RBRC, KC_ENT,  KC_NO, KC_COMM,   KC_NO  , KC_NO  , KC_TILD,
+  _______, KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_BSPC, KC_UNDS, KC_PLUS, KC_NO  , KC_ENT, KC_QUOT,
+  _______, KC_F7  , KC_F8  , KC_F9  , KC_NO  , KC_F6  , KC_LBRC, KC_RBRC, KC_LCBR, KC_RCBR, KC_COMM,   KC_NO  , KC_NO  , KC_TILD,
                              _______, _______, _______, KC_SPC , KC_ENT , _______, _______, _______
 ),
 [LFUNC] = LAYOUT(

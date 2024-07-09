@@ -19,14 +19,26 @@
 #define CHAR_LEFT 0x1B
 
 
+#define MAX_CHAR_LINE = 21
 #define KEY_LOG_COUNT 20
 #define KEY_LOGS_SEP ((KEY_LOG_COUNT/2))
-#define KEY_LOG_ARR_LEN  ((KEY_LOG_COUNT*2+2))
+#define KEY_LOG_ARR_LEN  ((KEY_LOG_COUNT*2 + 2))
 
 char keylog_str[24]   = {};
 char keylogs_str[ KEY_LOG_ARR_LEN]  = {};
 char keylogs_mods[KEY_LOG_COUNT] = {};
 int  keylogs_str_idx  = 0;
+
+static bool inited = false;
+
+void reset_keylogs_str(void) {
+    keylogs_str_idx = 0;
+    for (int i = 0; i < KEY_LOG_ARR_LEN - 1; i++) {
+        keylogs_str[i]  = ' ';
+    }
+    keylogs_str[KEY_LOG_COUNT]  = '\n';
+    keylogs_str[KEY_LOG_COUNT*2 + 1]  = '\n';
+}
 
 
 const char code_to_name[60] = {' ', ' ', ' ', ' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'R', 0x1C, 0x20, 'T', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ';', '\'', ' ', ',', '.', '/', ' ', ' ', ' '};
@@ -61,7 +73,11 @@ char find_keytable(uint16_t keycode) {
 }
 
 void set_keylog(uint16_t keycode, keyrecord_t *record) {
-    
+    if (!inited) {
+        reset_keylogs_str();
+        inited = 1;
+    }
+
     static int tap_layer;
 
     tap_layer = -1;
@@ -96,13 +112,10 @@ void set_keylog(uint16_t keycode, keyrecord_t *record) {
     if (keylogs_str_idx == KEY_LOG_COUNT) {
         // reset output
         keylogs_str_idx = 0;
-        for (int i = 0; i < KEY_LOG_ARR_LEN - 1; i++) {
-            keylogs_str[i]  = ' ';
-        }
+        reset_keylogs_str();
         add_sep = 0;
     } else if (keylogs_str_idx  == KEY_LOGS_SEP) {
         //add new line
-        keylogs_str[keylogs_str_idx * 2 ] = ' ';
         add_sep = 1;
     }
 
