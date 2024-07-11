@@ -112,6 +112,12 @@ bool oled_task_user(void)  {
         return false;
     }
 
+    if (debug_enable) {
+        oled_write_ln_P(PSTR(read_keylog()), false);
+    } else {
+        oled_write_ln_P(PSTR("Lily58 QMK"), false);
+    }
+
     uint16_t layer_id = get_highest_layer(layer_state);
 
     sprintf(charbuffer, "APM: %3d ", keycode_apm);
@@ -140,12 +146,6 @@ bool oled_task_user(void)  {
     }
 
     oled_write_P(PSTR(read_keylogs()), false);
-    if (debug_enable) {
-        oled_write_ln_P(PSTR(read_keylog()), false);
-    } else {
-        oled_write_ln_P(PSTR("Lily58 QMK"), false);
-    }
-
 
     return false;
 }

@@ -41,10 +41,12 @@ void reset_keylogs_str(void) {
 }
 
 #define SPC_NAME 0xDB
-#define ENT_NAME 'R'
+#define ENT_NAME 0xDE
+#define TAB_NAME 0xDA
+#define ESC_NAME 0x9E
 
 
-const char code_to_name[60] = {' ', ' ', ' ', ' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'R', 0x1C, 0x20, 'T', SPC_NAME, ' ', ' ', ' ', ' ', ' ', ' ', ';', '\'', ' ', ',', '.', '/', ' ', ' ', ' '};
+const char code_to_name[60] = {' ', ' ', ' ', ' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ENT_NAME, ESC_NAME, 0xD9, TAB_NAME, SPC_NAME, ' ', ' ', ' ', ' ', ' ', ' ', ';', '\'', ' ', ',', '.', '/', ' ', ' ', ' '};
 
 
 char find_keytable(uint16_t keycode) {
@@ -54,6 +56,9 @@ char find_keytable(uint16_t keycode) {
         name = code_to_name[keycode];
     } else {
         switch (keycode) {
+            case KC_BSPC:
+                name = 0xD9; //replace space to dot
+                break;
             case KC_SPC:
                 name = 0xDB; //replace space to dot
                 break;
