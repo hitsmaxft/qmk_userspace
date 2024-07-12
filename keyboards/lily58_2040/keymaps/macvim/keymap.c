@@ -194,14 +194,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_NO  , KC_TILD, KC_EXLM, KC_AT  , KC_HASH, KC_DLR ,                   KC_PERC, KC_CIRC, KC_AMPR, KC_UNDS, KC_PLUS, _______,
   KC_NO  , KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_PIPE,
   _______, KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_NO  , KC_MINS, KC_EQL , KC_NO  , KC_NO  , KC_NO ,
-  _______, KC_F7  , KC_F8  , KC_F9  , KC_NO  , KC_F6  , _______, _______, KC_LBRC, KC_RBRC, KC_LABK, KC_RABK, KC_QUES, _______,
+  _______, KC_F7  , KC_F8  , KC_F9  , KC_NO  , KC_F6  , _______, _______, KC_LBRC, KC_RBRC, KC_LABK, KC_RABK, KC_QUES, KC_NO ,
                              _______, _______, _______, _______, _______, KC_NO  , KC_NO  , KC_NO
 ),
 
 [LLOWER] = LAYOUT(
   _______, KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,                   KC_NO  , KC_F7  , KC_F8  , KC_MINS, KC_EQL , KC_GRV ,
   MO(LFN), KC_EXLM, KC_AT  , KC_HASH, KC_DLR , KC_PERC,                   KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_PIPE,
-  _______, KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_BSPC, KC_UNDS, KC_PLUS, KC_NO  , KC_ENT, KC_QUOT,
+  _______, KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_BSPC, KC_UNDS, KC_PLUS, KC_NO  , KC_NO  , KC_ENT ,
   _______, KC_F7  , KC_F8  , KC_F9  , KC_NO  , KC_F6  , KC_LBRC, KC_RBRC, KC_LCBR, KC_RCBR, KC_COMM,   KC_NO  , KC_NO  , KC_TILD,
                              _______, _______, _______, KC_SPC , KC_ENT , _______, _______, _______
 ),
