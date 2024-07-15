@@ -10,3 +10,5 @@ const char *read_logo(void);
 const char *read_keymods(void);
 const char *read_keylogs(void);
 const char *read_keylog(void);
+
+void reset_keylogs_str(void);

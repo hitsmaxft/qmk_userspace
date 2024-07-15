@@ -7,7 +7,7 @@
 #include "lily.h"
 
 #ifdef OLED_ENABLE
-#include "oled_driver.h"
+#    include "oled_driver.h"
 
 #endif
 
@@ -47,10 +47,10 @@ enum lily_58_custom_keycode {
 static int logo_show_delay = 50;
 
 #define APM_BUCKET_SIZE 60
-static uint8_t apm_bucket_idx = 0 ;
-static uint8_t apm_buckets[APM_BUCKET_SIZE] = {0} ;
-static uint8_t press_key_count = 0;
-static uint8_t keycode_apm = 0;
+static uint8_t apm_bucket_idx               = 0;
+static uint8_t apm_buckets[APM_BUCKET_SIZE] = {0};
+static uint8_t press_key_count              = 0;
+static uint8_t keycode_apm                  = 0;
 
 bool is_master = false;
 
@@ -59,17 +59,17 @@ bool is_master = false;
  */
 uint32_t calc_apm(uint32_t trigger_time, void *cb_arg) {
     apm_buckets[apm_bucket_idx] = press_key_count;
-    press_key_count = 0;
+    press_key_count             = 0;
 
-    //next update slot
+    // next update slot
     apm_bucket_idx = (apm_bucket_idx + 1) % APM_BUCKET_SIZE;
 
     uint8_t sum = 0;
-    for (int i =0 ; i < APM_BUCKET_SIZE ; i++ ){
+    for (int i = 0; i < APM_BUCKET_SIZE; i++) {
         sum += apm_buckets[i];
     }
 
-    //reset
+    // reset
     keycode_apm = sum;
     return OLED_APM_INTERVAL;
 }
@@ -77,11 +77,11 @@ uint32_t calc_apm(uint32_t trigger_time, void *cb_arg) {
 uint32_t hide_logo(uint32_t trigger_time, void *cb_arg) {
     /* do something */
     logo_show_delay = 0;
+    reset_keylogs_str();
     return 0;
 }
 
 void keyboard_post_init_user(void) {
-
     is_master = is_keyboard_master();
 
 #ifdef OLED_ENABLE
@@ -94,16 +94,15 @@ void keyboard_post_init_user(void) {
 #ifdef OLED_ENABLE
 
 bool shutdown_user(bool jump_to_bootloader) {
-    logo_show_delay=1;
+    logo_show_delay = 1;
     oled_write(read_logo(), false);
     return false;
-
 }
 
-bool oled_task_user(void)  {
-    char charbuffer[21]  = {0};
+bool oled_task_user(void) {
+    char charbuffer[21] = {0};
 
-    if (logo_show_delay> 0) {
+    if (logo_show_delay > 0) {
         return false;
     }
 
@@ -120,7 +119,7 @@ bool oled_task_user(void)  {
 
     uint16_t layer_id = get_highest_layer(layer_state);
 
-    const char * layer_name = "  ";
+    const char *layer_name = "  ";
     switch (layer_id) {
         case LBASE:
             layer_name = "Def";
@@ -157,7 +156,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef OLED_ENABLE
     if (record->event.pressed) {
         logo_show_delay = 0;
-        press_key_count ++;
+        press_key_count++;
         set_keylog(keycode, record);
     }
 #endif

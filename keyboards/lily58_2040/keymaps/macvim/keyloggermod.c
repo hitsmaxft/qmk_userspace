@@ -5,6 +5,7 @@
 #include "debug.h"
 #include "keycodes.h"
 #include "modifiers.h"
+#include "printf.h"
 #include "quantum.h"
 
 #define CHAR_LAYER 0xDD
@@ -35,7 +36,6 @@ static char keylog_str[24]               = {};
 static char keylogs_str[KEY_LOG_ARR_LEN] = {};
 
 // deprecate
-
 char       keylogs_mods[KEY_LOGS_COUNT] = {};
 static int keylogs_str_idx              = 0;
 
@@ -93,6 +93,26 @@ char find_keytable(uint16_t keycode) {
     return name;
 }
 
+void process_mods(uint16_t *kc, keyrecord_t *record, int *tap_layer) {
+    uint16_t keycode = *kc;
+
+    if (IS_QK_MOD_TAP(keycode)) {
+        if (record->tap.count) {
+            *kc = QK_MOD_TAP_GET_TAP_KEYCODE(keycode);
+        } else {
+            // keycode = 0xE0 + biton(QK_MOD_TAP_GET_MODS(keycode) & 0xF) + biton(QK_MOD_TAP_GET_MODS(keycode) & 0x10);
+        }
+    } else if (IS_QK_LAYER_TAP(keycode) && record->tap.count) {
+        *kc = QK_LAYER_TAP_GET_TAP_KEYCODE(keycode);
+    } else if (IS_QK_LAYER_TAP(keycode)) {
+        *tap_layer = QK_LAYER_TAP_GET_LAYER(keycode);
+    } else if (IS_QK_MODS(keycode)) {
+        // *kc = QK_MODS_GET_BASIC_KEYCODE(keycode);
+    } else if (IS_QK_ONE_SHOT_MOD(keycode)) {
+        // *kc = 0xE0 + biton(QK_ONE_SHOT_MOD_GET_MODS(keycode) & 0xF) + biton(QK_ONE_SHOT_MOD_GET_MODS(keycode) & 0x10);
+    }
+}
+
 void set_keylog(uint16_t keycode, keyrecord_t *record) {
     if (!inited) {
         reset_keylogs_str();
@@ -101,36 +121,25 @@ void set_keylog(uint16_t keycode, keyrecord_t *record) {
 
     int tap_layer = -1;
 
-    if (IS_QK_MOD_TAP(keycode)) {
-        if (record->tap.count) {
-            keycode = QK_MOD_TAP_GET_TAP_KEYCODE(keycode);
-        } else {
-            // keycode = 0xE0 + biton(QK_MOD_TAP_GET_MODS(keycode) & 0xF) + biton(QK_MOD_TAP_GET_MODS(keycode) & 0x10);
-        }
-    } else if (IS_QK_LAYER_TAP(keycode) && record->tap.count) {
-        keycode = QK_LAYER_TAP_GET_TAP_KEYCODE(keycode);
-    } else if (IS_QK_LAYER_TAP(keycode)) {
-        tap_layer = QK_LAYER_TAP_GET_LAYER(keycode);
-    } else if (IS_QK_MODS(keycode)) {
-        // keycode = QK_MODS_GET_BASIC_KEYCODE(keycode);
-    } else if (IS_QK_ONE_SHOT_MOD(keycode)) {
-        // keycode = 0xE0 + biton(QK_ONE_SHOT_MOD_GET_MODS(keycode) & 0xF) + biton(QK_ONE_SHOT_MOD_GET_MODS(keycode) & 0x10);
-    }
+    process_mods(&keycode, record, &tap_layer);
 
     char name = ' ';
     char mod  = ' ';
 
     name = find_keytable(keycode);
 
-    uint8_t mod_state = get_mods();
 
-    char modGui  = (mod_state & MOD_MASK_GUI) ? 0xd5 : ' ';
-    char modCtl  = (mod_state & MOD_MASK_CTRL) ? 0xd6 : ' ';
-    char modAlt  = (mod_state & MOD_MASK_ALT) ? 0xd7 : ' ';
-    char modShft = (mod_state & MOD_MASK_SHIFT) ? 0x18 : ' ';
+    static char buffer [10] = {0};
+
+    uint8_t mod_state = get_mods();
+    char modGui  = (mod_state & MOD_MASK_GUI) ? 0xd5 : '-';
+    char modCtl  = (mod_state & MOD_MASK_CTRL) ? 0xd6 : '-';
+    char modAlt  = (mod_state & MOD_MASK_ALT) ? 0xd7 : '-';
+    char modShft = (mod_state & MOD_MASK_SHIFT) ? 0x18 : '-';
+    sprintf(buffer, "%c%c%c%c",modCtl, modShft, modAlt, modGui);
 
     // update keylog
-    snprintf(keylog_str, sizeof(keylog_str), "%d %dx%d,k%2d:%c %c%c%c%c %d", keylogs_str_idx, record->event.key.row, record->event.key.col, keycode, name, modGui, modCtl, modAlt, modShft, keylogs_str_idx);
+    snprintf(keylog_str, sizeof(keylog_str), "%2d %d:%d,c=%06d %3s", keylogs_str_idx, record->event.key.row, record->event.key.col, keycode, buffer);
 
     if (tap_layer > -1) {
         if (tap_layer == 0) {
