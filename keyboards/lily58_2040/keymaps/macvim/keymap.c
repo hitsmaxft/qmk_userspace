@@ -96,7 +96,7 @@ void keyboard_post_init_user(void) {
 bool shutdown_user(bool jump_to_bootloader) {
     logo_show_delay=1;
     oled_write(read_logo(), false);
-    return true;
+    return false;
 
 }
 
@@ -120,30 +120,32 @@ bool oled_task_user(void)  {
 
     uint16_t layer_id = get_highest_layer(layer_state);
 
-    sprintf(charbuffer, "APM: %3d ", keycode_apm);
-
-    oled_write_P(PSTR(charbuffer), false);
-    oled_write_P(PSTR(""), false);
+    const char * layer_name = "  ";
     switch (layer_id) {
         case LBASE:
-            oled_write_P(PSTR("Def\n"), false);
+            layer_name = "Def";
             break;
         case LLOWER:
-            oled_write_P(PSTR("LOW\n"), false);
+            layer_name = "LOW";
             break;
         case LRAISE:
-            oled_write_P(PSTR("UP \n"), false);
+            layer_name = "UP";
             break;
         case LFUNC:
-            oled_write_P(PSTR("FN \n"), false);
+            layer_name = "FN";
             break;
         case LDEBUG:
-            oled_write_P(PSTR("DBG\n"), false);
+            layer_name = "DBG";
             break;
         default:
             // Or use the write_ln shortcut over adding '\n' to the end of your string
-            oled_write_P(PSTR("Undefined\n"), false);
+            layer_name = "";
     }
+    sprintf(charbuffer, "%3s ", layer_name);
+    oled_write_P(PSTR(charbuffer), false);
+
+    sprintf(charbuffer, "APM: %3d\n", keycode_apm);
+    oled_write_P(PSTR(charbuffer), false);
 
     oled_write_P(PSTR(read_keylogs()), false);
 
