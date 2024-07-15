@@ -36,8 +36,8 @@ static char keylogs_str[KEY_LOG_ARR_LEN] = {};
 
 // deprecate
 
-char keylogs_mods[KEY_LOGS_COUNT] = {};
-static int  keylogs_str_idx              = 0;
+char       keylogs_mods[KEY_LOGS_COUNT] = {};
+static int keylogs_str_idx              = 0;
 
 static bool inited = false;
 
@@ -99,14 +99,6 @@ void set_keylog(uint16_t keycode, keyrecord_t *record) {
         inited = 1;
     }
 
-    if (keylogs_str_idx >= KEY_LOGS_MAX_CHARS - 1) {
-        // reset output
-        reset_keylogs_str();
-    } else if (keylogs_str_idx == KEY_LOGS_COUNT) {
-        // add_sep
-        keylogs_str_idx++;
-    }
-
     int tap_layer = -1;
 
     if (IS_QK_MOD_TAP(keycode)) {
@@ -161,7 +153,20 @@ void set_keylog(uint16_t keycode, keyrecord_t *record) {
         }
     }
 
-    keylogs_str[keylogs_str_idx++] = mod;
+    int next_char = (mod != ' ') ? 2 : 1;
+
+    if (keylogs_str_idx + next_char > KEY_LOGS_MAX_CHARS) {
+        // reset to first index
+        reset_keylogs_str();
+    } else if (keylogs_str_idx < KEY_LOGS_MAX_CHAR_LINE && keylogs_str_idx + next_char > KEY_LOGS_MAX_CHAR_LINE) {
+        // new line
+        keylogs_str[keylogs_str_idx++] = 0xDB;
+    }
+
+    if (mod != ' ') {
+        keylogs_str[keylogs_str_idx++] = mod;
+    }
+
     keylogs_str[keylogs_str_idx++] = name;
 }
 
