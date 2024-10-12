@@ -1,9 +1,9 @@
-#include <stdint.h>
 #include QMK_KEYBOARD_H
-#include "keycodes.h"
+
+
 #include "keymap_us.h"
-#include "quantum_keycodes.h"
 #include "send_string_keycodes.h"
+
 #include "lily.h"
 
 #ifdef OLED_ENABLE
