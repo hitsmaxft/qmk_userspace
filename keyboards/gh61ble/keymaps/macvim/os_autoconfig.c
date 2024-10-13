@@ -33,12 +33,14 @@ bool process_detected_host_os_kb(os_variant_t detected_os) {
 
     switch (detected_os) {
         case OS_WINDOWS:
+            /**
             if (!keymap_config.swap_lctl_lgui || !keymap_config.swap_rctl_rgui){
                 keymap_config.swap_lctl_lgui = true;
                 keymap_config.swap_rctl_rgui = true;
                 eeconfig_update_keymap(keymap_config.raw);
             }
             break;
+            **/
         case OS_MACOS:
         case OS_IOS:
         case OS_LINUX:
@@ -53,5 +55,7 @@ bool process_detected_host_os_kb(os_variant_t detected_os) {
 
     return true;
 }
+#else
+
 #endif
 
