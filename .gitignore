@@ -5,7 +5,12 @@
 .DS_Store
 ._*
 
+
 # Firmware files
 *.hex
 *.bin
 *.uf2
+
+# user temp files
+.cache
+compile_commands.json
