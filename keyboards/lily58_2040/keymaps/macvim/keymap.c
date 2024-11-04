@@ -39,7 +39,8 @@
 enum lily_58_custom_keycode {
     // vim yank
     UK_VYANK = SAFE_RANGE,
-    UK_SCRCAP
+    UK_SCRCAP,
+    UK_SFTTAB,
 };
 
 #define LBASE 0
@@ -75,7 +76,12 @@ static int logo_show_delay = 50;
 static uint8_t apm_bucket_idx               = 0;
 static uint8_t apm_buckets[APM_BUCKET_SIZE] = {0};
 static uint8_t press_key_count              = 0;
-static uint8_t keycode_apm                  = 0;
+static uint32_t keycode_apm                  = 0;
+
+
+bool is_shift_tab_active = false; // ADD this near the beginning of keymap.c
+uint16_t shift_tab_timer = 0;     // we will be using them soon.
+
 
 bool is_master = false;
 
@@ -89,7 +95,7 @@ uint32_t calc_apm(uint32_t trigger_time, void *cb_arg) {
     // next update slot
     apm_bucket_idx = (apm_bucket_idx + 1) % APM_BUCKET_SIZE;
 
-    uint8_t sum = 0;
+    uint32_t sum = 0;
     for (int i = 0; i < APM_BUCKET_SIZE; i++) {
         sum += apm_buckets[i];
     }
@@ -168,7 +174,7 @@ bool oled_task_user(void) {
     sprintf(charbuffer, "%3s ", layer_name);
     oled_write_P(PSTR(charbuffer), false);
 
-    sprintf(charbuffer, "APM: %3d\n", keycode_apm);
+    sprintf(charbuffer, "APM: %3li\n", keycode_apm);
     oled_write_P(PSTR(charbuffer), false);
 
     oled_write_P(PSTR(read_keylogs()), false);
@@ -187,6 +193,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #endif
 
     switch (keycode) {
+        case KC_TAB:
+            if (is_shift_tab_active ) {
+                is_shift_tab_active = false;
+                shift_tab_timer = 0;
+                unregister_code(KC_LSFT);
+            }
+            break;
         case UK_VYANK:
             if (record->event.pressed) {
                 SEND_STRING(SS_DOWN(X_LSFT) SS_TAP(X_QUOT) SS_DELAY(200) SS_UP(X_LSFT) SS_DELAY(100) SS_TAP(X_KP_PLUS) "y" SS_DELAY(300));
@@ -198,9 +211,33 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_DOWN(X_LCTL) "4" SS_UP(X_LGUI) SS_UP(X_LSFT) SS_UP(X_LCTL));
             }
             break;
+        case UK_SFTTAB:
+            if (record->event.pressed) {
+                if (!is_shift_tab_active) {
+                    is_shift_tab_active = true;
+                    register_code(KC_LSFT);
+                }
+                shift_tab_timer = timer_read();
+                register_code(KC_TAB);
+            } else {
+                unregister_code(KC_TAB);
+            }
+            //if (record->event.pressed) {
+            //    SEND_STRING(SS_DOWN(X_LSFT) SS_DOWN(X_TAB) SS_DELAY(200) SS_UP(X_LSFT) SS_UP(X_TAB));
+            //}
+            break;
     }
     return true;
 };
+
+void matrix_scan_user(void) { // The very important timer.
+  if (is_shift_tab_active) {
+    if (timer_elapsed(shift_tab_timer) > 1000) {
+      unregister_code(KC_LSFT);
+      is_shift_tab_active = false;
+    }
+  }
+}
 // Default keymap. This can be changed in Vial. Use oled.c to change beavior that Vial cannot change.
 
 // clang-format off
@@ -248,11 +285,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
-    [0] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(   LSFT(KC_TAB), KC_TAB) },
+    [0] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(  UK_SFTTAB, KC_TAB) },
     [1] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [2] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [3] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_MS_WH_UP,   KC_MS_WH_DOWN) },
     [4] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
 };
-
-
