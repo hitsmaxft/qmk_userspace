@@ -8,5 +8,5 @@ ifeq ($(SPLIT_LCD_FEATURE), yes)
 		./lib/layer_state_reader.c \
 		./lib/logo_reader.c \
 		$(USER_PATH)/lcd_apm_counter.c \
-		$(USER_PATH)/keyloggermod.c
+		$(USER_PATH)/lcd_keyloggermod.c
 endif
