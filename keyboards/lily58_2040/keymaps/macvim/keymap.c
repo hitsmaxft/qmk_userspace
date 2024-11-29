@@ -249,7 +249,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
   KC_LCTL, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                   KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
   KC_LSFT, KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VYANK, UK_SCRCAP,KC_N  , KC_M   , KC_COMM, KC_DOT,KC_SLSH,TRS_GRV,
-                             KC_CAPS_LOCK, KC_TAB , MO(LLW), UK_SPC,  KC_ENT , MO(LRAISE), KC_LBRC, KC_RBRC
+                             0x029D, KC_TAB , MO(LLW), UK_SPC,  KC_ENT , MO(LRAISE), KC_LBRC, KC_RBRC
 ),
 
 
