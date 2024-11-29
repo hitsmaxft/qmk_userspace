@@ -39,5 +39,5 @@ void reset_keylogs_str(void);
 
 
 void apm_incr_key_counter(void);
-uint32_t read_keycode_apm(void);
-uint32_t calc_apm(uint32_t trigger_time, void *cb_arg);
+uint32_t apm_read_keycode(void);
+uint32_t apm_calc_result(uint32_t trigger_time, void *cb_arg);

@@ -91,7 +91,7 @@ void keyboard_post_init_user(void) {
 #ifdef OLED_ENABLE
     oled_write(read_logo(), false);
     defer_exec(3000, hide_logo, NULL);
-    defer_exec(OLED_APM_INTERVAL, calc_apm, NULL);
+    defer_exec(OLED_APM_INTERVAL, apm_calc_result(), NULL);
 #endif
 }
 
@@ -147,7 +147,7 @@ bool oled_task_user(void) {
     sprintf(charbuffer, "%3s ", layer_name);
     oled_write_P(PSTR(charbuffer), false);
 
-    sprintf(charbuffer, "APM: %3li\n", read_keycode_apm());
+    sprintf(charbuffer, "APM: %3li\n", apm_read_keycode());
     oled_write_P(PSTR(charbuffer), false);
 
     oled_write_P(PSTR(read_keylogs()), false);

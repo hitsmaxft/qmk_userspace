@@ -11,7 +11,7 @@ static uint32_t keycode_apm                  = 0;
 /**
  * calculate apm by 6 slot;
  */
-uint32_t calc_apm(uint32_t trigger_time, void *cb_arg) {
+uint32_t apm_calc_result(uint32_t trigger_time, void *cb_arg) {
     apm_buckets[apm_bucket_idx] = press_key_count;
     press_key_count             = 0;
 
@@ -32,6 +32,6 @@ void apm_incr_key_counter(void) {
     press_key_count++;
 }
 
-uint32_t read_keycode_apm(void) {
+uint32_t apm_read_keycode(void) {
     return keycode_apm;
 }
