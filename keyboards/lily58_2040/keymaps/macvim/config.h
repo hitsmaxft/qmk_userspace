@@ -26,3 +26,8 @@
 #define OLED_DC_PIN 28
 #define OLED_DISPLAY_128X32 TRUE
 
+// mock apple keyboard vid;pid
+#undef VENDOR_ID
+#define VENDOR_ID 0x05AC
+#undef PRODUCT_ID
+#define PRODUCT_ID 0x0220

@@ -20,6 +20,7 @@
  */
 
 #pragma once
+#include QMK_KEYBOARD_H
 
 #include <stdio.h>
 #include "action.h"
@@ -33,3 +34,10 @@ const char *read_keylogs(void);
 const char *read_keylog(void);
 
 void reset_keylogs_str(void);
+
+#define OLED_APM_INTERVAL 1000
+
+
+void apm_incr_key_counter(void);
+uint32_t read_keycode_apm(void);
+uint32_t calc_apm(uint32_t trigger_time, void *cb_arg);

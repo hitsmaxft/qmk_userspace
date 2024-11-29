@@ -68,15 +68,7 @@ enum lily_58_custom_keycode {
 #define ST_UNDS RSFT_T(KC_UNDS)
 #define UK_SPC LT(LFUNC, KC_SPC)
 
-#define OLED_APM_INTERVAL 1000
-
 static int logo_show_delay = 50;
-
-#define APM_BUCKET_SIZE 60
-static uint8_t apm_bucket_idx               = 0;
-static uint8_t apm_buckets[APM_BUCKET_SIZE] = {0};
-static uint8_t press_key_count              = 0;
-static uint32_t keycode_apm                  = 0;
 
 
 bool is_shift_tab_active = false; // ADD this near the beginning of keymap.c
@@ -85,25 +77,6 @@ uint16_t shift_tab_timer = 0;     // we will be using them soon.
 
 bool is_master = false;
 
-/**
- * calculate apm by 6 slot;
- */
-uint32_t calc_apm(uint32_t trigger_time, void *cb_arg) {
-    apm_buckets[apm_bucket_idx] = press_key_count;
-    press_key_count             = 0;
-
-    // next update slot
-    apm_bucket_idx = (apm_bucket_idx + 1) % APM_BUCKET_SIZE;
-
-    uint32_t sum = 0;
-    for (int i = 0; i < APM_BUCKET_SIZE; i++) {
-        sum += apm_buckets[i];
-    }
-
-    // reset
-    keycode_apm = sum;
-    return OLED_APM_INTERVAL;
-}
 
 uint32_t hide_logo(uint32_t trigger_time, void *cb_arg) {
     /* do something */
@@ -174,7 +147,7 @@ bool oled_task_user(void) {
     sprintf(charbuffer, "%3s ", layer_name);
     oled_write_P(PSTR(charbuffer), false);
 
-    sprintf(charbuffer, "APM: %3li\n", keycode_apm);
+    sprintf(charbuffer, "APM: %3li\n", read_keycode_apm());
     oled_write_P(PSTR(charbuffer), false);
 
     oled_write_P(PSTR(read_keylogs()), false);
@@ -187,7 +160,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef OLED_ENABLE
     if (record->event.pressed) {
         logo_show_delay = 0;
-        press_key_count++;
+        apm_incr_key_counter();
         set_keylog(keycode, record);
     }
 #endif
@@ -249,7 +222,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
   KC_LCTL, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                   KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
   KC_LSFT, KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VYANK, UK_SCRCAP,KC_N  , KC_M   , KC_COMM, KC_DOT,KC_SLSH,TRS_GRV,
-                             0x029D, KC_TAB , MO(LLW), UK_SPC,  KC_ENT , MO(LRAISE), KC_LBRC, KC_RBRC
+                             KC_CAPS_LOCK, KC_TAB , MO(LLW), UK_SPC,  KC_ENT , MO(LRAISE), KC_LBRC, KC_RBRC
 ),
 
 

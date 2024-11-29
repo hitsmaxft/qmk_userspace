@@ -12,12 +12,10 @@ DEFERRED_EXEC_ENABLE = yes
 
 PROGRAM_CMD =  pico-dfu -y $(BUILD_DIR)/$(TARGET).uf2
 
+NKRO_ENABLE = no
 
-# If you want to change the display of OLED, you need to change here
-SRC +=  ./lib/rgb_state_reader.c \
-        ./lib/layer_state_reader.c \
-        ./lib/logo_reader.c \
-        keyloggermod.c
+KEYBOARD_SHARED_EP = yes
 
-OPT_DEFS += -DOLED_BRIGHTNESS=120 -DMK_KINETIC_SPEED -DMOUSEKEY_INITIAL_SPEED=420 -DOLED_FONT_H="\"glcdfont_lily.c\""
+SPLIT_LCD_FEATURE = yes
 
+OPT_DEFS += -DOLED_BRIGHTNESS=120 -DMK_KINETIC_SPEED -DMOUSEKEY_INITIAL_SPEED=420
