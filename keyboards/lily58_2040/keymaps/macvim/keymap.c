@@ -91,7 +91,7 @@ void keyboard_post_init_user(void) {
 #ifdef OLED_ENABLE
     oled_write(read_logo(), false);
     defer_exec(3000, hide_logo, NULL);
-    defer_exec(OLED_APM_INTERVAL, apm_calc_result(), NULL);
+    defer_exec(OLED_APM_INTERVAL, apm_calc_result, NULL);
 #endif
 }
 
@@ -218,7 +218,7 @@ void matrix_scan_user(void) { // The very important timer.
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 [LBASE] = LAYOUT(
-  KC_ESC , KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
+  QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
   KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
   KC_LCTL, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                   KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
   KC_LSFT, KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VYANK, UK_SCRCAP,KC_N  , KC_M   , KC_COMM, KC_DOT,KC_SLSH,TRS_GRV,
