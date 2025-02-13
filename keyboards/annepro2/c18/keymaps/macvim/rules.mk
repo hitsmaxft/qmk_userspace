@@ -29,6 +29,7 @@ KEY_OVERRIDE_ENABLE = no
 DEBOUNCE_TYPE = asym_eager_defer_pk
 
 
+
 # home mod tapping
 CONSOLE_ENABLE = no # Console for debug
 COMMAND_ENABLE = no # Commands for debug and configuration

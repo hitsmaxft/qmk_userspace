@@ -19,15 +19,43 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
-#define OLED_IC  OLED_IC_SSD1306
+#include QMK_KEYBOARD_H
 
-#define OLED_CS_PIN 29
-#define OLED_DC_PIN 28
-#define OLED_DISPLAY_128X32 TRUE
 
-// mock apple keyboard vid;pid
-// #undef VENDOR_ID
-// #define VENDOR_ID 0x05AC
-// #undef PRODUCT_ID
-// #define PRODUCT_ID 0x0220
+#ifdef OS_DETECTION_ENABLE
+
+bool process_detected_host_os_kb(os_variant_t detected_os) {
+    if (!process_detected_host_os_user(detected_os)) {
+        return false;
+    }
+
+    keymap_config.raw = eeconfig_read_keymap();
+
+    switch (detected_os) {
+        case OS_WINDOWS:
+            /**
+            if (!keymap_config.swap_lctl_lgui || !keymap_config.swap_rctl_rgui){
+                keymap_config.swap_lctl_lgui = true;
+                keymap_config.swap_rctl_rgui = true;
+                eeconfig_update_keymap(keymap_config.raw);
+            }
+            break;
+            **/
+        case OS_MACOS:
+        case OS_IOS:
+        case OS_LINUX:
+        case OS_UNSURE:
+            if (keymap_config.swap_lctl_lgui || keymap_config.swap_rctl_rgui){
+                keymap_config.swap_lctl_lgui = false;
+                keymap_config.swap_rctl_rgui = false;
+                eeconfig_update_keymap(keymap_config.raw);
+            }
+            break;
+    }
+
+    return true;
+}
+#else
+
+#endif
+

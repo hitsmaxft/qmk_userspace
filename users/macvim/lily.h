@@ -20,14 +20,24 @@
  */
 
 #pragma once
-#define OLED_IC  OLED_IC_SSD1306
+#include QMK_KEYBOARD_H
 
-#define OLED_CS_PIN 29
-#define OLED_DC_PIN 28
-#define OLED_DISPLAY_128X32 TRUE
+#include <stdio.h>
+#include "action.h"
 
-// mock apple keyboard vid;pid
-// #undef VENDOR_ID
-// #define VENDOR_ID 0x05AC
-// #undef PRODUCT_ID
-// #define PRODUCT_ID 0x0220
+void set_keylog(uint16_t keycode, keyrecord_t *record);
+
+const char find_keytable(uint16_t keycode);
+const char *read_logo(void);
+const char *read_keymods(void);
+const char *read_keylogs(void);
+const char *read_keylog(void);
+
+void reset_keylogs_str(void);
+
+#define OLED_APM_INTERVAL 1000
+
+
+void apm_incr_key_counter(void);
+uint32_t apm_read_keycode(void);
+uint32_t apm_calc_result(uint32_t trigger_time, void *cb_arg);
