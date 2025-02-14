@@ -19,6 +19,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "keycodes.h"
+#include "quantum_keycodes.h"
 #include QMK_KEYBOARD_H
 
 
@@ -51,7 +53,9 @@ enum lily_58_custom_keycode {
 #define LFN 3
 #define LDEBUG 4
 
-#define TRS_GRV LT(LFUNC, KC_GRV)
+// right shift mod
+#define TRS_GRV RSFT_T(KC_GRV)
+
 #define TU_BSPC LT(LRAISE, KC_BSPC)
 #define LCT_A LCTL_T(KC_A)
 #define LAT_S LALT_T(KC_S)
@@ -222,7 +226,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
   KC_LCTL, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                   KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
   KC_LSFT, KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VYANK, UK_SCRCAP,KC_N  , KC_M   , KC_COMM, KC_DOT,KC_SLSH,  TRS_GRV,
-                             KC_CAPS_LOCK, MO(LFUNC) , MO(LLW), KC_SPC,  KC_ENT , MO(LRAISE), KC_LBRC, KC_RBRC
+                             KC_CAPS_LOCK, KC_TAB , MO(LLW), UK_SPC,  KC_ENT , MO(LRAISE), KC_LBRC, KC_RBRC
 ),
 
 
