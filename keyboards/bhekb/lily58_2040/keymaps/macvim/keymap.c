@@ -49,9 +49,13 @@ enum lily_58_custom_keycode {
 #define LLOWER 1
 #define LLW 1
 #define LRAISE 2
+
+//adjust layer
 #define LFUNC 3
+#define ADJUST 3
 #define LFN 3
-#define LDEBUG 4
+#define LDEBUG 3
+#define LNAVI 4
 #define LNUM 5
 
 // right shift mod
@@ -71,7 +75,7 @@ enum lily_58_custom_keycode {
 // for tab
 #define ST_MINS RSFT_T(KC_MINS)
 #define ST_UNDS RSFT_T(KC_UNDS)
-#define UK_SPC LT(LNUM, KC_SPC)
+#define UK_SPC LT(LNAVI, KC_SPC)
 
 static int logo_show_delay = 50;
 
@@ -137,14 +141,17 @@ bool oled_task_user(void) {
             layer_name = "LOW";
             break;
         case LRAISE:
-            layer_name = "UP";
-            break;
-        case LFUNC:
-            layer_name = "FN";
+            layer_name = "RAI";
             break;
         case LDEBUG:
-            layer_name = "DBG";
+            layer_name = "ADJ";
             break;
+         case LNAVI:
+             layer_name = "NAV";
+             break;
+         case LNUM:
+             layer_name = "NUM";
+             break;
         default:
             // Or use the write_ln shortcut over adding '\n' to the end of your string
             layer_name = "";
@@ -247,18 +254,18 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                              _______, _______, MO(LFUNC), _______, _______, MO(LFUNC), KC_NO  , KC_NO
 ),
 [LFUNC] = LAYOUT(
-  KC_NO   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_GRV ,
-  MO(LDEBUG),KC_NO , KC_NO , KC_MS_U, KC_PGUP, KC_PGDN ,                   KC_NO  , KC_MS_WH_UP,  KC_MS_WH_DOWN, KC_NO, KC_P , KC_MINS,
-  KC_NO  , KC_NO   , KC_MS_L, KC_MS_D, KC_MS_R, KC_F6  ,                   KC_LEFT , KC_DOWN, KC_UP  , KC_RIGHT, KC_SCLN, KC_QUOT,
-  KC_NO  , KC_NO   , KC_NO  , KC_NO  , KC_HOME, KC_END , KC_LBRC, KC_RBRC, KC_MS_BTN1, KC_MS_BTN2, KC_COMM, KC_DOT , KC_SLSH, KC_RSFT,
-                             KC_LALT, KC_LGUI, _______ , KC_SPC , KC_ENT  ,KC_ACL0, KC_ACL1, KC_ACL2
-),
-[LDEBUG] = LAYOUT(
   KC_F   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_GRV ,
   KC_NO  , KC_NO  , KC_NO  , KC_MS_U, KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_MINS,
   KC_NO  , KC_MS_L, KC_MS_L, DB_TOGG, KC_MS_R, KC_F6  ,                   KC_LEFT, KC_DOWN, KC_UP  , KC_DOWN, KC_SCLN, KC_QUOT,
   KC_NO  , KC_Z   , KC_X   , KC_C   , KC_HOME, QK_BOOT, KC_LBRC, KC_RBRC, KC_N   , KC_M   , KC_COMM, KC_DOT , KC_SLSH, KC_RSFT,
                              KC_LALT, KC_LGUI, _______, KC_SPC , KC_ENT , KC_NO  , KC_NO  , KC_NO
+),
+[LNAVI] = LAYOUT(
+  KC_NO   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_GRV ,
+  MO(LDEBUG),KC_NO , KC_NO , KC_MS_U, KC_PGUP, KC_PGDN ,                   KC_NO  , KC_MS_WH_UP,  KC_MS_WH_DOWN, KC_NO, KC_P , KC_MINS,
+  KC_NO  , KC_NO   , KC_MS_L, KC_MS_D, KC_MS_R, KC_F6  ,                   KC_LEFT , KC_DOWN, KC_UP  , KC_RIGHT, KC_SCLN, KC_QUOT,
+  KC_NO  , KC_NO   , KC_NO  , KC_NO  , KC_HOME, KC_END , KC_LBRC, KC_RBRC, KC_MS_BTN1, KC_MS_BTN2, KC_COMM, KC_DOT , KC_SLSH, KC_RSFT,
+                             KC_LALT, KC_LGUI, _______ , KC_SPC , KC_ENT  ,KC_ACL0, KC_ACL1, KC_ACL2
 ),
 [LNUM] = LAYOUT(
   KC_NO  , KC_NO  , KC_7   , KC_8   , KC_9   , KC_NO  ,                           KC_7   , KC_8   , KC_9   , KC_9   , KC_0   , KC_GRV ,
