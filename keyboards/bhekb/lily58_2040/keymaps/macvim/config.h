@@ -35,3 +35,7 @@
 #define TRI_LAYER_LOWER_LAYER	1	//Sets the default for the "lower" layer.
 #define RI_LAYER_UPPER_LAYER	2	//Sets the default for the "upper" layer.
 #define TRI_LAYER_ADJUST_LAYER	3	//Sets the default for the "adjust" layer.
+
+#undef RETRO_TAPPING
+#define PERMISSIVE_HOLD
+#define HOLD_ON_OTHER_KEY_PRESS
