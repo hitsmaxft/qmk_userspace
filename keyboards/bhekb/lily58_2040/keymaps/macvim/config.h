@@ -37,5 +37,5 @@
 #define TRI_LAYER_ADJUST_LAYER	3	//Sets the default for the "adjust" layer.
 
 #undef RETRO_TAPPING
-#define PERMISSIVE_HOLD
+#undef PERMISSIVE_HOLD
 #define HOLD_ON_OTHER_KEY_PRESS
