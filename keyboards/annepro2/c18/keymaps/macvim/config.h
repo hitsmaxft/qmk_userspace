@@ -40,7 +40,6 @@
 
 #define TAPPING_TERM 170
 #define TAPPING_TERM_PER_KEY
-#define TRI_LAYER_ENABLE = yes
 
 #undef RETRO_TAPPING
 #define QUICK_TAP_TERM 60

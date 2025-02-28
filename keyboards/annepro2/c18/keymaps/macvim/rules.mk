@@ -24,6 +24,7 @@ TAP_DANCE_ENABLE = no
 COMBO_ENABLE = no
 KEY_OVERRIDE_ENABLE = no
 
+TRI_LAYER_ENABLE = yes
 
 # custom DEBOUNCE
 DEBOUNCE_TYPE = asym_eager_defer_pk
