@@ -234,7 +234,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
   QK_GESC, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                   KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
   KC_LSFT, KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VYANK, UK_SCRCAP,KC_N  , KC_M   , KC_COMM, KC_DOT,KC_SLSH,  TRS_GRV,
-                             KC_CAPS_LOCK, KC_TAB , TL_LOWR, UK_SPC,  KC_ENT , TL_UPPR, MO(LNUM) , MO(LNUM)
+                             KC_CAPS_LOCK, LT(LNUM, KC_TAB) , TL_LOWR, UK_SPC,  KC_ENT , TL_UPPR, MO(LNUM) , MO(LNUM)
 ),
 
 
@@ -269,11 +269,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                              KC_LALT, KC_LGUI, _______ , KC_SPC , KC_ENT  ,KC_ACL0, KC_ACL1, KC_ACL2
 ),
 [LNUM] = LAYOUT(
-  KC_NO  , KC_NO  , KC_7   , KC_8   , KC_9   , KC_NO  ,                           KC_NO   , KC_7   , KC_8   , KC_9   ,  KC_0   , KC_GRV ,
-  KC_NO  , KC_NO  , KC_4   , KC_5   , KC_6   , KC_NO  ,                           KC_NO   , KC_4   , KC_5   , KC_6   ,  KC_P   , KC_MINS,
-  KC_NO  , KC_NO  , KC_1   , KC_2   , KC_3   , KC_NO  ,                           KC_NO   , KC_1   , KC_2   , KC_3   ,  KC_SCLN, KC_QUOT,
-  KC_NO  , KC_NO  , KC_NO   , KC_0  , KC_NO  , KC_NO  , KC_NO , KC_NO   , KC_NO  , KC_NO  , KC_0  , KC_NO, KC_SLSH, KC_RSFT,
-                             KC_NO , KC_NO  ,_______ , KC_SPC , KC_ENT , KC_NO  , KC_NO  , KC_NO
+  KC_NO  , KC_NO  , KC_7   , KC_8   , KC_9   , KC_NO  ,                           KC_NO   , KC_NO  , KC_NO  , KC_NO  ,  KC_0   , KC_GRV ,
+  KC_NO  , KC_NO  , KC_4   , KC_5   , KC_6   , KC_NO  ,                           KC_NO   , KC_7   , KC_8   , KC_9   ,  KC_P   , KC_MINS,
+  KC_NO  , KC_NO  , KC_1   , KC_2   , KC_3   , KC_NO  ,                           KC_NO   , KC_4   , KC_5   , KC_6   ,  KC_NO  , KC_QUOT,
+  KC_NO  , KC_NO  , KC_NO   , KC_0  , KC_NO  , KC_NO  , KC_NO , KC_NO           , KC_NO   , KC_1   , KC_2   , KC_3   ,  KC_NO  , KC_RSFT,
+                             KC_NO , KC_NO  ,_______ , KC_SPC , KC_ENT          , KC_NO   , KC_0   , KC_NO
 ),
 [LDEBUG] = LAYOUT(
   KC_F   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,
