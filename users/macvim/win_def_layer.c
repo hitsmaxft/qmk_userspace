@@ -19,25 +19,30 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
-#define OLED_IC  OLED_IC_SSD1306
+#include QMK_KEYBOARD_H
 
-#define OLED_CS_PIN 29
-#define OLED_DC_PIN 28
-#define OLED_DISPLAY_128X32 TRUE
 
-// mock apple keyboard vid;pid
-// #undef VENDOR_ID
-// #define VENDOR_ID 0x05AC
-// #undef PRODUCT_ID
-// #define PRODUCT_ID 0x0220
+bool process_detected_host_os_kb(os_variant_t detected_os) {
+    if (!process_detected_host_os_user(detected_os)) {
+        return false;
+    }
 
-#define TRI_LAYER_LOWER_LAYER	2	//Sets the default for the "lower" layer.
-#define TRI_LAYER_UPPER_LAYER	3	//Sets the default for the "upper" layer.
-#define TRI_LAYER_ADJUST_LAYER	4	//Sets the default for the "adjust" layer.
+    keymap_config.raw = eeconfig_read_keymap();
 
-#define WIN_LAYER_DEF_LAYER	1	//Sets the default for the "lower" layer.
+    switch (detected_os) {
+        case OS_WINDOWS:
+            #ifdef WIN_LAYER_DEF_LAYER
+                set_single_default_layer(WIN_LAYER_DEF_LAYER);
+                uprintf("set default layouer to WIN_LAYER_DEF_LAYER as %d\n", WIN_LAYER_DEF_LAYER);
+            #endif
+                break;
+        case OS_MACOS:
+        case OS_IOS:
+        case OS_LINUX:
+        case OS_UNSURE:
+            break;
+    }
 
-#undef RETRO_TAPPING
-#undef PERMISSIVE_HOLD
-#undef HOLD_ON_OTHER_KEY_PRESS
+    return true;
+}
+

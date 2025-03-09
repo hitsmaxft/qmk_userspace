@@ -47,15 +47,9 @@ enum lily_58_custom_keycode {
 
 #define LBASE 0
 
-#ifndef KM_WIN
-    #define LBASE 0
-    #define BASE_MAC 0
-    #define BASE_WIN 1
-#else
-    #define LBASE 0
-    #define BASE_MAC 1
-    #define BASE_WIN 0
-#endif
+#define BASE_MAC 0
+#define BASE_WIN 1
+
 
 #define LLOWER 2
 #define LLW 2
