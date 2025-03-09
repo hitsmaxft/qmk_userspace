@@ -32,9 +32,10 @@
 // #undef PRODUCT_ID
 // #define PRODUCT_ID 0x0220
 
-#define TRI_LAYER_LOWER_LAYER	1	//Sets the default for the "lower" layer.
-#define RI_LAYER_UPPER_LAYER	2	//Sets the default for the "upper" layer.
-#define TRI_LAYER_ADJUST_LAYER	3	//Sets the default for the "adjust" layer.
+#define KM_WIN true
+#define TRI_LAYER_LOWER_LAYER	2	//Sets the default for the "lower" layer.
+#define TRI_LAYER_UPPER_LAYER	3	//Sets the default for the "upper" layer.
+#define TRI_LAYER_ADJUST_LAYER	4	//Sets the default for the "adjust" layer.
 
 #undef RETRO_TAPPING
 #undef PERMISSIVE_HOLD
