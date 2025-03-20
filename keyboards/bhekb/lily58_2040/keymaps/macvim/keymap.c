@@ -261,8 +261,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [LLOWER] = LAYOUT(
   QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
   MO(LFN), KC_EXLM, KC_AT  , KC_HASH, KC_DLR , KC_PERC,                   KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_PIPE,
-  _______, KC_F1  , KC_LPRN, KC_LCBR,KC_LBRC , KC_NO  ,                   KC_BSPC, KC_RBRC, KC_RCBR, KC_RPRN, KC_RCBR, KC_ENT ,
-  _______, KC_F7  , KC_F8  , KC_F9  , KC_LBRC,KC_LCBR,  KC_LBRC, KC_RBRC, KC_RCBR, KC_RBRC, KC_COMM,  KC_DOT , KC_SLSH , KC_TILD,
+  _______, KC_F1  , KC_LBRC, KC_LCBR, KC_LPRN,  KC_TAB,                   KC_BSPC,KC_RPRN,  KC_RCBR,KC_RBRC,  KC_RCBR, KC_ENT ,
+  _______, KC_F7  , KC_F8  , KC_F9  , KC_NO  ,KC_ESC,  KC_LBRC, KC_RBRC, KC_ESC, KC_NO, KC_COMM,  KC_DOT , KC_SLSH , KC_TILD,
                              _______, _______, MO(LFUNC), KC_SPC , KC_BSPC , MO(LFUNC), _______, _______
 ),
 
