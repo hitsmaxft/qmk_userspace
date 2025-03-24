@@ -180,6 +180,18 @@ bool oled_task_user(void) {
 }
 #endif
 
+#ifdef CHORDAL_HOLD
+// auto define left and right hand keys
+char chordal_hold_handedness(keypos_t key) {
+    if (key.col == 0 || key.col == MATRIX_COLS - 1) {
+        return '*';  // Exempt the outer columns.
+    }
+    // On split keyboards, typically, the first half of the rows are on the
+    // left, and the other half are on the right.
+    return key.row < MATRIX_ROWS / 2 ? 'L' : 'R';
+}
+#endif
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef OLED_ENABLE
     if (record->event.pressed) {

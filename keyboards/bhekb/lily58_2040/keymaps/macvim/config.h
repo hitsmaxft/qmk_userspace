@@ -41,3 +41,6 @@
 #undef RETRO_TAPPING
 #undef PERMISSIVE_HOLD
 #undef HOLD_ON_OTHER_KEY_PRESS
+
+// for left right hand hold
+#define CHORDAL_HOLD
