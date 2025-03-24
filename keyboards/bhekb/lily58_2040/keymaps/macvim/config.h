@@ -38,9 +38,9 @@
 
 #define WIN_LAYER_DEF_LAYER	1	//Sets the default for the "lower" layer.
 
-#undef RETRO_TAPPING
-#undef PERMISSIVE_HOLD
-#undef HOLD_ON_OTHER_KEY_PRESS
-
+#define PERMISSIVE_HOLD
 // for left right hand hold
 #define CHORDAL_HOLD
+#undef RETRO_TAPPING
+#undef HOLD_ON_OTHER_KEY_PRESS
+
