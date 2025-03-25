@@ -27,5 +27,7 @@ lily58:
 gen-compile-db *args='':
     @qmk generate-compilation-database $@
 
+qmk *args='':
+    @qmk $@
 flash-lily58:
     @qmk flash -kb bhekb/lily58_2040/rp  -km macvim -bl uf2-split-left
