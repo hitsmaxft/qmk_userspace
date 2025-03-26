@@ -21,6 +21,7 @@
 
 #include "keycodes.h"
 #include "quantum_keycodes.h"
+#include "wear_leveling_rp2040_flash_config.h"
 #include QMK_KEYBOARD_H
 
 
@@ -40,9 +41,9 @@
 
 enum lily_58_custom_keycode {
     // vim yank
-    UK_VYANK = SAFE_RANGE,
-    UK_SCRCAP,
-    UK_SFTTAB,
+    UK_VGCP = SAFE_RANGE,
+    UK_CAPR,
+    UK_STAB,
 };
 
 #define LBASE 0
@@ -215,18 +216,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 unregister_code(KC_LSFT);
             }
             break;
-        case UK_VYANK:
+        case UK_VGCP:
             if (record->event.pressed) {
                 SEND_STRING(SS_DOWN(X_LSFT) SS_TAP(X_QUOT) SS_DELAY(200) SS_UP(X_LSFT) SS_DELAY(100) SS_TAP(X_KP_PLUS) "y" SS_DELAY(300));
             } else {
             }
             break;
-        case UK_SCRCAP:
+        case UK_CAPR:
             if (record->event.pressed) {
                 SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_DOWN(X_LCTL) "4" SS_UP(X_LGUI) SS_UP(X_LSFT) SS_UP(X_LCTL));
             }
             break;
-        case UK_SFTTAB:
+        case UK_STAB:
             if (record->event.pressed) {
                 if (!is_shift_tab_active) {
                     is_shift_tab_active = true;
@@ -260,19 +261,19 @@ void matrix_scan_user(void) { // The very important timer.
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 [BASE_MAC] = LAYOUT(
-  QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_GRV,
+  QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
   KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
   QK_GESC, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                   KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
-  KC_LSFT, KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VYANK, UK_SCRCAP,KC_N  , KC_M   , KC_COMM, KC_DOT,KC_SLSH,  KC_BSPC,
-                             KC_CAPS_LOCK, LT(LNUM, KC_TAB) , TL_LOWR, UK_SPC,  KC_ENT , TL_UPPR, KC_BSPC , MO(LNUM)
+  KC_NO  , KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VGCP,UK_CAPR,KC_N, KC_M, KC_COMM, KC_DOT,KC_SLSH  ,  KC_GRV,
+                            KC_CAPS, LT(LNUM, KC_TAB)    , TL_LOWR,UK_SPC ,KC_ENT ,TL_UPPR, KC_BSPC , KC_NO
 ),
 
 [BASE_WIN] = LAYOUT(
-  QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
-  KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
-  QK_GESC, LCT_A  , LAT_S  , LCT_D  , LST_F  , KC_G   ,                   KC_H   , RST_J  , RCT_K  , RAT_L  , RCT_SC , KC_QUOT,
-  KC_LGUI, KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VYANK, UK_SCRCAP,KC_N  , KC_M   , KC_COMM, KC_DOT,KC_SLSH  , KC_TRNS,
-            KC_CAPS_LOCK, LT(LNUM, KC_TAB)  ,  TL_LOWR, UK_SPC,  KC_TRNS, TL_UPPR, MO(LNUM) , MO(LNUM)
+  _______, _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______,
+  _______, _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______,
+  _______, LCT_A  , _______, LCT_D  , _______, _______,                   _______, _______, RCT_K  , _______, RCT_SC , _______,
+  KC_LGUI, _______, _______, _______, _______, _______,_______, _______, _______, _______, _______, _______,_______, _______,
+            _______, _______  ,  _______, _______, _______, _______, _______,  _______
 ),
 
 
@@ -287,46 +288,46 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 // FN line and quick symbol
 [LRAISE] = LAYOUT(
-  QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
-  KC_NO  , KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_PIPE,
-  KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  , KC_F6  ,                   KC_ENT, KC_MINS, KC_EQL , KC_UNDS, KC_PLUS, KC_NO ,
-  KC_F7  , KC_F8  , KC_F9  , KC_F10 , KC_F11 , KC_F12 , _______, _______, KC_NO , KC_NO  , KC_LABK, KC_RABK, KC_QUES , TRS_GRV ,
-                             _______, _______, MO(LFUNC), _______, _______, MO(LFUNC), KC_NO  , KC_NO
+  QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                           KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
+  KC_NO  , KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                           KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_NO ,
+  KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  , KC_F6  ,                           KC_BSPC, KC_MINS, KC_EQL , KC_UNDS, KC_PLUS, KC_NO ,
+  KC_F7  , KC_F8  , KC_F9  , KC_F10 , KC_F11 , KC_F12 , _______, _______, KC_NO , KC_NO  , KC_LABK, KC_RABK, KC_QUES , TRS_GRV,
+                             _______, _______, MO(LFUNC),           _______, _______, MO(LFUNC), KC_NO  , KC_NO
 ),
 //adjust layer
 [LFUNC] = LAYOUT(
-  KC_F   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,
+  KC_F   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   PDF(1) , PDF(0)  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,
   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,                   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,
   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO ,                   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,
   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , QK_BOOT,QK_REBOOT,DB_TOGG, KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,
-                             KC_LALT, KC_LGUI, _______, KC_NO   , KC_BSPC, KC_NO  , KC_NO  , KC_NO
+                             KC_LALT, KC_LGUI, _______, KC_NO   , KC_NO, KC_NO  , KC_NO  , KC_NO
 ),
 [LNAVI] = LAYOUT(
-  KC_NO   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_NO     , KC_NO   , KC_NO , KC_NO   , KC_NO   , KC_NO ,
+  KC_NO   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_NO   , KC_NO  , KC_NO , KC_NO   , KC_NO   , KC_NO ,
   MO(LDEBUG),KC_NO , KC_NO , KC_MS_U , KC_PGUP, KC_PGDN ,                  KC_MS_BTN1, KC_MS_BTN3, KC_MS_BTN2, KC_MS_WH_DOWN, KC_MS_WH_UP, KC_NO,
   KC_NO  , KC_NO   , KC_MS_L, KC_MS_D, KC_MS_R, KC_F6  ,                   KC_LEFT , KC_DOWN, KC_UP  , KC_RIGHT, KC_NO , KC_NO,
   KC_NO  , KC_NO   , KC_NO  , KC_NO  , KC_HOME, KC_END , KC_LBRC, KC_RBRC, KC_MS_WH_DOWN, KC_MS_WH_UP, KC_NO, KC_NO, KC_NO, KC_NO,
                              KC_LALT, KC_LGUI, _______ , KC_SPC , KC_BSPC,KC_ACL0, KC_ACL1, KC_ACL2
 ),
 [LNUM] = LAYOUT(
-  KC_NO  , KC_NO  , KC_7   , KC_8   , KC_9   , KC_NO  ,                           KC_NO   , KC_NO  , KC_NO  , KC_NO  ,  KC_0   , KC_GRV ,
-  KC_NO  , KC_NO  , KC_4   , KC_5   , KC_6   , KC_NO  ,                           KC_NO   , KC_7   , KC_8   , KC_9   ,  KC_P   , KC_MINS,
-  KC_NO  , KC_NO  , KC_1   , KC_2   , KC_3   , KC_NO  ,                           KC_NO   , KC_4   , KC_5   , KC_6   ,  KC_NO  , KC_QUOT,
-  KC_NO  , KC_NO  , KC_NO   , KC_0  , KC_NO  , KC_NO  , KC_NO , KC_NO           , KC_NO   , KC_1   , KC_2   , KC_3   ,  KC_NO  , KC_RSFT,
-                             KC_NO , KC_NO  ,_______ , KC_SPC , KC_BSPC          , KC_NO   , KC_0   , KC_NO
+  KC_NO  , KC_NO  , KC_7   , KC_8   , KC_9   , KC_NO  ,                           KC_NO  , KC_NO  , KC_NO  , KC_NO, KC_0   , KC_GRV ,
+  KC_NO  , KC_NO  , KC_4   , KC_5   , KC_6   , KC_NO  ,                           KC_7   , KC_8   , KC_9   , KC_NO, KC_P   , KC_MINS,
+  KC_NO  , KC_NO  , KC_1   , KC_2   , KC_3   , KC_NO  ,                           KC_4   , KC_5   , KC_6   , KC_NO, KC_NO  , KC_QUOT,
+  KC_NO  , KC_NO  , KC_NO   , KC_0  , KC_NO  , KC_NO  , KC_NO , KC_NO,    KC_1   , KC_2   , KC_3   , KC_NO, KC_NO  , KC_RSFT,
+                                            KC_NO , KC_NO  ,_______ , KC_NO , KC_0  , KC_PLUS    , KC_MINUS   , KC_NO
 ),
 [LDEBUG] = LAYOUT(
   KC_F   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,
   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,                   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,
   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , DB_TOGG,                   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,
   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , QK_BOOT,QK_REBOOT,DB_TOGG, KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,
-                             KC_LALT, KC_LGUI, _______, KC_NO   , KC_BSPC, KC_NO  , KC_NO  , KC_NO
+                             KC_LALT, KC_LGUI, _______, KC_NO   ,           KC_NO, KC_NO  , KC_NO  , KC_NO
 ),
 };
 
 const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
-    [0] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(  UK_SFTTAB, KC_TAB) },
-    [1] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(  UK_SFTTAB, KC_TAB) },
+    [0] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(  UK_STAB, KC_TAB) },
+    [1] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(  UK_STAB, KC_TAB) },
     [2] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [4] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [3] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_MS_WH_UP,   KC_MS_WH_DOWN) },
