@@ -1,9 +1,8 @@
 #set working-directory:='./modules/qmk_firmware'
 #set positional-arguments
 set positional-arguments
-
 default:
-    @just -l
+    @just --list
 
 list:
     qmk userspace-list
