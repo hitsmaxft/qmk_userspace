@@ -40,12 +40,13 @@
 
 #define TAPPING_TERM 250
 #define PERMISSIVE_HOLD
-// for left right hand hold
+// two-handed hold
 #define CHORDAL_HOLD
+#define FLOW_TAP_TERM 100
+//#define QUICK_TAP_TERM 120
+
 #undef RETRO_TAPPING
 #undef HOLD_ON_OTHER_KEY_PRESS
-
-//#define QUICK_TAP_TERM 120
 
 
 
