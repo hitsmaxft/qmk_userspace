@@ -94,11 +94,11 @@ static int logo_show_delay = 50;
 
 
 // combo start
-const uint16_t PROGMEM hj_combo1[] = {KC_H, RST_J, COMBO_END};
-const uint16_t PROGMEM fg_combo2[] = {LST_F, KC_G, COMBO_END};
+// const uint16_t PROGMEM hj_combo1[] = {KC_H, RST_J, COMBO_END};
+// const uint16_t PROGMEM fg_combo2[] = {LST_F, KC_G, COMBO_END};
 combo_t key_combos[] = {
-    COMBO(hj_combo1, KC_BSPC),
-    COMBO(fg_combo2, KC_ESC), // keycodes with modifiers are possible too!
+    // COMBO(hj_combo1, KC_BSPC),
+    // COMBO(fg_combo2, KC_ESC), // keycodes with modifiers are possible too!
 };
 
 // combo end
