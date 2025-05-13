@@ -2,5 +2,5 @@
     "editor.defaultFormatter": "xaver.clang-format",
     "editor.formatOnSave": true,
     "cmake.copyCompileCommands": "",
-    "makefile.compileCommandsPath": "modules/qmk_firmware/compile_commands.json"
+    "makefile.compileCommandsPath": "compile_commands.json"
 }

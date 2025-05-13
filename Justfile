@@ -1,5 +1,12 @@
 #set working-directory:='./modules/qmk_firmware'
 #set positional-arguments
+default_keymap := 'macvim'
+
+kb_ap2 := 'annepro2/c18'
+kb_lily58 := 'bhekb/lily58_2040/rp'
+kb_gh60 := 'gh60/gh60'
+
+
 set positional-arguments
 default:
     @just --list
@@ -16,17 +23,22 @@ clean:
     @rm -f *.bin
     @rm -f *.hex
 
-annepro2:
-    @qmk compile -kb annepro2/c18  -km macvim -j20
+_compile_kb kb km=default_keymap *args='':
+    qmk compile -kb {{kb}}  -km {{km}} -j20
 
-lily58:
-    qmk compile -kb bhekb/lily58_2040/rp  -km macvim -j20
+annepro2: ( _compile_kb 'annepro2/c18')
+    echo "compile annepro2"
+
+lily58: ( _compile_kb kb_lily58 'macvim')
+
+# will clean build at beginning
+gen-compile-db kb km=default_keymap:
+    qmk generate-compilation-database -kb {{ kb }} -km {{ km }}
+    cp ./modules/qmk_firmware/compile_commands.json ./
 
 #[positional-arguments]
-gen-compile-db *args='':
-    @qmk generate-compilation-database $@
-
 qmk *args='':
     @qmk $@
-flash-lily58:
+
+flash-lily58-left:
     @qmk flash -kb bhekb/lily58_2040/rp  -km macvim -bl uf2-split-left

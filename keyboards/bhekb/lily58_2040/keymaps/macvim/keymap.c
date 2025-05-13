@@ -262,14 +262,24 @@ void matrix_scan_user(void) { // The very important timer.
 
 // clang-format off
 
+//chordal hold layout
+const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
+    LAYOUT(
+        'L', 'L', 'L', 'L', 'L', 'L',        'R', 'R', 'R', 'R', 'R', 'R',
+        'L', 'L', 'L', 'L', 'L', 'L',        'R', 'R', 'R', 'R', 'R', 'R',
+        'L', 'L', 'L', 'L', 'L', 'L',        'R', 'R', 'R', 'R', 'R', 'R',
+        'L', 'L', 'L', 'L', 'L', 'L','*','*','R', 'R', 'R', 'R', 'R', 'R',
+                       '*', '*', '*','*','*','*', '*', '*'
+    );
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 [BASE_MAC] = LAYOUT(
-  QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                   KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
-  KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                   KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
-  QK_GESC, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                   KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
+  QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                        KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
+  KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                        KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
+  QK_GESC, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                        KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
   KC_NO  , KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VGCP,UK_CAPR,KC_N, KC_M, KC_COMM, KC_DOT,KC_SLSH  ,  KC_GRV,
-                            KC_CAPS, LT(LNUM, KC_TAB)    , TL_LOWR,UK_SPC ,KC_ENT ,TL_UPPR, KC_BSPC , KC_NO
+                             KC_LSFT, LT(LNUM, KC_TAB)   , TL_LOWR,UK_SPC ,KC_ENT ,TL_UPPR, KC_BSPC , KC_RSFT
 ),
 
 [BASE_WIN] = LAYOUT(
@@ -277,7 +287,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   _______, _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______,
   _______, LCT_A  , _______, LCT_D  , _______, _______,                   _______, _______, RCT_K  , _______, RCT_SC , _______,
   KC_LGUI, _______, _______, _______, _______, _______,_______, _______, _______, _______, _______, _______,_______, _______,
-            _______, _______  ,  _______, _______, _______, _______, _______,  _______
+            _______, _______  ,  _______, _______, _______,_______, _______,  _______
 ),
 
 
@@ -286,8 +296,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                         KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
   MO(LFN), KC_EXLM, KC_AT  , KC_HASH, KC_DLR , KC_PERC,                         KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_PIPE,
   KC_HOME, KC_TRNS, KC_LBRC, KC_LPRN, KC_LCBR, KC_PIPE ,                        KC_UNDS, KC_MINS, KC_EQL , KC_PLUS, KC_DQUO  , KC_EQL,
-  KC_END , KC_TRNS, KC_RBRC, KC_RPRN, KC_RCBR, KC_BSLS ,  KC_NO, KC_NO, KC_SLSH,KC_QUES, KC_GRAVE, KC_TILD,  KC_UNDS, KC_PLUS,
-                               _______, _______, MO(LFUNC), KC_NO, KC_BSPC , MO(LFUNC), _______, _______
+  KC_END , KC_TRNS, KC_RBRC, KC_RPRN, KC_RCBR, KC_BSLS ,  KC_NO,   KC_NO, KC_SLSH,KC_QUES, KC_GRAVE, KC_TILD,  KC_UNDS, KC_PLUS,
+                                         _______, MO(LDEBUG),_______,  KC_NO,  KC_BSPC , MO(LFUNC), _______, _______
 ),
 
 // FN line and quick symbol
@@ -295,7 +305,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                        KC_6   , KC_7   , KC_8   , KC_9   , KC_0    , KC_BSPC,
   KC_NO  , KC_F1   , KC_F2 , KC_F3  , KC_F4  , KC_F5  ,                        KC_F6  , KC_F7  , KC_F8  , KC_F9  , KC_F10  , KC_F11  ,
   KC_NO  , KC_5   , KC_4   , KC_3   , KC_2   , KC_1   ,                        KC_BSPC, KC_MINS, KC_EQL , KC_PLUS, KC_DQUO , KC_F12  ,
-  KC_NO  , KC_6   , KC_7   , KC_8   , KC_9   , KC_0   ,  _______, _______,     KC_BSPC, KC_INS, KC_HOME, KC_END, KC_QUES  , TRS_GRV,
+  KC_CAPS, KC_6   , KC_7   , KC_8   , KC_9   , KC_0   ,  _______, _______,     KC_BSPC, KC_INS, KC_HOME, KC_END, KC_QUES  , TRS_GRV,
                              _______, _______, MO(LFUNC),_______, KC_DEL ,     KC_NO  ,KC_BSPC, KC_NO
 ),
 //adjust layer
