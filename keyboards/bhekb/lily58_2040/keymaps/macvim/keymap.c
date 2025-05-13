@@ -23,8 +23,6 @@
 #include "quantum_keycodes.h"
 #include "wear_leveling_rp2040_flash_config.h"
 #include QMK_KEYBOARD_H
-
-
 #include "keymap_us.h"
 #include "send_string_keycodes.h"
 
@@ -51,12 +49,11 @@ enum lily_58_custom_keycode {
 #define BASE_MAC 0
 #define BASE_WIN 1
 
-
 #define LLOWER 2
 #define LLW 2
 #define LRAISE 3
 
-//adjust layer
+// adjust layer
 #define LFUNC 4
 #define ADJUST 4
 #define LFN 5
@@ -92,7 +89,6 @@ enum lily_58_custom_keycode {
 
 static int logo_show_delay = 50;
 
-
 // combo start
 // const uint16_t PROGMEM hj_combo1[] = {KC_H, RST_J, COMBO_END};
 // const uint16_t PROGMEM fg_combo2[] = {LST_F, KC_G, COMBO_END};
@@ -103,12 +99,10 @@ combo_t key_combos[] = {
 
 // combo end
 
-bool is_shift_tab_active = false; // ADD this near the beginning of keymap.c
-uint16_t shift_tab_timer = 0;     // we will be using them soon.
-
+bool     is_shift_tab_active = false; // ADD this near the beginning of keymap.c
+uint16_t shift_tab_timer     = 0;     // we will be using them soon.
 
 bool is_master = false;
-
 
 uint32_t hide_logo(uint32_t trigger_time, void *cb_arg) {
     /* do something */
@@ -169,12 +163,12 @@ bool oled_task_user(void) {
         case LFUNC:
             layer_name = "ADJ";
             break;
-         case LNAVI:
-             layer_name = "NAV";
-             break;
-         case LNUM:
-             layer_name = "NUM";
-             break;
+        case LNAVI:
+            layer_name = "NAV";
+            break;
+        case LNUM:
+            layer_name = "NUM";
+            break;
         default:
             // Or use the write_ln shortcut over adding '\n' to the end of your string
             layer_name = "";
@@ -196,7 +190,7 @@ bool oled_task_user(void) {
 char chordal_hold_handedness(keypos_t key) {
     if (key.row != 2) {
         // chordal on the middle row
-        return '*';  // Exempt the outer columns.
+        return '*'; // Exempt the outer columns.
     }
     uint8_t col = key.col;
     if (!(col > 0 && col < 5) || (col > 6 && col < 11)) {
@@ -220,9 +214,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     switch (keycode) {
         case KC_TAB:
-            if (is_shift_tab_active ) {
+            if (is_shift_tab_active) {
                 is_shift_tab_active = false;
-                shift_tab_timer = 0;
+                shift_tab_timer     = 0;
                 unregister_code(KC_LSFT);
             }
             break;
@@ -248,21 +242,21 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             } else {
                 unregister_code(KC_TAB);
             }
-            //if (record->event.pressed) {
-            //    SEND_STRING(SS_DOWN(X_LSFT) SS_DOWN(X_TAB) SS_DELAY(200) SS_UP(X_LSFT) SS_UP(X_TAB));
-            //}
+            // if (record->event.pressed) {
+            //     SEND_STRING(SS_DOWN(X_LSFT) SS_DOWN(X_TAB) SS_DELAY(200) SS_UP(X_LSFT) SS_UP(X_TAB));
+            // }
             break;
     }
     return true;
 };
 
 void matrix_scan_user(void) { // The very important timer.
-  if (is_shift_tab_active) {
-    if (timer_elapsed(shift_tab_timer) > 1000) {
-      unregister_code(KC_LSFT);
-      is_shift_tab_active = false;
+    if (is_shift_tab_active) {
+        if (timer_elapsed(shift_tab_timer) > 1000) {
+            unregister_code(KC_LSFT);
+            is_shift_tab_active = false;
+        }
     }
-  }
 }
 // Default keymap. This can be changed in Vial. Use oled.c to change beavior that Vial cannot change.
 
