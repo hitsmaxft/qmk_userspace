@@ -295,7 +295,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [LLOWER] = LAYOUT(
   QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                         KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
   MO(LFN), KC_EXLM, KC_AT  , KC_HASH, KC_DLR , KC_PERC,                         KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_PIPE,
-  KC_HOME, KC_TRNS, KC_LBRC, KC_LPRN, KC_LCBR, KC_PIPE ,                        KC_UNDS, KC_MINS, KC_EQL , KC_PLUS, KC_DQUO  , KC_EQL,
+  KC_HOME, KC_TRNS, KC_LBRC, KC_LPRN, KC_LCBR, KC_PIPE ,                        KC_EQL , KC_UNDS, KC_MINS, KC_PLUS, KC_DQUO  , KC_EQL,
   KC_END , KC_TRNS, KC_RBRC, KC_RPRN, KC_RCBR, KC_BSLS ,  KC_NO,   KC_NO, KC_SLSH,KC_QUES, KC_GRAVE, KC_TILD,  KC_UNDS, KC_PLUS,
                                          _______, MO(LDEBUG),_______,  KC_NO,  KC_BSPC , MO(LFUNC), _______, _______
 ),
