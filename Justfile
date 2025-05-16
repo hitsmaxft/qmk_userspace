@@ -42,3 +42,9 @@ qmk *args='':
 
 flash-lily58-left:
     @qmk flash -kb bhekb/lily58_2040/rp  -km macvim -bl uf2-split-left
+
+submodule-reset:
+    git submodule foreach git reset --hard HEAD
+submodule-update:
+    git submodule update --init
+
