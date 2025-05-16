@@ -22,6 +22,7 @@
 #pragma once
 #define OLED_IC OLED_IC_SSD1306
 
+#define SPLIT_USB_DETECT
 #define OLED_CS_PIN 29
 #define OLED_DC_PIN 28
 #define OLED_DISPLAY_128X32 TRUE
@@ -43,8 +44,8 @@
 // two-handed hold
 #define CHORDAL_HOLD
 
-// #define TAP_FLOW_DEBUG
-#define TAP_FLOW_TERM 40
+//#define TAP_FLOW_DEBUG
+#define TAP_FLOW_TERM 70
 #define QUICK_TAP_TERM 120
 
 #undef RETRO_TAPPING

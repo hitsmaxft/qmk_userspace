@@ -40,5 +40,15 @@ gen-compile-db kb km=default_keymap:
 qmk *args='':
     @qmk $@
 
+flash-lily58:
+    @qmk flash -kb bhekb/lily58_2040/rp  -km macvim
+
 flash-lily58-left:
     @qmk flash -kb bhekb/lily58_2040/rp  -km macvim -bl uf2-split-left
+
+submodule-reset:
+    git submodule foreach git reset --hard HEAD
+
+submodule-update *args='':
+    git submodule update --init ${@}
+
