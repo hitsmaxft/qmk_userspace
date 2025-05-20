@@ -65,22 +65,45 @@ enum lily_58_custom_keycode {
 #define TRS_GRV RSFT_T(KC_GRV)
 
 #define TU_BSPC LT(LRAISE, KC_BSPC)
+
+
+#define HRM_A(kc) LCTL_T(kc)
+#define HRM_S(kc) LALT_T(kc)
+#define HRM_D(kc) LGUI_T(kc)
+#define HRM_F(kc) LSFT_T(kc)
+
+#define HRM_C(kc) RCTL_T(kc)
+#define HRM_L(kc) RALT_T(kc)
+#define HRM_K(kc) RGUI_T(kc)
+#define HRM_J(kc) RSFT_T(kc)
+
+
 #define LCT_A LCTL_T(KC_A)
 #define LAT_S LALT_T(KC_S)
 #define LGT_D LGUI_T(KC_D)
-#define LCT_D LCTL_T(KC_D)
 #define LST_F LSFT_T(KC_F)
 
 #define RCT_SC RCTL_T(KC_SCLN)
 #define RAT_L RALT_T(KC_L)
 #define RGT_K RGUI_T(KC_K)
-#define RCT_K RCTL_T(KC_K)
 #define RST_J RSFT_T(KC_J)
 
-#define LGT_D LGUI_T(KC_D)
 #define LCT_D LCTL_T(KC_D)
 #define RCT_K RCTL_T(KC_K)
-#define RGT_K RGUI_T(KC_K)
+
+// hrm layout mapping
+#define LAYOUT_HRM(k0A, k0B, k0C, k0D, k0E, k0F, k5F, k5E, k5D, k5C, k5B, k5A, k1A, k1B, k1C, k1D, k1E, k1F, k6F, k6E, k6D, k6C, k6B, k6A, k2A, k2B, k2C, k2D, k2E, k2F, k7F, k7E, k7D, k7C, k7B, k7A, k3A, k3B, k3C, k3D, k3E, k3F, k4F, k9F, k8F, k8E, k8D, k8C, k8B, k8A, k4B, k4C, k4D, k4E, k9E, k9D, k9C, k9B) { \
+    { k0A, k0B, k0C, k0D, k0E, k0F }, \
+    { k1A, k1B, k1C, k1D, k1E, k1F }, \
+    { k2A, HRM_A(k2B), HRM_S(k2C), HRM_D(k2D), HRM_F(k2E), k2F }, \
+    { k3A, k3B, k3C, k3D, k3E, k3F }, \
+    { XXX, k4B, k4C, k4D, k4E, k4F }, \
+    { k5A, k5B, k5C, k5D, k5E, k5F }, \
+    { k6A, k6B, k6C, k6D, k6E, k6F }, \
+    { k7A, HRM_C(k7B), HRM_L(k7C), HRM_K(k7D), HRM_J(k7E), k7F }, \
+    { k8A, k8B, k8C, k8D, k8E, k8F }, \
+    { XXX, k9B, k9C, k9D, k9E, k9F } \
+}
 
 // for tab
 #define ST_MINS RSFT_T(KC_MINS)
@@ -187,20 +210,6 @@ bool oled_task_user(void) {
 
 #ifdef CHORDAL_HOLD
 // auto define left and right hand keys
-char chordal_hold_handedness(keypos_t key) {
-    if (key.row != 2) {
-        // chordal on the middle row
-        //return '*'; // Exempt the outer columns.
-    }
-    uint8_t col = key.col;
-    if (!(col > 0 && col < 5) || (col > 6 && col < 11)) {
-        // col should be 1-4 or 7-10
-        return '*';
-    }
-    // On split keyboards, typically, the first half of the rows are on the
-    // left, and the other half are on the right.
-    return key.col < MATRIX_COLS / 2 ? 'L' : 'R';
-}
 #endif
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -274,10 +283,10 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
-[BASE_MAC] = LAYOUT(
+[BASE_MAC] = LAYOUT_HRM(
   QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                        KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
   KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                        KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
-  QK_GESC, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                        KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
+  QK_GESC,    KC_A    , KC_S       , KC_D       , KC_F       , KC_G   ,                                            KC_H   , KC_J  , KC_K  , KC_L  , KC_SCLN , KC_QUOT,
   KC_NO  , KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VGCP,UK_CAPR,KC_N,    KC_M, KC_COMM, KC_DOT,KC_SLSH  ,  KC_GRV,
                             KC_LSFT, LT(LNUM, KC_TAB)    , TL_LOWR,UK_SPC ,KC_ENT ,TL_UPPR, KC_BSPC , KC_RSFT
 
@@ -296,7 +305,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [LLOWER] = LAYOUT(
   QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5    ,                             KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
   MO(LFN), KC_EXLM, KC_AT  , KC_HASH, KC_DLR , KC_PERC ,                             KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_PIPE,
-  KC_HOME, KC_TRNS, KC_LBRC, KC_LPRN, KC_LCBR, KC_PIPE ,                             KC_EQL , KC_UNDS, KC_MINS, KC_PLUS, KC_DQUO  , KC_EQL,
+  KC_HOME,    KC_NO, KC_LBRC, KC_LPRN, KC_LCBR, KC_PIPE ,                             KC_EQL , KC_UNDS, KC_MINS, KC_PLUS, KC_DQUO  , KC_EQL,
   KC_END , KC_TRNS, KC_RBRC, KC_RPRN, KC_RCBR, KC_BSLS ,   KC_NO,   KC_NO  , KC_SLSH,KC_QUES, KC_GRAVE, KC_TILD,  KC_UNDS, KC_PLUS,
                                          _______, MO(LDEBUG),_______,  KC_NO,   KC_BSPC, MO(LFUNC), _______, _______
 ),
@@ -305,7 +314,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [LRAISE] = LAYOUT(
   QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                        KC_6   , KC_7   , KC_8   , KC_9   , KC_0    , KC_BSPC,
   KC_NO  , KC_F1   , KC_F2 , KC_F3  , KC_F4  , KC_F5  ,                        KC_F6  , KC_F7  , KC_F8  , KC_F9  , KC_F10  , KC_F11  ,
-  KC_NO  , KC_5   , KC_4   , KC_3   , KC_2   , KC_1   ,                        KC_BSPC, KC_MINS, KC_EQL , KC_PLUS, KC_DQUO , KC_F12  ,
+  KC_NO  , KC_5   , KC_4   , KC_3   , KC_2   , KC_1   ,                                        KC_BSPC, KC_MINS, KC_EQL , KC_PLUS, KC_DQUO , KC_F12  ,
   KC_CAPS, KC_6   , KC_7   , KC_8   , KC_9   , KC_0   ,  _______, _______,     KC_BSPC, KC_INS, KC_HOME, KC_END, KC_QUES  , TRS_GRV,
                              _______, _______, MO(LFUNC),_______, KC_DEL ,     KC_NO  ,KC_BSPC, KC_NO
 ),
