@@ -190,7 +190,7 @@ bool oled_task_user(void) {
 char chordal_hold_handedness(keypos_t key) {
     if (key.row != 2) {
         // chordal on the middle row
-        return '*'; // Exempt the outer columns.
+        //return '*'; // Exempt the outer columns.
     }
     uint8_t col = key.col;
     if (!(col > 0 && col < 5) || (col > 6 && col < 11)) {
@@ -199,7 +199,7 @@ char chordal_hold_handedness(keypos_t key) {
     }
     // On split keyboards, typically, the first half of the rows are on the
     // left, and the other half are on the right.
-    return key.row < MATRIX_ROWS / 2 ? 'L' : 'R';
+    return key.col < MATRIX_COLS / 2 ? 'L' : 'R';
 }
 #endif
 
@@ -278,8 +278,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                        KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
   KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                        KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
   QK_GESC, LCT_A  , LAT_S  , LGT_D  , LST_F  , KC_G   ,                        KC_H   , RST_J  , RGT_K  , RAT_L  , RCT_SC , KC_QUOT,
-  KC_NO  , KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VGCP,UK_CAPR,KC_N, KC_M, KC_COMM, KC_DOT,KC_SLSH  ,  KC_GRV,
-                             KC_LSFT, LT(LNUM, KC_TAB)   , TL_LOWR,UK_SPC ,KC_ENT ,TL_UPPR, KC_BSPC , KC_RSFT
+  KC_NO  , KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VGCP,UK_CAPR,KC_N,    KC_M, KC_COMM, KC_DOT,KC_SLSH  ,  KC_GRV,
+                            KC_LSFT, LT(LNUM, KC_TAB)    , TL_LOWR,UK_SPC ,KC_ENT ,TL_UPPR, KC_BSPC , KC_RSFT
+
 ),
 
 [BASE_WIN] = LAYOUT(
@@ -321,6 +322,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   MO(LDEBUG),KC_NO , KC_NO , KC_MS_U , KC_PGUP, KC_PGDN ,                  KC_MS_BTN1, KC_MS_BTN3, KC_MS_BTN2, KC_MS_WH_UP, KC_MS_WH_DOWN, KC_NO,
   KC_NO  , KC_NO   , KC_MS_L, KC_MS_D, KC_MS_R, KC_F6  ,                   KC_LEFT , KC_DOWN, KC_UP  , KC_RIGHT, KC_NO , KC_NO,
   KC_NO  , KC_NO   , KC_NO  , KC_NO  , KC_HOME, KC_END , KC_LBRC, KC_RBRC, KC_MS_WH_DOWN, KC_MS_WH_UP, KC_NO, KC_NO, KC_NO, KC_NO,
+
                              KC_LALT, MO(LDEBUG), _______ , KC_NO , KC_BSPC,KC_ACL0, KC_ACL1, KC_ACL2
 ),
 [LNUM] = LAYOUT(
