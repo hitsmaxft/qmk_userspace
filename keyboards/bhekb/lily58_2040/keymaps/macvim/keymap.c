@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2024 BHE
  *
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
  * the Software, and to permit persons to whom the Software is furnished to do so,
@@ -19,6 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <stdbool.h>
+#include "action.h"
+#include "info_config.h"
 #include "keycodes.h"
 #include "quantum_keycodes.h"
 #include "wear_leveling_rp2040_flash_config.h"
@@ -27,6 +30,8 @@
 #include "send_string_keycodes.h"
 
 #include "lily.h"
+
+#include "tap_flow.h"
 
 #ifdef OLED_ENABLE
 #    include "oled_driver.h"
@@ -66,7 +71,6 @@ enum lily_58_custom_keycode {
 
 #define TU_BSPC LT(LRAISE, KC_BSPC)
 
-
 #define HRM_A(kc) LCTL_T(kc)
 #define HRM_S(kc) LALT_T(kc)
 #define HRM_D(kc) LGUI_T(kc)
@@ -76,7 +80,6 @@ enum lily_58_custom_keycode {
 #define HRM_L(kc) RALT_T(kc)
 #define HRM_K(kc) RGUI_T(kc)
 #define HRM_J(kc) RSFT_T(kc)
-
 
 #define LCT_A LCTL_T(KC_A)
 #define LAT_S LALT_T(KC_S)
@@ -92,18 +95,12 @@ enum lily_58_custom_keycode {
 #define RCT_K RCTL_T(KC_K)
 
 // hrm layout mapping
-#define LAYOUT_HRM(k0A, k0B, k0C, k0D, k0E, k0F, k5F, k5E, k5D, k5C, k5B, k5A, k1A, k1B, k1C, k1D, k1E, k1F, k6F, k6E, k6D, k6C, k6B, k6A, k2A, k2B, k2C, k2D, k2E, k2F, k7F, k7E, k7D, k7C, k7B, k7A, k3A, k3B, k3C, k3D, k3E, k3F, k4F, k9F, k8F, k8E, k8D, k8C, k8B, k8A, k4B, k4C, k4D, k4E, k9E, k9D, k9C, k9B) { \
-    { k0A, k0B, k0C, k0D, k0E, k0F }, \
-    { k1A, k1B, k1C, k1D, k1E, k1F }, \
-    { k2A, HRM_A(k2B), HRM_S(k2C), HRM_D(k2D), HRM_F(k2E), k2F }, \
-    { k3A, k3B, k3C, k3D, k3E, k3F }, \
-    { XXX, k4B, k4C, k4D, k4E, k4F }, \
-    { k5A, k5B, k5C, k5D, k5E, k5F }, \
-    { k6A, k6B, k6C, k6D, k6E, k6F }, \
-    { k7A, HRM_C(k7B), HRM_L(k7C), HRM_K(k7D), HRM_J(k7E), k7F }, \
-    { k8A, k8B, k8C, k8D, k8E, k8F }, \
-    { XXX, k9B, k9C, k9D, k9E, k9F } \
-}
+#define LAYOUT_HRM(k0A, k0B, k0C, k0D, k0E, k0F, k5F, k5E, k5D, k5C, k5B, k5A, k1A, k1B, k1C, k1D, k1E, k1F, k6F, k6E, k6D, k6C, k6B, k6A, k2A, k2B, k2C, k2D, k2E, k2F, k7F, k7E, k7D, k7C, k7B, k7A, k3A, k3B, k3C, k3D, k3E, k3F, k4F, k9F, k8F, k8E, k8D, k8C, k8B, k8A, k4B, k4C, k4D, k4E, k9E, k9D, k9C, k9B)                                              \
+    {                                                                                                                                                                                                                                                                                                                                                             \
+        {k0A, k0B, k0C, k0D, k0E, k0F}, {k1A, k1B, k1C, k1D, k1E, k1F}, {k2A, HRM_A(k2B), HRM_S(k2C), HRM_D(k2D), HRM_F(k2E), k2F}, {k3A, k3B, k3C, k3D, k3E, k3F}, {XXX, k4B, k4C, k4D, k4E, k4F}, {k5A, k5B, k5C, k5D, k5E, k5F}, {k6A, k6B, k6C, k6D, k6E, k6F}, {k7A, HRM_C(k7B), HRM_L(k7C), HRM_K(k7D), HRM_J(k7E), k7F}, {k8A, k8B, k8C, k8D, k8E, k8F}, { \
+            XXX, k9B, k9C, k9D, k9E, k9F                                                                                                                                                                                                                                                                                                                          \
+        }                                                                                                                                                                                                                                                                                                                                                         \
+    }
 
 // for tab
 #define ST_MINS RSFT_T(KC_MINS)
@@ -111,6 +108,35 @@ enum lily_58_custom_keycode {
 #define UK_SPC LT(LNAVI, KC_SPC)
 
 static int logo_show_delay = 50;
+
+#ifdef TAP_FLOW_TERM
+
+//
+static float border_for_splithand = MATRIX_COLS / 2.0 + 0.5;
+static keyrecord_t *last_tap_flow_key_record = 0;
+
+bool is_oppsite_hand_tap_flow(keyrecord_t *last, keyrecord_t *current) {
+    return (last->event.key.col < border_for_splithand && current->event.key.col > border_for_splithand) || (last->event.key.col > border_for_splithand && current->event.key.col < border_for_splithand);
+}
+
+
+// disable tap flow while pressing with two hand
+uint16_t get_tap_flow_term(uint16_t keycode, keyrecord_t *record, uint16_t prev_keycode) {
+    if (is_tap_flow_key(keycode) && is_tap_flow_key(prev_keycode)) {
+        if (last_tap_flow_key_record != 0 && is_oppsite_hand_tap_flow(last_tap_flow_key_record, record)) {
+#    ifdef TAP_FLOW_DEBUG
+            dprintf("tap_flow disable by chordal");
+#    endif            // TAP_FLOW_DEBUG
+            return 0; // disable tap flow for chord hand
+        }
+        //save last pressed key for next checking
+        last_tap_flow_key_record = record;
+
+        return g_tap_flow_term;
+    }
+    return 0;
+}
+#endif
 
 // combo start
 // const uint16_t PROGMEM hj_combo1[] = {KC_H, RST_J, COMBO_END};
@@ -274,22 +300,31 @@ void matrix_scan_user(void) { // The very important timer.
 //chordal hold layout
 const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
     LAYOUT(
-        '*', '*', '*', '*', '*', '*',                 '*', '*', '*', '*', '*', '*',
-        '*', '*', 'L', 'L', 'L', '*',                 '*', 'R', 'R', 'R', '*', '*',
-        '*', 'L', 'L', 'L', 'L', 'L',                 'R', 'R', 'R', 'R', 'R', '*',
-        '*', '*', '*', '*', 'L', '*','*', '*','*', 'R', 'R', '*', '*', '*',
-                       '*', '*', '*','*','*','*', '*', '*'
+//FORMAT__START
+'*'     ,'*'     ,'*'     ,'*'     ,'*'     ,'*'     ,                  '*'     ,'*'     ,'*'     ,'*'     ,'*'     ,'*'     ,
+'*'     ,'*'     ,'L'     ,'L'     ,'L'     ,'*'     ,                  '*'     ,'R'     ,'R'     ,'R'     ,'*'     ,'*'     ,
+'*'     ,'L'     ,'L'     ,'L'     ,'L'     ,'L'     ,                  'R'     ,'R'     ,'R'     ,'R'     ,'R'     ,'*'     ,
+'*'     ,'*'     ,'*'     ,'*'     ,'L'     ,'*'     ,'*'     ,'*'     ,'*'     ,'R'     ,'R'     ,'*'     ,'*'     ,'*'     ,
+                           '*'     ,'*'     ,'*'     ,'*'     ,'*'     ,'*'     ,'*'     ,'*'
+//FORMAT__END
     );
+
+#define LN_TAB LT(LNUM, KC_TAB)
+
+//define LN_TAB ,  ,
+//define LN_TAB , , KC_TAB)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 [BASE_MAC] = LAYOUT_HRM(
-  QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                        KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
-  KC_TAB , KC_Q   , KC_W   , KC_E   , KC_R   , KC_T   ,                        KC_Y   , KC_U   , KC_I   , KC_O   , KC_P   , KC_BSLS,
-  QK_GESC,    KC_A    , KC_S       , KC_D       , KC_F       , KC_G   ,                                            KC_H   , KC_J  , KC_K  , KC_L  , KC_SCLN , KC_QUOT,
-  KC_NO  , KC_Z   , KC_X   , KC_C   , KC_V   , KC_B   ,UK_VGCP,UK_CAPR,KC_N,    KC_M, KC_COMM, KC_DOT,KC_SLSH  ,  KC_GRV,
-                            KC_LSFT, LT(LNUM, KC_TAB)    , TL_LOWR,UK_SPC ,KC_ENT ,TL_UPPR, KC_BSPC , KC_RSFT
-
+//FORMAT__START
+QK_GESC ,KC_1    ,KC_2    ,KC_3    ,KC_4    ,KC_5    ,                        KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,KC_BSPC ,
+KC_TAB  ,KC_Q    ,KC_W    ,KC_E    ,KC_R    ,KC_T    ,                        KC_Y    ,KC_U    ,KC_I    ,KC_O    ,KC_P    ,KC_BSLS ,
+QK_GESC ,KC_A    ,KC_S    ,KC_D    ,KC_F    ,KC_G    ,                        KC_H    ,KC_J    ,KC_K    ,KC_L    ,KC_SCLN ,KC_QUOT ,
+KC_NO   ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,UK_VGCP ,UK_CAPR ,KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_GRV  ,
+                                    KC_LSFT ,LN_TAB  ,TL_LOWR ,UK_SPC  ,KC_ENT  ,TL_UPPR ,KC_BSPC ,KC_RSFT
+//FORMAT__END
+//
 ),
 
 [BASE_WIN] = LAYOUT(
@@ -303,20 +338,24 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 // Symbol
 [LLOWER] = LAYOUT(
-  QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5    ,                             KC_6   , KC_7   , KC_8   , KC_9   , KC_0   , KC_BSPC,
-  MO(LFN), KC_EXLM, KC_AT  , KC_HASH, KC_DLR , KC_PERC ,                             KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_PIPE,
-  KC_HOME,    KC_NO, KC_LBRC, KC_LPRN, KC_LCBR, KC_PIPE ,                             KC_EQL , KC_UNDS, KC_MINS, KC_PLUS, KC_DQUO  , KC_EQL,
-  KC_END , KC_TRNS, KC_RBRC, KC_RPRN, KC_RCBR, KC_BSLS ,   KC_NO,   KC_NO  , KC_SLSH,KC_QUES, KC_GRAVE, KC_TILD,  KC_UNDS, KC_PLUS,
-                                         _______, MO(LDEBUG),_______,  KC_NO,   KC_BSPC, MO(LFUNC), _______, _______
+//FORMAT__START
+QK_GESC ,KC_1    ,KC_2    ,KC_3    ,KC_4    ,KC_5    ,                        KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,KC_BSPC ,
+MO(LFN) ,KC_EXLM ,KC_AT   ,KC_HASH ,KC_DLR  ,KC_PERC ,                        KC_CIRC ,KC_AMPR ,KC_ASTR ,KC_LPRN ,KC_RPRN ,KC_PIPE ,
+KC_HOME ,KC_NO   ,KC_LBRC ,KC_RBRC ,KC_LCBR ,KC_RCBR ,                        KC_EQL  ,KC_UNDS ,KC_MINS ,KC_PLUS ,KC_DQUO ,KC_EQL  ,
+KC_END  ,KC_TRNS ,KC_RBRC ,KC_NO   ,KC_PIPE ,KC_BSLS ,KC_NO   ,KC_NO   ,KC_SLSH ,KC_QUES ,KC_GRAVE,KC_TILD ,KC_UNDS ,KC_PLUS ,
+                                    _______ ,MO(LDEBUG),_______ ,KC_NO   ,KC_BSPC ,MO(LFUNC),_______ ,_______
+//FORMAT__END
 ),
 
 // FN line and quick symbol
 [LRAISE] = LAYOUT_HRM(
-  QK_GESC, KC_1   , KC_2   , KC_3   , KC_4   , KC_5   ,                        KC_6   , KC_7   , KC_8   , KC_9   , KC_0    , KC_BSPC,
-  KC_NO  , KC_F1   , KC_F2 , KC_F3  , KC_F4  , KC_F5  ,                        KC_F6  , KC_F7  , KC_F8  , KC_F9  , KC_F10  , KC_F11  ,
-  KC_NO  , KC_5   , KC_4   , KC_3   , KC_2   , KC_1   ,                                        KC_BSPC, KC_MINS, KC_EQL , KC_PLUS, KC_DQUO , KC_F12  ,
-  KC_CAPS, KC_6   , KC_7   , KC_8   , KC_9   , KC_0   ,  _______, _______,     KC_BSPC, KC_INS, KC_HOME, KC_END, KC_QUES  , TRS_GRV,
-                             _______, _______, MO(LFUNC),_______, KC_DEL ,     KC_NO  ,KC_BSPC, KC_NO
+//FORMAT__START
+QK_GESC ,KC_1    ,KC_2    ,KC_3    ,KC_4    ,KC_5    ,                        KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,KC_BSPC ,
+KC_NO   ,KC_F1   ,KC_F2   ,KC_F3   ,KC_F4   ,KC_F5   ,                        KC_F6   ,KC_F7   ,KC_F8   ,KC_F9   ,KC_F10  ,KC_F11  ,
+KC_NO   ,KC_5    ,KC_4    ,KC_3    ,KC_2    ,KC_1    ,                        KC_BSPC ,KC_MINS ,KC_EQL  ,KC_PLUS ,KC_DQUO ,KC_F12  ,
+KC_CAPS ,KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,_______ ,_______ ,KC_BSPC ,KC_INS  ,KC_HOME ,KC_END  ,KC_QUES ,TRS_GRV ,
+                                    _______ ,_______ ,MO(LFUNC),_______ ,KC_DEL  ,KC_NO   ,KC_BSPC ,KC_NO
+//FORMAT__END
 ),
 //adjust layer
 [LFUNC] = LAYOUT(

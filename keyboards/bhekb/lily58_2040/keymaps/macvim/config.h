@@ -39,13 +39,13 @@
 
 #define WIN_LAYER_DEF_LAYER 1 // Sets the default for the "lower" layer.
 
-#define TAPPING_TERM 250
+#define TAPPING_TERM 180
 #define PERMISSIVE_HOLD
 // two-handed hold
 #define CHORDAL_HOLD
 
 //#define TAP_FLOW_DEBUG
-#define TAP_FLOW_TERM 70
+#define TAP_FLOW_TERM 40
 #define QUICK_TAP_TERM 120
 
 #undef RETRO_TAPPING
