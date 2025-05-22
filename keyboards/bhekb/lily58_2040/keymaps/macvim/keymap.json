@@ -1,3 +1,9 @@
 {
-    "modules": ["getreuer/tap_flow"]
+    "modules": [
+        "hitsmaxft/lily58_logo"
+        , "hitsmaxft/apm"
+        , "hitsmaxft/oled_ext"
+        , "getreuer/tap_flow"
+        ,"getreuer/keycode_string"
+    ]
 }

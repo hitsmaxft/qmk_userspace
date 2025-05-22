@@ -44,9 +44,12 @@
 // two-handed hold
 #define CHORDAL_HOLD
 
-//#define TAP_FLOW_DEBUG
+// #define TAP_FLOW_DEBUG
 #define TAP_FLOW_TERM 40
 #define QUICK_TAP_TERM 120
 
 #undef RETRO_TAPPING
 #undef HOLD_ON_OTHER_KEY_PRESS
+
+//for oled module
+#define EXT_KEYCODE_STRING_NAME 1

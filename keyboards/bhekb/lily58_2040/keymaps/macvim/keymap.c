@@ -112,13 +112,12 @@ static int logo_show_delay = 50;
 #ifdef TAP_FLOW_TERM
 
 //
-static float border_for_splithand = MATRIX_COLS / 2.0 + 0.5;
+static float        border_for_splithand     = MATRIX_COLS / 2.0 + 0.5;
 static keyrecord_t *last_tap_flow_key_record = 0;
 
 bool is_oppsite_hand_tap_flow(keyrecord_t *last, keyrecord_t *current) {
     return (last->event.key.col < border_for_splithand && current->event.key.col > border_for_splithand) || (last->event.key.col > border_for_splithand && current->event.key.col < border_for_splithand);
 }
-
 
 // disable tap flow while pressing with two hand
 uint16_t get_tap_flow_term(uint16_t keycode, keyrecord_t *record, uint16_t prev_keycode) {
@@ -129,7 +128,7 @@ uint16_t get_tap_flow_term(uint16_t keycode, keyrecord_t *record, uint16_t prev_
 #    endif            // TAP_FLOW_DEBUG
             return 0; // disable tap flow for chord hand
         }
-        //save last pressed key for next checking
+        // save last pressed key for next checking
         last_tap_flow_key_record = record;
 
         return g_tap_flow_term;

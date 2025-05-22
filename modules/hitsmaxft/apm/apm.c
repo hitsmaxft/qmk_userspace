@@ -1,6 +1,4 @@
-#include QMK_KEYBOARD_H
-
-#include "oled_ext.h"
+#include "apm.h"
 
 #define APM_BUCKET_SIZE 60
 static uint8_t  apm_bucket_idx               = 0;
