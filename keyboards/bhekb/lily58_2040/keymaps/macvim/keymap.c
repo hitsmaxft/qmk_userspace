@@ -29,14 +29,14 @@
 #include "keymap_us.h"
 #include "send_string_keycodes.h"
 
-#include "lily.h"
-
 #include "tap_flow.h"
 
 #ifdef OLED_ENABLE
 #    include "oled_driver.h"
-
 #endif
+
+#include "apm.h"
+#include "lily58_logo.h"
 
 #include "keycode.h"
 
@@ -163,7 +163,7 @@ void keyboard_post_init_user(void) {
     is_master = is_keyboard_master();
 
 #ifdef OLED_ENABLE
-    oled_write(read_logo(), false);
+    // oled_write(read_logo(), false);
     defer_exec(3000, hide_logo, NULL);
     defer_exec(OLED_APM_INTERVAL, apm_calc_result, NULL);
 #endif
@@ -171,23 +171,22 @@ void keyboard_post_init_user(void) {
 
 #ifdef OLED_ENABLE
 
-bool shutdown_user(bool jump_to_bootloader) {
-    logo_show_delay = 1;
-    oled_write(read_logo(), false);
-    return true;
-}
+// bool shutdown_user(bool jump_to_bootloader) {
+//     logo_show_delay = 1;
+//     oled_write(read_logo(), false);
+//     return true;
+// }
 
 bool oled_task_user(void) {
     char charbuffer[21] = {0};
 
-    if (logo_show_delay > 0) {
-        return false;
-    }
-
-    if (!is_keyboard_master()) {
-        oled_write(read_logo(), false);
-        return false;
-    }
+    // if (logo_show_delay > 0) {
+    //     return false;
+    // }
+    // if (!is_keyboard_master()) {
+    //     oled_write(read_logo(), false);
+    //     return false;
+    // }
 
     if (debug_enable) {
         oled_write_ln_P(PSTR(read_keylog()), false);
