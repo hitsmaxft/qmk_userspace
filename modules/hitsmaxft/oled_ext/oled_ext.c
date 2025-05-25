@@ -1,4 +1,3 @@
-#include "oled_ext.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -9,6 +8,8 @@
 #include "modifiers.h"
 #include "printf.h"
 #include "quantum.h"
+
+#include "oled_ext.h"
 
 #define CHAR_LAYER 0xDD
 #define CHAR_MOD 0x1B
@@ -22,26 +23,16 @@
 #define CHAR_RIGHT 0x1A
 #define CHAR_LEFT 0x1B
 
+// require community module
 #ifdef EXT_KEYCODE_STRING_NAME
 #    include "keycode_string.h"
 #endif
-// show magic number
-//  max char in one line
-#define MAX_CHAR_LINE 21
-#define KEY_LOGS_MAX_CHAR_LINE 21
-// max history chars, reserved 2 char of each line for padding
-#define KEY_LOGS_MAX_CHARS ((MAX_CHAR_LINE * 2))
 
-#define KEY_LOGS_COUNT ((MAX_CHAR_LINE - MAX_CHAR_LINE % 2))
-#define KEY_LOGS_COMBO_LINE ((KEY_LOGS_COUNT / 2))
-
-#define KEY_LOG_ARR_LEN KEY_LOGS_MAX_CHARS
-
-static char keylog_str[24]               = {};
-static char keylogs_str[KEY_LOG_ARR_LEN] = {};
+static char keylog_str[24]               = {0};
+static char keylogs_str[KEY_LOG_ARR_LEN] = {0};
 
 // deprecate
-char       keylogs_mods[KEY_LOGS_COUNT] = {};
+char       keylogs_mods[KEY_LOGS_COUNT] = {0};
 static int keylogs_str_idx              = 0;
 
 static bool inited = false;
@@ -59,14 +50,9 @@ void reset_keylogs_str(void) {
     keylogs_str[KEY_LOGS_MAX_CHARS - 1]     = ' ';
 }
 
-#define SPC_NAME 0xDB
-#define ENT_NAME 0xDE
-#define TAB_NAME 0xDA
-#define ESC_NAME 0x9E
-
 const char code_to_name[60] = {' ', ' ', ' ', ' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ENT_NAME, ESC_NAME, 0xD9, TAB_NAME, SPC_NAME, ' ', ' ', ' ', ' ', ' ', ' ', ';', '\'', ' ', ',', '.', '/', ' ', ' ', ' '};
 
-char find_keytable(uint16_t keycode) {
+const char find_keytable(uint16_t keycode) {
     char name = ' ';
     if (keycode < 0x3C) {
         name = code_to_name[keycode];
@@ -97,6 +83,7 @@ char find_keytable(uint16_t keycode) {
 
     return name;
 }
+
 
 void process_mods(uint16_t *kc, keyrecord_t *record, int *tap_layer) {
     uint16_t keycode = *kc;

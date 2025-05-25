@@ -27,16 +27,13 @@
 #include "wear_leveling_rp2040_flash_config.h"
 #include QMK_KEYBOARD_H
 #include "keymap_us.h"
-#include "send_string_keycodes.h"
-
-#include "tap_flow.h"
 
 #ifdef OLED_ENABLE
 #    include "oled_driver.h"
 #endif
 
-#include "apm.h"
-#include "lily58_logo.h"
+#include "community_modules.h"
+#include "community_modules_introspection.h"
 
 #include "keycode.h"
 
@@ -234,6 +231,12 @@ bool oled_task_user(void) {
 
 #ifdef CHORDAL_HOLD
 // auto define left and right hand keys
+const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
+    // FORMAT__START
+    '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', 'L', 'L', 'L', '*', '*', 'R', 'R', 'R', '*', '*', '*', 'L', 'L', 'L', 'L', 'L', 'R', 'R', 'R', 'R', 'R', '*', '*', '*', '*', '*', 'L', '*', '*', '*', '*', 'R', 'R', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*'
+    // FORMAT__END
+);
+
 #endif
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -296,17 +299,6 @@ void matrix_scan_user(void) { // The very important timer.
 // clang-format off
 
 //chordal hold layout
-const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM =
-    LAYOUT(
-//FORMAT__START
-'*'     ,'*'     ,'*'     ,'*'     ,'*'     ,'*'     ,                  '*'     ,'*'     ,'*'     ,'*'     ,'*'     ,'*'     ,
-'*'     ,'*'     ,'L'     ,'L'     ,'L'     ,'*'     ,                  '*'     ,'R'     ,'R'     ,'R'     ,'*'     ,'*'     ,
-'*'     ,'L'     ,'L'     ,'L'     ,'L'     ,'L'     ,                  'R'     ,'R'     ,'R'     ,'R'     ,'R'     ,'*'     ,
-'*'     ,'*'     ,'*'     ,'*'     ,'L'     ,'*'     ,'*'     ,'*'     ,'*'     ,'R'     ,'R'     ,'*'     ,'*'     ,'*'     ,
-                           '*'     ,'*'     ,'*'     ,'*'     ,'*'     ,'*'     ,'*'     ,'*'
-//FORMAT__END
-    );
-
 #define LN_TAB LT(LNUM, KC_TAB)
 
 //define LN_TAB ,  ,
