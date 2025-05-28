@@ -30,3 +30,5 @@ const char *read_keylogs(void);
 const char *read_keylog(void);
 
 void reset_keylogs_str(void);
+
+void oled_ext_oled_task_user(void);

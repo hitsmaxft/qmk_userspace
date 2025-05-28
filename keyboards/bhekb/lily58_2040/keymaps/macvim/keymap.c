@@ -156,10 +156,10 @@ uint32_t hide_logo(uint32_t trigger_time, void *cb_arg) {
     return 0;
 }
 
-void keyboard_post_init_user(void) {
+void __keyboard_post_init_user(void) {
+#ifdef OLED_ENABLE
     is_master = is_keyboard_master();
 
-#ifdef OLED_ENABLE
     // oled_write(read_logo(), false);
     defer_exec(3000, hide_logo, NULL);
     defer_exec(OLED_APM_INTERVAL, apm_calc_result, NULL);
@@ -167,14 +167,12 @@ void keyboard_post_init_user(void) {
 }
 
 #ifdef OLED_ENABLE
-
-// bool shutdown_user(bool jump_to_bootloader) {
-//     logo_show_delay = 1;
-//     oled_write(read_logo(), false);
-//     return true;
-// }
-
 bool oled_task_user(void) {
+    oled_ext_oled_task_user();
+    return true;
+}
+
+bool __oled_task_user(void) {
     char charbuffer[21] = {0};
 
     // if (logo_show_delay > 0) {
@@ -241,11 +239,11 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef OLED_ENABLE
-    if (record->event.pressed) {
-        logo_show_delay = 0;
-        apm_incr_key_counter();
-        set_keylog(keycode, record);
-    }
+    // if (record->event.pressed) {
+    //     logo_show_delay = 0;
+    //     apm_incr_key_counter();
+    //     set_keylog(keycode, record);
+    // }
 #endif
 
     switch (keycode) {

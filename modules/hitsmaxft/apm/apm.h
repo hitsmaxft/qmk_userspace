@@ -1,6 +1,8 @@
 #pragma once
 
-#define OLED_APM_INTERVAL 1000
+#ifndef OLED_APM_INTERVAL
+#    define OLED_APM_INTERVAL 1000
+#endif
 #define APM_BUCKET_SIZE 60
 
 void     apm_incr_key_counter(void);
