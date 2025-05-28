@@ -4,7 +4,6 @@ let
 in
 # However, if you want to override Niv's inputs, this will let you do that.
 { pkgs ? import sources.nixpkgs { }
-, poetry2nix ? pkgs.callPackage (import sources.poetry2nix) { }
 , avr ? false
 , arm ? true
 , teensy ? false}:
@@ -22,37 +21,11 @@ let
     "-L${avrlibc}/avr/lib/avr51"
   ];
 
-  # Builds the python env based on nix/pyproject.toml and
-  # nix/poetry.lock Use the "poetry update --lock", "poetry add
-  # --lock" etc. in the nix folder to adjust the contents of those
-  # files if the requirements*.txt files change
-  pythonEnv = poetry2nix.mkPoetryEnv {
-    projectDir = ./nix;
-    overrides = poetry2nix.overrides.withDefaults (self: super: {
-      qmk = super.qmk.overridePythonAttrs(old: {
-        # Allow QMK CLI to run "qmk" as a subprocess (the wrapper changes
-        # $PATH and breaks these invocations).
-        dontWrapPythonPrograms = true;
-
-        # Fix "qmk setup" to use the Python interpreter from the environment
-        # when invoking "qmk doctor" (sys.executable gets its value from
-        # $NIX_PYTHONEXECUTABLE, which is set by the "qmk" wrapper from the
-        # Python environment, so "qmk doctor" then runs with the proper
-        # $NIX_PYTHONPATH too, because sys.executable actually points to
-        # another wrapper from the same Python environment).
-        postPatch = ''
-          substituteInPlace qmk_cli/subcommands/setup.py \
-            --replace "[Path(sys.argv[0]).as_posix()" \
-              "[Path(sys.executable).as_posix(), Path(sys.argv[0]).as_posix()"
-        '';
-      });
-    });
-  };
 in
 mkShell {
   name = "qmk-firmware";
 
-  buildInputs = [ llvmPackages_12.clang-tools dfu-programmer dfu-util diffutils git pythonEnv niv ]
+  buildInputs = [ llvmPackages_12.clang-tools dfu-programmer dfu-util diffutils git qmk niv ]
     ++ lib.optional avr [
       pkgsCross.avr.buildPackages.binutils
       pkgsCross.avr.buildPackages.gcc8
