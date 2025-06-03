@@ -1,15 +1,15 @@
-#include QMK_KEYBOARD_H
+#include <stdint.h>
+#include "apm.h"
 
-#include "lily.h"
-
-#define APM_BUCKET_SIZE 60
-static uint8_t apm_bucket_idx               = 0;
-static uint8_t apm_buckets[APM_BUCKET_SIZE] = {0};
-static uint8_t press_key_count              = 0;
+static uint8_t  apm_bucket_idx               = 0;
+static uint8_t  apm_buckets[APM_BUCKET_SIZE] = {0};
+static uint8_t  press_key_count              = 0;
 static uint32_t keycode_apm                  = 0;
 
 /**
- * calculate apm by 6 slot;
+ * Calculate APM (Actions Per Minute) using a sliding window of 60 slots.
+ * Each slot represents a fixed interval (OLED_APM_INTERVAL ms).
+ * Returns the interval for the next calculation.
  */
 uint32_t apm_calc_result(uint32_t trigger_time, void *cb_arg) {
     apm_buckets[apm_bucket_idx] = press_key_count;

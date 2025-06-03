@@ -1,0 +1,7 @@
+[submodule "modules/qmk_firmware"]
+    path = modules/qmk_firmware
+    url = git@github.com:hitsmaxft/qmk_firmware.git
+    branch = feature/addkeyboard
+[submodule "modules/getreuer"]
+	path = modules/getreuer
+	url = https://github.com/getreuer/qmk-modules.git

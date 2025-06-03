@@ -1,0 +1,7 @@
+{
+    "modules": [
+        "hitsmaxft/lily58_logo"
+        , "hitsmaxft/apm"
+        , "hitsmaxft/oled_ext"
+    ]
+}

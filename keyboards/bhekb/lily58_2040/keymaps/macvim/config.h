@@ -20,8 +20,9 @@
  */
 
 #pragma once
-#define OLED_IC  OLED_IC_SSD1306
+#define OLED_IC OLED_IC_SSD1306
 
+#define SPLIT_USB_DETECT
 #define OLED_CS_PIN 29
 #define OLED_DC_PIN 28
 #define OLED_DISPLAY_128X32 TRUE
@@ -32,10 +33,25 @@
 // #undef PRODUCT_ID
 // #define PRODUCT_ID 0x0220
 
-#define TRI_LAYER_LOWER_LAYER	1	//Sets the default for the "lower" layer.
-#define RI_LAYER_UPPER_LAYER	2	//Sets the default for the "upper" layer.
-#define TRI_LAYER_ADJUST_LAYER	3	//Sets the default for the "adjust" layer.
+#define OLED_APM_INTERVAL 1000
+
+#define TRI_LAYER_LOWER_LAYER 2  // Sets the default for the "lower" layer.
+#define TRI_LAYER_UPPER_LAYER 3  // Sets the default for the "upper" layer.
+#define TRI_LAYER_ADJUST_LAYER 4 // Sets the default for the "adjust" layer.
+
+#define WIN_LAYER_DEF_LAYER 1 // Sets the default for the "lower" layer.
+
+#define TAPPING_TERM 180
+#define PERMISSIVE_HOLD
+// two-handed hold
+#define CHORDAL_HOLD
+
+// #define TAP_FLOW_DEBUG
+#define TAP_FLOW_TERM 40
+#define FLOW_TAP_TERM 40
+#define QUICK_TAP_TERM 120
 
 #undef RETRO_TAPPING
-#undef PERMISSIVE_HOLD
 #undef HOLD_ON_OTHER_KEY_PRESS
+
+

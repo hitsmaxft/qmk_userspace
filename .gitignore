@@ -14,3 +14,7 @@
 # user temp files
 .cache
 compile_commands.json
+
+.direnv
+
+modules/

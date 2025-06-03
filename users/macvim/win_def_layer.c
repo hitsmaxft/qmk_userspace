@@ -19,25 +19,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
 #include QMK_KEYBOARD_H
 
-#include <stdio.h>
-#include "action.h"
 
-void set_keylog(uint16_t keycode, keyrecord_t *record);
+bool process_detected_host_os_kb(os_variant_t detected_os) {
+    if (!process_detected_host_os_user(detected_os)) {
+        return false;
+    }
 
-const char find_keytable(uint16_t keycode);
-const char *read_logo(void);
-const char *read_keymods(void);
-const char *read_keylogs(void);
-const char *read_keylog(void);
+    keymap_config_t kc;
+    eeconfig_read_keymap(&kc);
 
-void reset_keylogs_str(void);
+    switch (detected_os) {
+        case OS_WINDOWS:
+            #ifdef WIN_LAYER_DEF_LAYER
+                set_single_default_layer(WIN_LAYER_DEF_LAYER);
+                uprintf("set default layouer to WIN_LAYER_DEF_LAYER as %d\n", WIN_LAYER_DEF_LAYER);
+            #endif
+                break;
+        case OS_MACOS:
+        case OS_IOS:
+        case OS_LINUX:
+        case OS_UNSURE:
+            break;
+    }
 
-#define OLED_APM_INTERVAL 1000
+    return true;
+}
 
-
-void apm_incr_key_counter(void);
-uint32_t apm_read_keycode(void);
-uint32_t apm_calc_result(uint32_t trigger_time, void *cb_arg);

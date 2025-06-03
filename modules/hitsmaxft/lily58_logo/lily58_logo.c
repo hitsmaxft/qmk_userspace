@@ -1,31 +1,9 @@
-/*
- * Copyright (c) 2024 BHE
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
+#include "lily58_logo.h"
 
-// This is the 'classic' fixed-space bitmap font for Adafruit_GFX since 1.0.
-// See gfxfont.h for newer custom bitmap font info.
-
-// Modified to show the Lily58 logo instead of the qmk logo
 #include "progmem.h"
 
 // Standard ASCII 5x7 font
+// clang-format off
 const unsigned char font[] PROGMEM = {
     0x1B, 0x1B, 0x04, 0x1B, 0x1B, 0x00,
     0x3E, 0x5B, 0x4F, 0x5B, 0x3E, 0x00,
@@ -252,3 +230,16 @@ const unsigned char font[] PROGMEM = {
     0x70, 0x50, 0x5C, 0x44, 0x7C, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
+
+static char logo[] = {0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88,
+        0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f, 0x90, 0x91,
+        0x92, 0x93, 0x94, 0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5,
+        0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae,
+        0xaf, 0xb0, 0xb1, 0xb2, 0xb3, 0xb4, 0xc0, 0xc1, 0xc2,
+        0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb,
+        0xcc, 0xcd, 0xce, 0xcf, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0};
+// clang-format on
+
+const char *read_logo(void) {
+    return logo;
+}
