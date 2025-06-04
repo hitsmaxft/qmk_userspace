@@ -129,9 +129,9 @@ void set_keylog(uint16_t keycode, keyrecord_t *record) {
     char    modShft   = (mod_state & MOD_MASK_SHIFT) ? 0x18 : '-';
     sprintf(buffer, "%c%c%c%c", modCtl, modShft, modAlt, modGui);
 
-#ifndef EXT_KEYCODE_STRING_NAME
+#ifndef KEYCODE_STRING_NAME
     // update keylog
-    snprintf(keylog_str, sizeof(keylog_str), "%2d %d:%d,c=%06d %3s", keylogs_str_idx, record->event.key.row, record->event.key.col, keycode, buffer);
+    snprintf(keylog_str, sizeof(keylog_str), "%2d %d:%d,c=%06d %3s", keylogs_str_idx, record->event.key.row, record->event.key.col, keycode, "   ");
 #else
     snprintf(keylog_str, sizeof(keylog_str), "%2d %d:%d,%12s", keylogs_str_idx, record->event.key.row, record->event.key.col, get_keycode_string(keycode));
 #endif

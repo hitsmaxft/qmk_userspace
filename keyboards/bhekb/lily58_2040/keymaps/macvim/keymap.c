@@ -240,6 +240,15 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
 
 #endif
 
+void stop_shift_hold(void) {
+    if (is_shift_tab_active) {
+        is_shift_tab_active = false;
+
+        shift_tab_timer     = 0;
+        unregister_code(KC_LSFT);
+    }
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef OLED_ENABLE
     // if (record->event.pressed) {
@@ -249,14 +258,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     // }
 #endif
 
+    bool stop_shift_hold = is_shift_tab_active;
+
     switch (keycode) {
-        case KC_TAB:
-            if (is_shift_tab_active) {
-                is_shift_tab_active = false;
-                shift_tab_timer     = 0;
-                unregister_code(KC_LSFT);
-            }
-            break;
         case UK_VGCP:
             if (record->event.pressed) {
                 SEND_STRING(SS_DOWN(X_LSFT) SS_TAP(X_QUOT) SS_DELAY(200) SS_UP(X_LSFT) SS_DELAY(100) SS_TAP(X_KP_PLUS) "y" SS_DELAY(300));
@@ -270,6 +274,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             break;
         case UK_STAB:
             if (record->event.pressed) {
+                //keep hold shift
+                stop_shift_hold = false;
                 if (!is_shift_tab_active) {
                     is_shift_tab_active = true;
                     register_code(KC_LSFT);
@@ -284,11 +290,20 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             // }
             break;
     }
+
+    // auto release shift hold for scrolling tab
+    if (is_shift_tab_active && stop_shift_hold) {
+        shift_tab_timer     = 0;
+        is_shift_tab_active = false;
+        unregister_code(KC_LSFT);
+    }
+
     return true;
 };
 
 void matrix_scan_user(void) { // The very important timer.
     if (is_shift_tab_active) {
+        //auto remove shift hold after 1000
         if (timer_elapsed(shift_tab_timer) > 1000) {
             unregister_code(KC_LSFT);
             is_shift_tab_active = false;
