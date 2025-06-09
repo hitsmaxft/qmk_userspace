@@ -103,7 +103,7 @@ enum lily_58_custom_keycode {
         {k5A, k5B, k5C, k5D, k5E, k5F}, \
         {k6A, k6B, k6C, k6D, k6E, k6F}, \
         {k7A, HRM_C(k7B), HRM_L(k7C), HRM_K(k7D), HRM_J(k7E), k7F}, \
-        {k8A, k8B, k8C, k8D, k8E, k8F},   \
+        {k8A, k8B, k8C, k8D, k8E, k8F},  \
         { XXX, k9B, k9C, k9D, k9E, k9F                                                                                                                                                                                                                                                                                                                          \
         }                                                                                                                                                                                                                                                                                                                                                         \
     }

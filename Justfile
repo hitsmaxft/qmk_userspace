@@ -7,6 +7,7 @@ default_keymap := 'macvim'
 kb_ap2 := 'annepro2/c18'
 kb_lily58 := 'bhekb/lily58_2040/rp'
 kb_gh60 := 'gh60/gh60'
+c_pwd := `pwd`
 
 
 default:
@@ -27,10 +28,13 @@ clean:
 _compile_kb kb km=default_keymap *args='':
     qmk compile -kb {{kb}}  -km {{km}} -j20
 
+_compile_kb_extra path kb km=default_keymap *args='':
+    qmk compile --compiledb --env EXTRA_KEYBOARD_FOLDER_PATH="{{c_pwd}}/{{path}}" -kb {{kb}}  -km {{km}} -j20
+
 annepro2: ( _compile_kb 'annepro2/c18')
     echo "compile annepro2"
 
-lily58: ( _compile_kb kb_lily58 'macvim')
+lily58: ( _compile_kb_extra 'modules/lily58-2040' kb_lily58 'macvim')
 
 # will clean build at beginning
 gen-compile-db kb km=default_keymap:
