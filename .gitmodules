@@ -5,3 +5,6 @@
 [submodule "modules/getreuer"]
 	path = modules/getreuer
 	url = https://github.com/getreuer/qmk-modules.git
+[submodule "modules/qmk-keyboard-lily58-2040"]
+	path = modules/qmk-keyboard-lily58-2040
+	url = git@github.com:hitsmaxft/lily58-2040-fw.git
