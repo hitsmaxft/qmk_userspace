@@ -92,13 +92,23 @@ enum lily_58_custom_keycode {
 #define RCT_K RCTL_T(KC_K)
 
 // hrm layout mapping
+// clang-format off
 #define LAYOUT_HRM(k0A, k0B, k0C, k0D, k0E, k0F, k5F, k5E, k5D, k5C, k5B, k5A, k1A, k1B, k1C, k1D, k1E, k1F, k6F, k6E, k6D, k6C, k6B, k6A, k2A, k2B, k2C, k2D, k2E, k2F, k7F, k7E, k7D, k7C, k7B, k7A, k3A, k3B, k3C, k3D, k3E, k3F, k4F, k9F, k8F, k8E, k8D, k8C, k8B, k8A, k4B, k4C, k4D, k4E, k9E, k9D, k9C, k9B)                                              \
     {                                                                                                                                                                                                                                                                                                                                                             \
-        {k0A, k0B, k0C, k0D, k0E, k0F}, {k1A, k1B, k1C, k1D, k1E, k1F}, {k2A, HRM_A(k2B), HRM_S(k2C), HRM_D(k2D), HRM_F(k2E), k2F}, {k3A, k3B, k3C, k3D, k3E, k3F}, {XXX, k4B, k4C, k4D, k4E, k4F}, {k5A, k5B, k5C, k5D, k5E, k5F}, {k6A, k6B, k6C, k6D, k6E, k6F}, {k7A, HRM_C(k7B), HRM_L(k7C), HRM_K(k7D), HRM_J(k7E), k7F}, {k8A, k8B, k8C, k8D, k8E, k8F}, { \
-            XXX, k9B, k9C, k9D, k9E, k9F                                                                                                                                                                                                                                                                                                                          \
+        {k0A, k0B, k0C, k0D, k0E, k0F}, \
+        {k1A, k1B, k1C, k1D, k1E, k1F}, \
+        {k2A, HRM_A(k2B), HRM_S(k2C), HRM_D(k2D), HRM_F(k2E), k2F}, \
+        {k3A, HRM_D(k3B), k3C, k3D, k3E, k3F}, \
+        {XXX, k4B, k4C, k4D, k4E, k4F}, \
+        {k5A, k5B, k5C, k5D, k5E, k5F}, \
+        {k6A, k6B, k6C, k6D, k6E, k6F}, \
+        {k7A, HRM_C(k7B), HRM_L(k7C), HRM_K(k7D), HRM_J(k7E), k7F}, \
+        {k8A, k8B, k8C, k8D, k8E, k8F},   \
+        { XXX, k9B, k9C, k9D, k9E, k9F                                                                                                                                                                                                                                                                                                                          \
         }                                                                                                                                                                                                                                                                                                                                                         \
     }
 
+// clang-format on
 // for tab
 #define ST_MINS RSFT_T(KC_MINS)
 #define ST_UNDS RSFT_T(KC_UNDS)
@@ -244,7 +254,7 @@ void stop_shift_hold(void) {
     if (is_shift_tab_active) {
         is_shift_tab_active = false;
 
-        shift_tab_timer     = 0;
+        shift_tab_timer = 0;
         unregister_code(KC_LSFT);
     }
 }
@@ -274,7 +284,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             break;
         case UK_STAB:
             if (record->event.pressed) {
-                //keep hold shift
+                // keep hold shift
                 stop_shift_hold = false;
                 if (!is_shift_tab_active) {
                     is_shift_tab_active = true;
@@ -303,7 +313,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 void matrix_scan_user(void) { // The very important timer.
     if (is_shift_tab_active) {
-        //auto remove shift hold after 1000
+        // auto remove shift hold after 1000
         if (timer_elapsed(shift_tab_timer) > 1000) {
             unregister_code(KC_LSFT);
             is_shift_tab_active = false;
@@ -327,8 +337,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 QK_GESC ,KC_1    ,KC_2    ,KC_3    ,KC_4    ,KC_5    ,                        KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,KC_GRAVE,
 KC_TAB  ,KC_Q    ,KC_W    ,KC_E    ,KC_R    ,KC_T    ,                        KC_Y    ,KC_U    ,KC_I    ,KC_O    ,KC_P    ,KC_BSLS ,
-QK_GESC ,KC_A    ,KC_S    ,KC_D    ,KC_F    ,KC_G    ,                        KC_H    ,KC_J    ,KC_K    ,KC_L    ,KC_SCLN ,KC_QUOT ,
-LN_TAB  ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,UK_VGCP ,UK_CAPR ,     KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_BSPC,
+QK_GESC ,KC_A        ,KC_S        ,KC_D    ,KC_F    ,KC_G    ,                          KC_H    ,KC_J    ,KC_K    ,KC_L    ,KC_SCLN ,KC_QUOT ,
+LN_TAB  ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,UK_VGCP ,     UK_CAPR ,     KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_BSPC,
                                     KC_LSFT ,LN_TAB  ,TL_LOWR ,UK_SPC  ,KC_ENT  ,TL_UPPR ,KC_BSPC ,KC_RSFT
 //FORMAT__END
 //
@@ -348,8 +358,8 @@ LN_TAB  ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,UK_VGCP ,UK_CAPR ,     KC_
 //FORMAT__START
 QK_GESC ,KC_1    ,KC_2    ,KC_3    ,KC_4    ,KC_5    ,                        KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,KC_BSPC ,
 MO(LFN) ,KC_EXLM ,KC_AT   ,KC_HASH ,KC_DLR  ,KC_PERC ,                        KC_CIRC ,KC_AMPR ,KC_ASTR ,KC_LPRN ,KC_RPRN ,KC_PIPE ,
-KC_HOME ,KC_NO   ,KC_LBRC ,KC_RBRC ,KC_LCBR ,KC_RCBR ,                        KC_EQL  ,KC_UNDS ,KC_MINS ,KC_PLUS ,KC_DQUO ,KC_EQL  ,
-KC_END  ,KC_TRNS ,KC_RBRC ,KC_NO   ,KC_PIPE ,KC_BSLS ,KC_NO   ,KC_NO   ,KC_SLSH ,KC_QUES ,KC_GRAVE,KC_TILD ,KC_UNDS ,KC_PLUS ,
+KC_NO   ,KC_NO   ,KC_LBRC ,KC_RBRC ,KC_LCBR ,KC_RCBR ,                        KC_EQL  ,KC_UNDS ,KC_MINS ,KC_PLUS ,KC_DQUO ,KC_EQL  ,
+KC_NO   ,KC_TRNS ,KC_GRAVE,KC_TILD,KC_PIPE ,KC_BSLS ,KC_NO   ,KC_NO   ,KC_SLSH ,KC_QUES ,KC_GRAVE,   KC_TILD , KC_QUOT , _______,
                                     _______ ,MO(LDEBUG),_______ ,KC_NO   ,KC_BSPC ,MO(LFUNC),_______ ,_______
 //FORMAT__END
 ),
