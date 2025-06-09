@@ -34,7 +34,7 @@ _compile_kb_extra path kb km=default_keymap *args='':
 annepro2: ( _compile_kb 'annepro2/c18')
     echo "compile annepro2"
 
-lily58: ( _compile_kb_extra 'modules/lily58-2040' kb_lily58 'macvim')
+lily58: ( _compile_kb_extra 'modules/qmk-keyboard-lily58-2040' kb_lily58 'macvim')
 
 # will clean build at beginning
 gen-compile-db kb km=default_keymap:
