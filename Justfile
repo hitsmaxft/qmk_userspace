@@ -29,7 +29,8 @@ _compile_kb kb km=default_keymap *args='':
     qmk compile -kb {{kb}}  -km {{km}} -j20
 
 _compile_kb_extra path kb km=default_keymap *args='':
-    qmk compile --compiledb --env EXTRA_KEYBOARD_FOLDER_PATH="{{c_pwd}}/{{path}}" -kb {{kb}}  -km {{km}} -j20
+    qmk compile --compiledb -kb {{kb}}  -km {{km}} -j20 --env EXTRA_KEYBOARD_FOLDER_PATH="{{c_pwd}}/{{path}}"
+
 
 annepro2: ( _compile_kb 'annepro2/c18')
     echo "compile annepro2"

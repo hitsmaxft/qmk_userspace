@@ -2,11 +2,12 @@
   description = "qmk firmware";
 
   inputs = {
+      nixpkgs.url = "flake:nixpkgs";
       flake-utils.url = "github:numtide/flake-utils";
       annepro2-tools = {
           url = "github:hitsmaxft/nix-annepro2-tools/master";
           inputs = {
-              flake-utils.follows = "flake-utils";
+              nixpkgs.follows = "nixpkgs";
           };
       };
   };
