@@ -24,7 +24,6 @@
 #include "info_config.h"
 #include "keycodes.h"
 #include "quantum_keycodes.h"
-#include "wear_leveling_rp2040_flash_config.h"
 #include QMK_KEYBOARD_H
 #include "keymap_us.h"
 
@@ -181,11 +180,7 @@ void __keyboard_post_init_user(void) {
 
 #ifdef OLED_ENABLE
 bool oled_task_user(void) {
-    oled_ext_oled_task_user();
-    return true;
-}
-
-bool __oled_task_user(void) {
+    // oled_ext_oled_task_user();
     char charbuffer[21] = {0};
 
     // if (logo_show_delay > 0) {
@@ -236,7 +231,7 @@ bool __oled_task_user(void) {
 
     oled_write_P(PSTR(read_keylogs()), false);
 
-    return false;
+    return true;
 }
 #endif
 
@@ -261,11 +256,11 @@ void stop_shift_hold(void) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef OLED_ENABLE
-    // if (record->event.pressed) {
-    //     logo_show_delay = 0;
-    //     apm_incr_key_counter();
-    //     set_keylog(keycode, record);
-    // }
+    if (record->event.pressed) {
+        logo_show_delay = 0;
+        apm_incr_key_counter();
+        set_keylog(keycode, record);
+    }
 #endif
 
     bool stop_shift_hold = is_shift_tab_active;

@@ -24,7 +24,7 @@
 #define CHAR_RIGHT 0x1A
 #define CHAR_LEFT 0x1B
 
-//require community module
+// require community module
 #ifdef KEYCODE_STRING_ENABLE
 #    include "keycode_string.h"
 #endif
@@ -186,6 +186,7 @@ const char *read_keymods(void) {
 }
 
 /// bongo cat start
+#ifdef OLED_ENABLE
 
 char wpm_str[10];
 
@@ -197,17 +198,17 @@ char wpm_str[10];
 // WPM_ENABLE = yes
 
 // WPM-responsive animation stuff here
-#define IDLE_FRAMES 5
-#define IDLE_SPEED 20 // below this wpm value your animation will idle
+#    define IDLE_FRAMES 5
+#    define IDLE_SPEED 20 // below this wpm value your animation will idle
 
 // #define PREP_FRAMES 1 // uncomment if >1
 
-#define TAP_FRAMES 2
-#define TAP_SPEED 40 // above this wpm value typing animation to trigger
+#    define TAP_FRAMES 2
+#    define TAP_SPEED 40 // above this wpm value typing animation to trigger
 
-#define ANIM_FRAME_DURATION 200 // how long each frame lasts in ms
+#    define ANIM_FRAME_DURATION 200 // how long each frame lasts in ms
 // #define SLEEP_TIMER 60000 // should sleep after this period of 0 wpm, needs fixing
-#define ANIM_SIZE 636 // number of bytes in array, minimize for adequate firmware size, max is 1024
+#    define ANIM_SIZE 636 // number of bytes in array, minimize for adequate firmware size, max is 1024
 
 uint32_t anim_timer         = 0;
 uint32_t anim_sleep         = 0;
@@ -292,9 +293,11 @@ static void render_anim(void) {
         }
     }
 }
+#endif
 
 // Used to draw on to the oled screen
-void oled_ext_oled_task_user(void) {
+void oled_ext_bonggo_cat_oled_task_user(void) {
+#ifdef OLED_ENABLE
     render_anim(); // renders pixelart
 
     oled_set_cursor(0, 0);                           // sets cursor to (row, column) using charactar spacing (5 rows on 128x32 screen, anything more will overflow back to the top)
@@ -304,4 +307,5 @@ void oled_ext_oled_task_user(void) {
     led_t led_state = host_keyboard_led_state(); // caps lock stuff, prints CAPS on new line if caps led is on
     oled_set_cursor(0, 1);
     oled_write_P(led_state.caps_lock ? PSTR("CAPS") : PSTR("       "), false);
+#endif
 }
