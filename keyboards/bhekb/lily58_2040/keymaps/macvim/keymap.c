@@ -19,12 +19,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include QMK_KEYBOARD_H
+
 #include <stdbool.h>
 #include "action.h"
 #include "info_config.h"
 #include "keycodes.h"
 #include "quantum_keycodes.h"
-#include QMK_KEYBOARD_H
 #include "keymap_us.h"
 
 #ifdef OLED_ENABLE
@@ -33,8 +34,6 @@
 
 #include "community_modules.h"
 #include "community_modules_introspection.h"
-
-#include "keycode.h"
 
 #define XXXXXX KC_NO
 
@@ -95,7 +94,7 @@ enum lily_58_custom_keycode {
 #define LAYOUT_HRM(k0A, k0B, k0C, k0D, k0E, k0F, k5F, k5E, k5D, k5C, k5B, k5A, k1A, k1B, k1C, k1D, k1E, k1F, k6F, k6E, k6D, k6C, k6B, k6A, k2A, k2B, k2C, k2D, k2E, k2F, k7F, k7E, k7D, k7C, k7B, k7A, k3A, k3B, k3C, k3D, k3E, k3F, k4F, k9F, k8F, k8E, k8D, k8C, k8B, k8A, k4B, k4C, k4D, k4E, k9E, k9D, k9C, k9B)                                              \
     {                                                                                                                                                                                                                                                                                                                                                             \
         {k0A, k0B, k0C, k0D, k0E, k0F}, \
-        {k1A, k1B, k1C, k1D, k1E, k1F}, \
+        {k1A, HRM_A(k1B), k1C, k1D, k1E, k1F}, \
         {k2A, HRM_A(k2B), HRM_S(k2C), HRM_D(k2D), HRM_F(k2E), k2F}, \
         {k3A, HRM_D(k3B), k3C, k3D, k3E, k3F}, \
         {XXX, k4B, k4C, k4D, k4E, k4F}, \
@@ -115,33 +114,41 @@ enum lily_58_custom_keycode {
 
 static int logo_show_delay = 50;
 
-#ifdef TAP_FLOW_TERM
+#ifdef FLOW_TAP_TERM
 
-//
-static float        border_for_splithand     = MATRIX_COLS / 2.0 + 0.5;
+// dual hand flow tap
+static float        border_for_splithand     = MATRIX_ROWS / 2.0 + 0.5;
+static uint16_t     flow_tap_prev_time       = 0;
+static uint16_t     flow_tap_prev_keycode    = KC_NO;
 static keyrecord_t *last_tap_flow_key_record = 0;
 
+// ignore chordal tap flow
 bool is_oppsite_hand_tap_flow(keyrecord_t *last, keyrecord_t *current) {
-    return (last->event.key.col < border_for_splithand && current->event.key.col > border_for_splithand) || (last->event.key.col > border_for_splithand && current->event.key.col < border_for_splithand);
+    return (last->event.key.row < border_for_splithand && current->event.key.row > border_for_splithand) || (last->event.key.row > border_for_splithand && current->event.key.row < border_for_splithand);
 }
-
-// This globally defines all key overrides to be used
-// const key_override_t  delete_key_override = ko_make_basic(MOD_MASK_SHIFT, KC_GRAVE, KC_);
-// const key_override_t *key_overrides[]     = {&delete_key_override};
+void flow_tap_chordal_reset(void) {
+    flow_tap_prev_time       = 0;
+    last_tap_flow_key_record = 0;
+    flow_tap_prev_keycode    = KC_NO;
+}
 
 // disable tap flow while pressing with two hand
 uint16_t get_flow_tap_term(uint16_t keycode, keyrecord_t *record, uint16_t prev_keycode) {
     if (is_flow_tap_key(keycode) && is_flow_tap_key(prev_keycode)) {
-        if (last_tap_flow_key_record != 0 && is_oppsite_hand_tap_flow(last_tap_flow_key_record, record)) {
+        if (last_tap_flow_key_record != 0 && prev_keycode == flow_tap_prev_keycode && is_oppsite_hand_tap_flow(last_tap_flow_key_record, record)) {
+            // match prekeycode and check hand
 #    ifdef TAP_FLOW_DEBUG
             dprintf("tap_flow disable by chordal");
-#    endif            // TAP_FLOW_DEBUG
+#    endif // TAP_FLOW_DEBUG
+            flow_tap_chordal_reset();
             return 0; // disable tap flow for chord hand
         }
         // save last pressed key for next checking
+        flow_tap_prev_time       = record->event.time;
         last_tap_flow_key_record = record;
-        return TAP_FLOW_TERM;
+        return FLOW_TAP_TERM;
     }
+    flow_tap_chordal_reset();
     return 0;
 }
 #endif
@@ -237,12 +244,18 @@ bool oled_task_user(void) {
 
 #ifdef CHORDAL_HOLD
 // auto define left and right hand keys
+// clang-format off
 const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
     // FORMAT__START
-    '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', 'L', 'L', 'L', '*', '*', 'R', 'R', 'R', '*', '*', '*', 'L', 'L', 'L', 'L', 'L', 'R', 'R', 'R', 'R', 'R', '*', '*', '*', '*', '*', 'L', '*', '*', '*', '*', 'R', 'R', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*', '*'
+    '*', '*', '*', '*', '*', '*',                     '*', '*', '*', '*', '*',  '*',
+    '*', '*', 'L', 'L', 'L', '*',                     '*', 'R', 'R', 'R', '*',  '*',
+    '*', 'L', 'L', 'L', 'L', 'L',                     'R', 'R', 'R', 'R', 'R',  '*',
+    '*', '*', '*', 'L', 'L', 'L',  '*', '*',  '*', 'R', 'R', '*', '*', '*',
+                               '*', 'L', 'L',  'L', 'R',  'R', '*', '*'
     // FORMAT__END
 );
 
+// clang-format on
 #endif
 
 void stop_shift_hold(void) {
