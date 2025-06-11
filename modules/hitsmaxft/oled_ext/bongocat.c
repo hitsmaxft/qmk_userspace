@@ -1,3 +1,5 @@
+#include "oled_ext.h"
+
 /// bongo cat start
 char wpm_str[10];
 

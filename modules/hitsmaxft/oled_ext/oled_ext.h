@@ -2,7 +2,6 @@
 
 #include QMK_KEYBOARD_H
 
-#include <stdio.h>
 #include "action.h"
 
 // show magic number
@@ -31,4 +30,5 @@ const char *read_keylog(void);
 
 void reset_keylogs_str(void);
 
-void oled_ext_oled_task_user(void);
+// render bonggo cat
+void oled_ext_bonggo_cat_oled_task_user(void);
