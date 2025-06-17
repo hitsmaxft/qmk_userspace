@@ -48,7 +48,7 @@
 // two-handed hold
 #define CHORDAL_HOLD
 
-// #define TAP_FLOW_DEBUG
+#define FLOW_TAP_DEBUG
 #define FLOW_TAP_TERM 40
 #define QUICK_TAP_TERM 120
 

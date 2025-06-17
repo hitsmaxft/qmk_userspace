@@ -137,7 +137,7 @@ uint16_t get_flow_tap_term(uint16_t keycode, keyrecord_t *record, uint16_t prev_
     if (is_flow_tap_key(keycode) && is_flow_tap_key(prev_keycode)) {
         if (last_tap_flow_key_record != 0 && prev_keycode == flow_tap_prev_keycode && is_oppsite_hand_tap_flow(last_tap_flow_key_record, record)) {
             // match prekeycode and check hand
-#    ifdef TAP_FLOW_DEBUG
+#    ifdef FLOW_TAP_DEBUG
             dprintf("tap_flow disable by chordal");
 #    endif // TAP_FLOW_DEBUG
             flow_tap_chordal_reset();
@@ -250,7 +250,7 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
     '*', '*', '*', '*', '*', '*',                     '*', '*', '*', '*', '*',  '*',
     '*', '*', 'L', 'L', 'L', '*',                     '*', 'R', 'R', 'R', '*',  '*',
     '*', 'L', 'L', 'L', 'L', 'L',                     'R', 'R', 'R', 'R', 'R',  '*',
-    '*', '*', '*', 'L', 'L', 'L',  '*', '*',  '*', 'R', 'R', '*', '*', '*',
+    '*', '*', '*', 'L', 'L', 'L',  '*', '*',  'R', 'R', 'R', '*', '*', '*',
                                '*', 'L', 'L',  'L', 'R',  'R', '*', '*'
     // FORMAT__END
 );
@@ -399,11 +399,11 @@ KC_CAPS ,KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,_______ ,_______ ,KC_TAB  
                              KC_LALT, MO(LDEBUG), _______ , KC_NO , KC_BSPC,KC_ACL0, KC_ACL1, KC_ACL2
 ),
 [LNUM] = LAYOUT(
-  KC_NO  , KC_NO  , KC_7   , KC_8   , KC_9   , KC_NO  ,                           KC_NO  , KC_NO  , KC_NO  , KC_NO, KC_0   , KC_GRV ,
-  KC_NO  , KC_NO  , KC_F10   , KC_F7   , KC_F8   , KC_F9  ,                           KC_7   , KC_8   , KC_9   , KC_NO, KC_P   , KC_MINS,
-  KC_NO  , KC_NO  , KC_F11   , KC_F4   , KC_F5   , KC_F6  ,                           KC_4   , KC_5   , KC_6   , KC_NO, KC_NO  , KC_QUOT,
+  KC_NO  , KC_NO  , KC_7   , KC_8   , KC_9   , KC_NO  ,                             KC_NO  , KC_NO  , KC_NO  , KC_NO, KC_0   , KC_GRV ,
+  KC_NO  , KC_NO  , KC_F10   , KC_F7   , KC_F8   , KC_F9  ,                         KC_7   , KC_8   , KC_9   , KC_KP_PLUS, KC_KP_MINUS   , KC_MINS,
+  KC_NO  , KC_NO  , KC_F11   , KC_F4   , KC_F5   , KC_F6  ,                         KC_4   , KC_5   , KC_6   , KC_KP_ASTERISK, KC_KP_SLASH  , KC_QUOT,
   KC_NO  , KC_NO  , KC_F12   , KC_F1  , KC_F2  , KC_F3  , KC_NO , KC_NO,    KC_1   , KC_2   , KC_3   , KC_NO, KC_NO  , KC_RSFT,
-                                            KC_NO , KC_NO  ,_______ , KC_NO , KC_0  , KC_PLUS    , KC_MINUS   , KC_NO
+                                            KC_NO , KC_NO  ,_______ , KC_NO , KC_0  ,  KC_DOT  , KC_MINUS   , KC_NO
 ),
 [LDEBUG] = LAYOUT(
   KC_F   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  , KC_NO  ,

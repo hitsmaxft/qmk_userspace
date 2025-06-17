@@ -17,3 +17,4 @@ compile_commands.json
 
 .direnv
 
+modules/qmk_firmware
