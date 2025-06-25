@@ -334,6 +334,7 @@ void matrix_scan_user(void) { // The very important timer.
 
 //chordal hold layout
 #define LN_TAB LT(LNUM, KC_TAB)
+#define LN_ESC LT(LNUM, KC_ESC)
 
 //define LN_TAB ,  ,
 //define LN_TAB , , KC_TAB)
@@ -347,7 +348,7 @@ QK_GESC ,KC_1    ,KC_2    ,KC_3    ,KC_4    ,KC_5    ,                        KC
 KC_TAB  ,KC_Q    ,KC_W    ,KC_E    ,KC_R    ,KC_T    ,                        KC_Y    ,KC_U    ,KC_I    ,KC_O    ,KC_P    ,KC_BSLS ,
 QK_GESC ,KC_A        ,KC_S        ,KC_D    ,KC_F    ,KC_G    ,                          KC_H    ,KC_J    ,KC_K    ,KC_L    ,KC_SCLN ,KC_QUOT ,
 LN_TAB  ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,UK_VGCP ,     UK_CAPR ,     KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_BSPC,
-                                    KC_LSFT ,LN_TAB  ,TL_LOWR ,UK_SPC  ,KC_ENT  ,TL_UPPR ,KC_BSPC ,KC_RSFT
+                                    KC_LSFT ,LN_ESC  ,TL_LOWR ,UK_SPC  ,KC_ENT  ,TL_UPPR ,KC_BSPC ,KC_RSFT
 //FORMAT__END
 //
 ),
@@ -367,8 +368,8 @@ LN_TAB  ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,UK_VGCP ,     UK_CAPR ,   
 QK_GESC ,KC_1    ,KC_2    ,KC_3    ,KC_4    ,KC_5    ,                        KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,KC_BSPC ,
 MO(LFN) ,KC_EXLM ,KC_AT   ,KC_HASH ,KC_DLR  ,KC_PERC ,                        KC_CIRC ,KC_AMPR ,KC_ASTR ,KC_LPRN ,KC_RPRN ,KC_PIPE ,
 KC_NO   ,KC_NO   ,KC_LBRC ,KC_RBRC ,KC_LCBR ,KC_RCBR ,                        KC_EQL  ,KC_UNDS ,KC_MINS ,KC_PLUS ,KC_DQUO ,KC_EQL  ,
-KC_NO   ,KC_TRNS ,KC_GRAVE,KC_TILD,KC_PIPE ,KC_BSLS ,KC_NO   ,KC_NO   ,KC_SLSH ,KC_QUES ,KC_GRAVE,   KC_TILD , KC_QUOT , _______,
-                                    _______ ,MO(LDEBUG),_______ ,KC_NO   ,KC_BSPC ,MO(LFUNC),_______ ,_______
+KC_NO   ,KC_TRNS ,KC_GRAVE,KC_TILD,KC_PIPE ,KC_BSLS ,KC_NO   ,KC_NO   ,KC_SLSH ,KC_QUES ,KC_LABK,   KC_RABK , KC_QUOT , _______,
+                                    _______ ,MO(LDEBUG),_______ ,KC_NO   ,KC_GRAVE ,MO(LFUNC),KC_TILDE,_______
 //FORMAT__END
 ),
 
@@ -379,7 +380,7 @@ QK_GESC ,KC_1    ,KC_2    ,KC_3    ,KC_4    ,KC_5    ,                        KC
 KC_NO   ,KC_F1   ,KC_F2   ,KC_F3   ,KC_F4   ,KC_F5   ,                        KC_F6   ,KC_F7   ,KC_F8   ,KC_F9   ,KC_F10  ,KC_F11  ,
 KC_NO   ,KC_5    ,KC_4    ,KC_3    ,KC_2    ,KC_1    ,                                        KC_BSPC ,KC_MINS ,KC_EQL  ,KC_MINS ,KC_EQL  ,KC_F12  ,
 KC_CAPS ,KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,_______ ,_______ ,KC_TAB  ,KC_INS  ,KC_HOME ,KC_END  ,KC_QUES ,TRS_GRV ,
-                                    _______ ,_______ ,MO(LFUNC),_______ ,KC_DEL  ,KC_NO   ,KC_BSPC ,KC_NO
+                                    _______ ,KC_TAB ,MO(LFUNC),KC_BSPC ,KC_DEL  ,KC_NO   ,KC_BSPC ,KC_NO
 //FORMAT__END
 ),
 //adjust layer
