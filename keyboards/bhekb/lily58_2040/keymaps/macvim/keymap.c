@@ -1,6 +1,15 @@
 /*
  * Copyright (c) 2024 BHE
  *
+ * Lily58 2040 Keymap for MacVim User
+ *
+ * This keymap is designed for efficient coding with Vim-like navigation and
+ * Mac-specific shortcuts. Features include:
+ * - Homerow mods for ergonomic typing
+ * - Flow tap for quick modifier access
+ * - Chordal hold for two-handed modifiers
+ * - OLED display with system information
+ * - Custom keycodes for Vim operations
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * the Software without restriction, including without limitation the rights to
@@ -21,47 +30,45 @@
 
 #include QMK_KEYBOARD_H
 
-#include "lily58_2040.h"
+#include "custom_keycodes.h"
+#include "layers.h"
+#include "layouts.h"
+#include "tap_hold.h"
+#include "oled_display.h"
 // Default keymap. This can be changed in Vial. Use oled.c to change beavior that Vial cannot change.
 
 // clang-format off
 
 //chordal hold layout
 
-//define LN_TAB ,  ,
-//define LN_TAB , , KC_TAB)
 
-// combo start
-// const uint16_t PROGMEM hj_combo1[] = {KC_H, RST_J, COMBO_END};
-// const uint16_t PROGMEM fg_combo2[] = {LST_F, KC_G, COMBO_END};
+
 #ifdef COMBO_ENABLE
 combo_t key_combos[] = {
-    // COMBO(hj_combo1, KC_BSPC),
-    // COMBO(fg_combo2, KC_ESC), // keycodes with modifiers are possible too!
+    // Add combo definitions here if needed
 };
 #endif
-// combo end
 
 
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
-[BASE_MAC] = LAYOUT_HRM(
+[LAYER_BASE_MAC] = LAYOUT_HOMEROW_MOD(
 //FORMAT__START
 
-QK_GESC ,KC_1    ,KC_2    ,KC_3    ,KC_4    ,KC_5    ,                        KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,KC_GRAVE,
-KC_TAB  ,KC_Q    ,KC_W    ,KC_E    ,KC_R    ,KC_T    ,                        KC_Y    ,KC_U    ,KC_I    ,KC_O    ,KC_P    ,KC_BSLS ,
-QK_GESC ,KC_A        ,KC_S        ,KC_D    ,KC_F    ,KC_G    ,                          KC_H    ,KC_J    ,KC_K    ,KC_L    ,KC_SCLN ,KC_QUOT ,
-LN_TAB  ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,UK_VGCP ,     UK_CAPR ,     KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_BSPC,
-                                    KC_LSFT ,LN_ESC  ,TL_LOWR ,UK_SPC  ,KC_ENT  ,TL_UPPR ,KC_BSPC ,KC_RSFT
+QK_GESC, KC_1,    KC_2,    KC_3,    KC_4,    KC_5,                           KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_GRAVE,
+KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,                           KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSLS,
+QK_GESC, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,                           KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,
+TAP_HOLD_NUM_TAB, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    CUSTOM_VIM_YANK,        CUSTOM_CAPTURE_REGION,     KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_BSPC,
+                                    KC_LSFT, TAP_HOLD_NUM_ESC, TL_LOWR, TAP_HOLD_SPACE, KC_ENT,  TL_UPPR, KC_BSPC, KC_RSFT
 //FORMAT__END
 //
 ),
 
-[BASE_WIN] = LAYOUT(
+[LAYER_BASE_WIN] = LAYOUT(
   _______, _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______,
   _______, _______, _______, _______, _______, _______,                   _______, _______, _______, _______, _______, _______,
-  _______, LCT_A  , _______, LCT_D  , _______, _______,                   _______, _______, RCT_K  , _______, RCT_SC , _______,
+  _______, LEFT_CTRL_A  , _______, LEFT_CTRL_D  , _______, _______,                   _______, _______, RIGHT_CTRL_K  , _______, RIGHT_CTRL_SEMICOLON , _______,
   KC_LGUI, _______, _______, _______, _______, _______,_______, _______, _______, _______, _______, _______,_______, _______,
             _______, _______  ,  _______, _______, _______,_______, _______,  _______
 ),
@@ -71,20 +78,20 @@ LN_TAB  ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,UK_VGCP ,     UK_CAPR ,   
 [LLOWER] = LAYOUT(
 //FORMAT__START
 QK_GESC ,KC_1    ,KC_2    ,KC_3    ,KC_4    ,KC_5    ,                        KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,KC_BSPC ,
-MO(LFN) ,KC_EXLM ,KC_AT   ,KC_HASH ,KC_DLR  ,KC_PERC ,                        KC_CIRC ,KC_AMPR ,KC_ASTR ,KC_LPRN ,KC_RPRN ,KC_PIPE ,
+MO(LAYER_FUNCTION) ,KC_EXLM ,KC_AT   ,KC_HASH ,KC_DLR  ,KC_PERC ,                        KC_CIRC ,KC_AMPR ,KC_ASTR ,KC_LPRN ,KC_RPRN ,KC_PIPE ,
 KC_NO   ,KC_NO   ,KC_LBRC ,KC_RBRC ,KC_LCBR ,KC_RCBR ,                        KC_EQL  ,KC_UNDS ,KC_MINS ,KC_PLUS ,KC_DQUO ,KC_EQL  ,
 KC_NO   ,KC_TRNS ,KC_GRAVE,KC_TILD,KC_PIPE ,KC_BSLS ,KC_NO   ,KC_NO   ,KC_SLSH ,KC_QUES ,KC_LABK,   KC_RABK , KC_QUOT , _______,
-                                    _______ ,MO(LDEBUG),_______ ,KC_NO   ,KC_GRAVE ,MO(LFUNC),KC_TILDE,_______
+                                    _______ ,MO(LDEBUG),_______ ,KC_NO   ,KC_TILDE, MO(LFUNC),KC_GRAVE ,_______
 //FORMAT__END
 ),
 
 // FN line and quick symbol
-[LRAISE] = LAYOUT_HRM(
+[LAYER_RAISE] = LAYOUT_HOMEROW_MOD(
 //FORMAT__START
 QK_GESC ,KC_1    ,KC_2    ,KC_3    ,KC_4    ,KC_5    ,                        KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,KC_BSPC ,
 KC_NO   ,KC_F1   ,KC_F2   ,KC_F3   ,KC_F4   ,KC_F5   ,                        KC_F6   ,KC_F7   ,KC_F8   ,KC_F9   ,KC_F10  ,KC_F11  ,
 KC_NO   ,KC_5    ,KC_4    ,KC_3    ,KC_2    ,KC_1    ,                                        KC_BSPC ,KC_MINS ,KC_EQL  ,KC_MINS ,KC_EQL  ,KC_F12  ,
-KC_CAPS ,KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,_______ ,_______ ,KC_TAB  ,KC_INS  ,KC_HOME ,KC_END  ,KC_QUES ,TRS_GRV ,
+KC_CAPS ,KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,_______ ,_______ ,KC_TAB  ,KC_INS  ,KC_HOME ,KC_END  ,KC_QUES ,RIGHT_SHIFT_GRAVE ,
                                     _______ ,KC_TAB ,MO(LFUNC),KC_BSPC ,KC_DEL  ,KC_NO   ,KC_BSPC ,KC_NO
 //FORMAT__END
 ),
@@ -121,8 +128,8 @@ KC_CAPS ,KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,_______ ,_______ ,KC_TAB  
 };
 
 const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
-    [0] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(  UK_STAB, KC_TAB) },
-    [1] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(  UK_STAB, KC_TAB) },
+    [0] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(  CUSTOM_SHIFT_TAB, KC_TAB) },
+    [1] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(  CUSTOM_SHIFT_TAB, KC_TAB) },
     [2] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [4] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [3] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_MS_WH_UP,   KC_MS_WH_DOWN) },

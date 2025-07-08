@@ -35,22 +35,26 @@
 // #undef PRODUCT_ID
 // #define PRODUCT_ID 0x0220
 
-#define OLED_APM_INTERVAL 1000
+// Timing constants
+#define OLED_APM_INTERVAL_MS 1000
+#define LOGO_HIDE_DELAY_MS 3000
+#define SHIFT_TAB_TIMEOUT_MS 1000
 
+// Layer configuration
 #define TRI_LAYER_LOWER_LAYER 2  // Sets the default for the "lower" layer.
 #define TRI_LAYER_UPPER_LAYER 3  // Sets the default for the "upper" layer.
 #define TRI_LAYER_ADJUST_LAYER 4 // Sets the default for the "adjust" layer.
+#define WIN_LAYER_DEF_LAYER 1    // Sets the default for the "lower" layer.
 
-#define WIN_LAYER_DEF_LAYER 1 // Sets the default for the "lower" layer.
-
-#define TAPPING_TERM 180
+// Tapping configuration
+#define TAPPING_TERM_MS 180
 #define PERMISSIVE_HOLD
-// two-handed hold
 #define CHORDAL_HOLD
 
+// Flow tap configuration
 #define FLOW_TAP_DEBUG
-#define FLOW_TAP_TERM 40
-#define QUICK_TAP_TERM 120
+#define FLOW_TAP_TERM_MS 40
+#define QUICK_TAP_TERM_MS 120
 
 #undef RETRO_TAPPING
 #undef HOLD_ON_OTHER_KEY_PRESS

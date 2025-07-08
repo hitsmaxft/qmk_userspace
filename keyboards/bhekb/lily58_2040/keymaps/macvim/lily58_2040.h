@@ -9,10 +9,6 @@
 #include "community_modules.h"
 #include "community_modules_introspection.h"
 
-#include <stdbool.h>
-#include "quantum_keycodes.h"
-#include "keymap_us.h"
-
 enum lily_58_custom_keycode {
     // vim yank
     UK_VGCP = SAFE_RANGE,

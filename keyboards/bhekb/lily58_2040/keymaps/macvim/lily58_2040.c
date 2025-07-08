@@ -1,5 +1,11 @@
 
-#include "lily58_2040.h"
+#include "custom_keycodes.h"
+#include "layers.h"
+#include "layouts.h"
+#include "tap_hold.h"
+#include "oled_display.h"
+#include "community_modules.h"
+#include "community_modules_introspection.h"
 
 #ifdef OLED_ENABLE
 #    include "oled_driver.h"
@@ -59,84 +65,26 @@ uint32_t hide_logo(uint32_t trigger_time, void *cb_arg) {
 
 void __keyboard_post_init_user(void) {
 #ifdef OLED_ENABLE
-    is_master = is_keyboard_master();
-
-    // oled_write(read_logo(), false);
-    defer_exec(3000, hide_logo, NULL);
-    defer_exec(OLED_APM_INTERVAL, apm_calc_result, NULL);
+    oled_display_init();
 #endif
 }
 
 #ifdef OLED_ENABLE
 bool oled_task_user(void) {
-    // oled_ext_oled_task_user();
-    char charbuffer[21] = {0};
-
-    // if (logo_show_delay > 0) {
-    //     return false;
-    // }
-    // if (!is_keyboard_master()) {
-    //     oled_write(read_logo(), false);
-    //     return false;
-    // }
-
-    if (debug_enable) {
-        oled_write_ln_P(PSTR(read_keylog()), false);
-    } else {
-        oled_write_ln_P(PSTR("Lily58 QMK"), false);
-    }
-
-    uint16_t layer_id = get_highest_layer(layer_state);
-
-    const char *layer_name = "  ";
-    switch (layer_id) {
-        case LBASE:
-            layer_name = "Def";
-            break;
-        case LLOWER:
-            layer_name = "LOW";
-            break;
-        case LRAISE:
-            layer_name = "RAI";
-            break;
-        case LFUNC:
-            layer_name = "ADJ";
-            break;
-        case LNAVI:
-            layer_name = "NAV";
-            break;
-        case LNUM:
-            layer_name = "NUM";
-            break;
-        default:
-            // Or use the write_ln shortcut over adding '\n' to the end of your string
-            layer_name = "";
-    }
-    sprintf(charbuffer, "%3s ", layer_name);
-    oled_write_P(PSTR(charbuffer), false);
-
-    sprintf(charbuffer, "APM: %3li\n", apm_read_keycode());
-    oled_write_P(PSTR(charbuffer), false);
-
-    oled_write_P(PSTR(read_keylogs()), false);
-
-    return true;
+    return oled_display_update();
 }
 #endif
 
 #ifdef CHORDAL_HOLD
-// auto define left and right hand keys
+// Auto define left and right hand keys
 // clang-format off
 const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
-    // FORMAT__START
     '*', '*', '*', '*', '*', '*',                     '*', '*', '*', '*', '*',  '*',
     '*', '*', 'L', 'L', 'L', '*',                     '*', 'R', 'R', 'R', '*',  '*',
     '*', 'L', 'L', 'L', 'L', 'L',                     'R', 'R', 'R', 'R', 'R',  '*',
     '*', '*', '*', 'L', 'L', 'L',  '*', '*',  'R', 'R', 'R', '*', '*', '*',
                                '*', 'L', 'L',  'L', 'R',  'R', '*', '*'
-    // FORMAT__END
 );
-
 // clang-format on
 #endif
 
@@ -152,61 +100,19 @@ void stop_shift_hold(void) {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #ifdef OLED_ENABLE
     if (record->event.pressed) {
-        logo_show_delay = 0;
         apm_incr_key_counter();
         set_keylog(keycode, record);
     }
 #endif
 
-    bool stop_shift_hold = is_shift_tab_active;
-
-    switch (keycode) {
-        case UK_VGCP:
-            if (record->event.pressed) {
-                SEND_STRING(SS_DOWN(X_LSFT) SS_TAP(X_QUOT) SS_DELAY(200) SS_UP(X_LSFT) SS_DELAY(100) SS_TAP(X_KP_PLUS) "y" SS_DELAY(300));
-            } else {
-            }
-            break;
-        case UK_CAPR:
-            if (record->event.pressed) {
-                SEND_STRING(SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_DOWN(X_LCTL) "4" SS_UP(X_LGUI) SS_UP(X_LSFT) SS_UP(X_LCTL));
-            }
-            break;
-        case UK_STAB:
-            if (record->event.pressed) {
-                // keep hold shift
-                stop_shift_hold = false;
-                if (!is_shift_tab_active) {
-                    is_shift_tab_active = true;
-                    register_code(KC_LSFT);
-                }
-                shift_tab_timer = timer_read();
-                register_code(KC_TAB);
-            } else {
-                unregister_code(KC_TAB);
-            }
-            // if (record->event.pressed) {
-            //     SEND_STRING(SS_DOWN(X_LSFT) SS_DOWN(X_TAB) SS_DELAY(200) SS_UP(X_LSFT) SS_UP(X_TAB));
-            // }
-            break;
-    }
-
-    // auto release shift hold for scrolling tab
-    if (is_shift_tab_active && stop_shift_hold) {
-        shift_tab_timer     = 0;
-        is_shift_tab_active = false;
-        unregister_code(KC_LSFT);
+    // Process custom keycodes
+    if (process_custom_keycode(keycode, record)) {
+        return true;
     }
 
     return true;
 };
 
-void matrix_scan_user(void) { // The very important timer.
-    if (is_shift_tab_active) {
-        // auto remove shift hold after 1000
-        if (timer_elapsed(shift_tab_timer) > 1000) {
-            unregister_code(KC_LSFT);
-            is_shift_tab_active = false;
-        }
-    }
+void matrix_scan_user(void) {
+    tap_hold_scan();
 }
