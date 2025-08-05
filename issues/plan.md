@@ -42,7 +42,7 @@ This plan outlines a comprehensive refactoring strategy to improve the code styl
 
 #### 1.1 Reorganize File Structure
 ```
-keyboards/bhekb/lily58_2040/keymaps/macvim/
+keyboards/lily58_2040/keymaps/macvim/
 ├── keymap.c              # Main keymap definitions only
 ├── config.h              # Configuration constants
 ├── custom_keycodes.h     # Custom keycode definitions

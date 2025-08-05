@@ -9,6 +9,7 @@
 
 #ifdef OLED_ENABLE
 #    include "oled_driver.h"
+static int logo_show_delay = 0;
 #endif
 
 #ifdef FLOW_TAP_TERM
@@ -18,7 +19,6 @@ static float        border_for_splithand     = MATRIX_ROWS / 2.0 + 0.5;
 static uint16_t     flow_tap_prev_time       = 0;
 static uint16_t     flow_tap_prev_keycode    = KC_NO;
 static keyrecord_t *last_tap_flow_key_record = 0;
-static int          logo_show_delay          = 0;
 
 // ignore chordal tap flow
 bool is_oppsite_hand_tap_flow(keyrecord_t *last, keyrecord_t *current) {

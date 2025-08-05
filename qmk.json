@@ -2,6 +2,6 @@
     "userspace_version": "1.0",
     "build_targets": [
         ["annepro2/c18", "macvim"],
-        ["bhekb/lily58_2040/rp", "macvim"]
+        ["lily58_2040/rp", "macvim"]
     ]
 }

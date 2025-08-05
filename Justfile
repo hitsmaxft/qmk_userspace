@@ -5,7 +5,7 @@ set positional-arguments
 default_keymap := 'macvim'
 
 kb_ap2 := 'annepro2/c18'
-kb_lily58 := 'bhekb/lily58_2040/rp'
+kb_lily58 := 'lily58_2040/rp'
 kb_gh60 := 'gh60/gh60'
 c_pwd := `pwd`
 
@@ -47,10 +47,10 @@ qmk *args='':
     @qmk $@
 
 flash-lily58:
-    @qmk flash -kb bhekb/lily58_2040/rp  -km macvim
+    @qmk flash -kb lily58_2040/rp  -km macvim
 
 flash-lily58-left:
-    @qmk flash -kb bhekb/lily58_2040/rp  -km macvim -bl uf2-split-left
+    @qmk flash -kb lily58_2040/rp  -km macvim -bl uf2-split-left
 
 submodule-reset:
     git submodule foreach git reset --hard HEAD
