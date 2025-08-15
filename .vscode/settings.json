@@ -8,12 +8,12 @@
         "oled"
     ],
     "files.exclude": {
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
-        "**/.DS_Store": true,
-        "modules/qmk_firmware": true,
-        "modules/getreuer": true,
-        "**/Thumbs.db": true
+        "**/.git": false,
+        "**/.svn": false,
+        "**/.hg": false,
+        "**/.DS_Store": false,
+        "modules/qmk_firmware": false,
+        "modules/getreuer": false,
+        "**/Thumbs.db": false
     }
 }
