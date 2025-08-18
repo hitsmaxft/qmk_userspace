@@ -15,10 +15,11 @@ PROGRAM_CMD =  pico-dfu -y $(BUILD_DIR)/$(TARGET).uf2
 KEYBOARD_SHARED_EP = yes
 
 SPLIT_LCD_FEATURE = yes
+OLED_ENABLE = yes
 OLED_DRIVER_ENABLE = yes
 WPM_ENABLE = yes
 KEYCODE_STRING_ENABLE = yes
 
 OPT_DEFS += -DOLED_BRIGHTNESS=120 -DMK_KINETIC_SPEED -DMOUSEKEY_INITIAL_SPEED=380 -DMOUSEKEY_BASE_SPEED=2000
 
-SRC += win_def_layer.c custom_keycodes.c tap_hold.c oled_display.c
+SRC += win_def_layer.c lily58_2040.c custom_keycodes.c tap_hold.c oled_display.c

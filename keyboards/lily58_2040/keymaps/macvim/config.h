@@ -53,6 +53,8 @@
 
 // Flow tap configuration
 #define FLOW_TAP_DEBUG
+#define FLOW_TAP_MOD TRUE
+#define FLOW_TAP_TERM 40
 #define FLOW_TAP_TERM_MS 40
 #define QUICK_TAP_TERM_MS 120
 

@@ -2,11 +2,9 @@
 
 #include QMK_KEYBOARD_H
 #include <stdbool.h>
-#include "keycodes.h"
 #include "quantum_keycodes.h"
 #include "keymap_us.h"
 
-#include "community_modules.h"
 #include "community_modules_introspection.h"
 
 enum lily_58_custom_keycode {

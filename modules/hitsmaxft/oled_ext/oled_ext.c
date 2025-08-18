@@ -1,13 +1,10 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "action_layer.h"
 #include "action_util.h"
 #include "debug.h"
 #include "keycodes.h"
 #include "modifiers.h"
-#include "printf.h"
-#include "quantum.h"
 #include "wpm.h"
 
 #include "oled_ext.h"

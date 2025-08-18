@@ -33,8 +33,6 @@
 #include "custom_keycodes.h"
 #include "layers.h"
 #include "layouts.h"
-#include "tap_hold.h"
-#include "oled_display.h"
 // Default keymap. This can be changed in Vial. Use oled.c to change beavior that Vial cannot change.
 
 // clang-format off

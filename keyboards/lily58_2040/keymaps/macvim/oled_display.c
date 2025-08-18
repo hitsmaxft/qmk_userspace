@@ -1,11 +1,12 @@
 #include "oled_display.h"
+#include <stdio.h>
 #include "layers.h"
 #include "community_modules.h"
 #include "community_modules_introspection.h"
 
 #ifdef OLED_ENABLE
-
 #    include "oled_driver.h"
+static int logo_show_delay = 0;
 
 // OLED variables
 static bool is_master          = false;
@@ -18,7 +19,15 @@ uint32_t hide_logo(uint32_t trigger_time, void *cb_arg) {
 }
 
 void oled_display_init(void) {
-    is_master = is_keyboard_master();
+    is_master          = is_keyboard_master();
+    logo_display_delay = 1;
+
+    oled_write(read_logo(), false);
+
+    if (!is_keyboard_master()) {
+        return;
+    }
+
     defer_exec(LOGO_HIDE_DELAY_MS, hide_logo, NULL);
     defer_exec(OLED_APM_INTERVAL_MS, apm_calc_result, NULL);
 }
@@ -45,6 +54,11 @@ const char *get_layer_name(uint16_t layer_id) {
 bool oled_display_update(void) {
     char charbuffer[21] = {0};
 
+    print("on oled display\n");
+    if (logo_show_delay > 0 || !is_keyboard_master()) {
+        oled_write(read_logo(), false);
+        return false;
+    }
     if (debug_enable) {
         oled_write_ln_P(PSTR(read_keylog()), false);
     } else {

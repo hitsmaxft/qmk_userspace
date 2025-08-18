@@ -9,8 +9,6 @@
  * and function layers.
  */
 
-#include QMK_KEYBOARD_H
-
 /**
  * Layer definitions for Lily58 2040 keymap
  * Each layer provides different functionality and key mappings
