@@ -54,7 +54,6 @@ const char *get_layer_name(uint16_t layer_id) {
 bool oled_display_update(void) {
     char charbuffer[21] = {0};
 
-    print("on oled display\n");
     if (logo_show_delay > 0 || !is_keyboard_master()) {
         oled_write(read_logo(), false);
         return false;

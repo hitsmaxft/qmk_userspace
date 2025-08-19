@@ -22,4 +22,4 @@ KEYCODE_STRING_ENABLE = yes
 
 OPT_DEFS += -DOLED_BRIGHTNESS=120 -DMK_KINETIC_SPEED -DMOUSEKEY_INITIAL_SPEED=380 -DMOUSEKEY_BASE_SPEED=2000
 
-SRC += win_def_layer.c lily58_2040.c custom_keycodes.c tap_hold.c oled_display.c
+SRC += lily58_2040.c custom_keycodes.c tap_hold.c oled_display.c
