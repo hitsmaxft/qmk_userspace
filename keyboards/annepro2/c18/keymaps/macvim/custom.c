@@ -51,11 +51,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case KC_AP_IAP:
             if (record->event.pressed) {
                 reset_to_iap();
-                return false;
-            } else {
-                // Do something else when release
             }
-            return true; // Let QMK send the enter press/release events
+            return false;
         default:
             return true; // Process all other keycodes normally
     }

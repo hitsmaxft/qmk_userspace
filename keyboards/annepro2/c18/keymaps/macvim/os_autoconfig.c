@@ -35,8 +35,6 @@ bool process_detected_host_os_kb(os_variant_t detected_os) {
                 keymap_config.swap_lalt_lgui = true;
                 eeconfig_update_keymap(keymap_config.raw);
             }
-            keymap_config.swap_lalt_lgui = true;
-            eeconfig_update_keymap(keymap_config.raw);
             break;
         case OS_MACOS:
         case OS_IOS:
