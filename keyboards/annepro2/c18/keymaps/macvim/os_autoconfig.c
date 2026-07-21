@@ -27,13 +27,13 @@ bool process_detected_host_os_kb(os_variant_t detected_os) {
         return false;
     }
 
-    keymap_config.raw = eeconfig_read_keymap();
+    eeconfig_read_keymap(&keymap_config);
 
     switch (detected_os) {
         case OS_WINDOWS:
             if (!keymap_config.swap_lalt_lgui){
                 keymap_config.swap_lalt_lgui = true;
-                eeconfig_update_keymap(keymap_config.raw);
+                eeconfig_update_keymap(&keymap_config);
             }
             break;
         case OS_MACOS:
@@ -42,11 +42,10 @@ bool process_detected_host_os_kb(os_variant_t detected_os) {
         case OS_UNSURE:
             if (keymap_config.swap_lalt_lgui){
                 keymap_config.swap_lalt_lgui = false;
-                eeconfig_update_keymap(keymap_config.raw);
+                eeconfig_update_keymap(&keymap_config);
             }
             break;
     }
 
     return true;
 }
-
