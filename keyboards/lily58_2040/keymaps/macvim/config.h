@@ -60,4 +60,3 @@
 
 #undef RETRO_TAPPING
 #undef HOLD_ON_OTHER_KEY_PRESS
-

@@ -104,11 +104,11 @@ KC_CAPS ,KC_6    ,KC_7    ,KC_8    ,KC_9    ,KC_0    ,_______ ,_______ ,KC_TAB  
 ),
 [LNAVI] = LAYOUT(
   KC_NO   , KC_F1  , KC_F2  , KC_F3  , KC_F4  , KC_F5  ,                   KC_NO   , KC_NO  , KC_NO , KC_NO   , KC_NO   , KC_NO ,
-  MO(LDEBUG),KC_NO , KC_NO , KC_MS_U , KC_PGUP, KC_PGDN ,                  KC_MS_BTN1, KC_MS_BTN3, KC_MS_BTN2, KC_MS_WH_UP, KC_MS_WH_DOWN, KC_NO,
-  KC_NO  , KC_NO   , KC_MS_L, KC_MS_D, KC_MS_R, KC_F6  ,                   KC_LEFT , KC_DOWN, KC_UP  , KC_RIGHT, KC_NO , KC_NO,
-  KC_NO  , KC_NO   , KC_NO  , KC_NO  , KC_HOME, KC_END , KC_LBRC, KC_RBRC, KC_MS_WH_DOWN, KC_MS_WH_UP, KC_NO, KC_NO, KC_NO, KC_NO,
+  MO(LDEBUG),KC_NO , KC_NO , MS_UP , KC_PGUP, KC_PGDN ,                  MS_BTN1, MS_BTN3, MS_BTN2, MS_WHLU, MS_WHLD, KC_NO,
+  KC_NO  , KC_NO   , MS_LEFT, MS_DOWN, MS_RGHT, KC_F6  ,                   KC_LEFT , KC_DOWN, KC_UP  , KC_RIGHT, KC_NO , KC_NO,
+  KC_NO  , KC_NO   , KC_NO  , KC_NO  , KC_HOME, KC_END , KC_LBRC, KC_RBRC, MS_WHLD, MS_WHLU, KC_NO, KC_NO, KC_NO, KC_NO,
 
-                             KC_LALT, MO(LDEBUG), _______ , KC_NO , KC_BSPC,KC_ACL0, KC_ACL1, KC_ACL2
+                             KC_LALT, MO(LDEBUG), _______ , KC_NO , KC_BSPC,MS_ACL0, MS_ACL1, MS_ACL2
 ),
 [LNUM] = LAYOUT(
   KC_NO  , KC_NO  , KC_7   , KC_8   , KC_9   , KC_NO  ,                             KC_NO  , KC_NO  , KC_NO  , KC_NO, KC_0   , KC_GRV ,
@@ -131,7 +131,7 @@ const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
     [1] = { ENCODER_CCW_CW(   KC_PGUP , KC_PGDN ), ENCODER_CCW_CW(  CUSTOM_SHIFT_TAB, KC_TAB) },
     [2] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [4] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
-    [3] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_MS_WH_UP,   KC_MS_WH_DOWN) },
+    [3] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   MS_WHLU,   MS_WHLD) },
     [5] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [6] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
     [7] = { ENCODER_CCW_CW(   KC_NO,    KC_NO), ENCODER_CCW_CW(   KC_NO,   KC_NO) },
