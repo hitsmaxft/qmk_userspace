@@ -26,16 +26,21 @@ direnv exec . just qmk console -l
 
 ```text
 AP2 BLE 00001234 rx11 7B 12 35 00 03 00 00 7D 40 04 00
-AP2 BLE 00001234 rx decoded group=40 command=04 value=00 requested=1
+AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
 ```
+
+状态编号：`0=USB`、`1=WAIT_BROADCAST_ACK`、`2=WAIT_CONNECT_ACK`、
+`3=WAIT_HANDSHAKE`、`4=ACTIVE`。
 
 关键日志：
 
 | 日志 | 含义 |
 | --- | --- |
-| `tx broadcast slot=...` | 发出 `40/01`，并设置 BLE route request |
-| `tx connect slot=...` | 发出 `40/04`；此时仍不切 driver |
-| `rx decoded group=40 ...` | 命令响应，仅证明 BLE MCU 已处理命令 |
+| `state N -> M` | 显式状态转换 |
+| `tx broadcast slot=... attempt=...` | 发出或重试 `40/01` |
+| `tx connect slot=... attempt=...` | 收到匹配的 broadcast ACK 后发出或重试 `40/04` |
+| `rx command ack=... value=... state=...` | 与当前 pending 命令关联的 ACK；value 语义未知 |
+| `command timeout ...` | 两次重试仍无 ACK；继续等可能迟到的握手，不切 driver |
 | `rx decoded group=20 command=0C ...` | 收到 BLE 发起的建链后握手请求 |
 | `tx hid handshake response` | 回发官方主控使用的 `20/0c 00 00` 响应 |
 | `rx hid handshake ready`、`route ble` | request 仍有效，因此切到 BLE driver |
@@ -51,6 +56,7 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 requested=1
 1. 按一次 BT slot。
 2. 确认出现 `tx broadcast`。
 3. `40/01` ACK 出现时不应有 `route ble`。
+   首次广播应转换到 state 3，不发送 `40/04`。
 4. 在 macOS 点击连接并等待系统完成 HID 配置。
 5. `20/0c` 到达后应先出现 `tx hid handshake response`，再出现
    `rx hid handshake ready` 和 `route ble`。
@@ -58,18 +64,30 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 requested=1
 
 ### 已配对 slot 重连
 
-1. 对同一 slot 再次操作，使固件发送 `40/04`。
-2. `40/04` ACK 后不能立即切 driver。
-3. 记录从 connect 命令到 `20/0c` 的时间，以及握手请求出现次数；重点确认
+1. 对同一 slot 再次操作，先确认只发送 `40/01`。
+2. 收到匹配的 `40/01` ACK 后才允许发送 `40/04`；两者不能背靠背发送。
+3. `40/04` ACK 后不能立即切 driver。
+4. 记录从 connect 命令到 `20/0c` 的时间，以及握手请求出现次数；重点确认
    回复后是否停止重复请求。
-4. 特别记录：macOS 显示“已连接”的时间、首次可输入时间是否一致。
+5. 特别记录：macOS 显示“已连接”的时间、首次可输入时间是否一致。
+
+### ACK 重试
+
+用逻辑分析仪或临时测试桩丢弃 `40/01`/`40/04` ACK：
+
+1. 同一命令最多出现三次（初次发送加两次重试），间隔约 500 ms。
+2. timeout 不能产生 `route ble`。
+3. 重试耗尽后的迟到 `20/0c` 仍应获得握手回复并允许完成 pending route。
+4. 重连 broadcast 的迟到 ACK 仍应触发一次 connect；已经 active 后的 ACK
+   则应记录为 stale，不重复切换 route。
+5. 保存非零 ACK value 样本；在语义确认前状态机只记录，不把它解释为错误。
 
 ### 取消 pending
 
 1. 发起连接后，在 ready 前按 `KC_AP2_USB`。
 2. 确认 `route usb`。
-3. 如果随后收到延迟 `20/0c`，日志应显示 `requested=0` 并回发 handshake
-   response，但不能出现 `route ble`。
+3. 如果随后收到延迟 `20/0c`，日志应显示 `state=0` 并回发 handshake response，
+   但不能出现 `route ble`。
 
 ### 从 BLE 切换 slot
 
