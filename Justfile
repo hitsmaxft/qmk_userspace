@@ -31,6 +31,12 @@ _compile_kb kb km=default_keymap *args='':
 annepro2: ( _compile_kb 'annepro2/c18')
     echo "compile annepro2"
 
+annepro2-log:
+    ANNEPRO2_BLE_DEBUG=yes bash scripts/qmk-worktree.sh qmk compile -kb annepro2/c18 -km macvim -j20
+
+flash-annepro2-log:
+    ANNEPRO2_BLE_DEBUG=yes bash scripts/qmk-worktree.sh qmk flash -kb annepro2/c18 -km macvim
+
 lily58: ( _compile_kb kb_lily58 'macvim')
 
 # will clean build at beginning

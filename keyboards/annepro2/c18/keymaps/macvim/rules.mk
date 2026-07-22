@@ -32,7 +32,12 @@ DEBOUNCE_TYPE = asym_eager_defer_pk
 
 
 # home mod tapping
-CONSOLE_ENABLE = no # Console for debug
+CONSOLE_ENABLE = no
+
+ifeq ($(ANNEPRO2_BLE_DEBUG),yes)
+    CONSOLE_ENABLE = yes
+    OPT_DEFS += -DANNEPRO2_BLE_DEBUG
+endif
 COMMAND_ENABLE = no # Commands for debug and configuration
 
 SRC += custom.c os_autoconfig.c
