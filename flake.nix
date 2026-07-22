@@ -19,11 +19,20 @@
 
           pkgs = nixpkgs.legacyPackages.${system};
           shell = import ./shell.nix { inherit pkgs; };
+          annepro2Tools = (pkgs.callPackage annepro2-tools {
+            pkgs = pkgs // { pkgconfig = pkgs.pkg-config; };
+          }).overrideAttrs (_: {
+            CARGO_HOME = "cargo-home";
+          });
+          annepro2ToolsQmk = pkgs.writeShellScriptBin "annepro2_tools" ''
+            exec ${annepro2Tools}/bin/annepro2-tools "$@"
+          '';
       in
         {
             devShells.default =  shell.overrideAttrs (old: {
                 nativeBuildInputs = old.nativeBuildInputs ++ [
-                  #annepro2-tools.defaultPackage.${system}
+                  annepro2Tools
+                  annepro2ToolsQmk
                     pkgs.addlicense
                     pkgs.license-cli
                     pkgs.just
