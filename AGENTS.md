@@ -1,10 +1,10 @@
 # Repository guidance
 
 This is an external QMK userspace. `modules/qmk_firmware` is pinned to the
-temporary `annepro2-usb-debug` branch in the user's QMK fork. It is based on
-`annepro2-upstream` and adds USB console instrumentation for the current
-hardware validation. Use the repository's Nix/direnv environment for all QMK
-commands.
+temporary `codex/annepro2-uart-state-v2` branch in the user's QMK fork. It is
+based on QMK `origin/master` and adds the evidence-based AnnePro2 BLE UART
+handshake fix plus optional USB console instrumentation. Use the repository's
+Nix/direnv environment for all QMK commands.
 
 ## Environment initialization
 
@@ -22,11 +22,12 @@ direnv exec . just annepro2
   any optional `patches/qmk/*.patch` in lexical order.
 - Do not reintroduce `EXTRA_KEYBOARD_FOLDER_PATH`; it was a private fork
   extension. Add custom keyboard source under this userspace instead.
-- The AnnePro2 BLE fix and its temporary USB instrumentation are part of the
-  pinned fork branch, not userspace patches. After hardware validation, remove
-  the instrumentation or switch back to `annepro2-upstream` before proposing
-  the final upstream change. Future temporary core patches belong under
-  `patches/qmk/` and must pass `git apply --check` against the pinned revision.
+- The AnnePro2 BLE fix and its optional USB instrumentation are part of the
+  pinned fork branch, not userspace patches. Build the console variant with
+  `direnv exec . just annepro2-log`. After hardware validation, keep only the
+  upstreamable fix when preparing the QMK PR. Future temporary core patches
+  belong under `patches/qmk/` and must pass `git apply --check` against the
+  pinned revision.
 - The worktree is temporary. Firmware files copied to the userspace root are
   generated artifacts and should not be committed.
 

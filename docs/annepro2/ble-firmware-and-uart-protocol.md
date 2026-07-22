@@ -22,7 +22,25 @@ QMK 键盘侧可靠性补丁、验证边界与上游 PR 模板见 [BLE 可靠性
 
 **结论（推断，置信度高）**：BLE 板使用 CC254x 兼容 SoC，且很可能是 CC2541F256 一类器件。由于 CC2540/CC2541 等器件具有相近的 8051 与寄存器特征，尚不能仅凭映像确定精确型号；实现和量产前应读取 PCB 丝印或调试接口芯片 ID。
 
-两个 BLE 映像只有约 28,377/155,648 字节（18.2%）在同一偏移相同，说明两次构建发生了大量重排或重链接；不能把原始二进制 diff 直接解释为功能变更。可见字符串包括 `AnnePro2 P1` 至 `P4`、`HID Keyboard`、`Hardware Revision`、`Software Revision`、`Manufacturer Name` 等，强烈指示四个 profile 与标准 HID/DIS GATT 服务；字符串本身不足以还原 GATT handle、具体行为或版本差异。
+两个 BLE 映像只有约 28,377/155,648 字节（18.2%）在同一偏移相同，说明两次构建发生了大量重排或重链接；不能把原始二进制 diff 直接解释为功能变更。可见字符串包括 `AnnePro2 P1` 至 `P4`、`HID Keyboard`、`Hardware Revision`、`Software Revision`、`Manufacturer Name` 等，强烈指示四个 profile 与标准 HID/DIS GATT 服务。alpha 映像中没有字符串 `AP2`；设备列表出现旧名称仍可能来自 host 缓存，不能反推当前广播包。
+
+### BLE 镜像的 UART 与 framing 实现
+
+alpha 镜像是 IAR banked 8051 布局，线性文件偏移不等于 CPU 逻辑地址；自动
+xref 未重映射 bank 时不可信。以下结论来自指令和寄存器的直接检查：
+
+- 物理偏移 `0x1f84` 写 `U0DBUF (SFR 0xc1)`；
+- TX 环形队列位于 XDATA `0x096d..0x09ec`，read/write index 分别为
+  `0x09ed` / `0x09ee`，容量 128 字节；
+- 物理偏移约 `0x1b209` 初始化 UART0/DMA RX；
+- 物理偏移 `0x1d065` 的构造器写 `0x7b`、`0x10`、routing/type 字段、
+  清零 length/status，并在 header byte 7 写 `0x7d`；
+- `0x1d0f0` 在 byte 8/9 追加 group/opcode，从 byte 10 复制参数，并增加
+  byte 4 的 payload 长度；
+- `0x1d141` / `0x1d14d` 一带检查和解析同一 framing。
+
+因此 `byte 4` 是单字节 payload 长度、总帧长是 `8 + byte[4]`，已经不是单纯
+根据 QMK 模板的推断。byte 5 仍为 0；尚未发现它在现有固件中扩展长度。
 
 ## 键盘主控与 BLE 模块的物理链路
 
@@ -40,13 +58,57 @@ sequenceDiagram
     participant K as HT32 keyboard MCU
     participant B as CC254x-class BLE MCU
     K->>B: wakeup command
-    K->>K: wait 100 ms; discard pending RX
+    K->>K: wait 100 ms
     K->>B: pair/connect/profile or HID report frames
     B->>Host: BLE HID over GATT
-    B-->>K: fixed 11-byte status record (Caps Lock at byte 10)
+    B-->>K: variable frame: 8-byte header + payload
+    K->>K: dispatch frame[8] group and frame[9] opcode
 ```
 
 源码依据：[引脚定义](../../modules/qmk_firmware/keyboards/annepro2/c18/config.h)、[初始化与接收](../../modules/qmk_firmware/keyboards/annepro2/annepro2.c)、[BLE 发送路径](../../modules/qmk_firmware/keyboards/annepro2/annepro2_ble.c)。
+
+## 官方键盘主控的 BLE UART 接收路径
+
+键盘主控映像按 `0x4000` 为 image base 反汇编。关键调用链如下：
+
+```text
+USART1 IRQ vector +0xa0 -> 0xec83
+0xec82: read USART1 (0x40040000) -> RAM RX buffer 0x20001384
+0xec82 -> 0x58a4: consume one UART byte
+0x58b2: completed frame dispatch
+         compare frame[8] with 13-entry group callback table
+```
+
+启动时恢复出的 group callback 表为：
+
+| group | handler | group | handler |
+| ---: | ---: | ---: | ---: |
+| `0x01` | `0x5d89` | `0x20` | `0x6411` |
+| `0x02` | `0x6257` | `0x30` | `0x6035` |
+| `0x03` | `0x631f` | `0x40` | `0x6359` |
+| `0x10` | `0x5b57` | `0x50` | `0x5acd` |
+| `0x12` | `0x62fd` | `0x80` | `0x67e3` |
+
+`0x11`、`0x21`、`0x60` 的 handler 为空。group `0x20` 再按 `frame[9]`
+跳转；opcode `0x0c` 的 `0x66d6` 分支用 `(12, 0, 0)` 调用 `0x7eac`。
+
+进一步沿调用链检查纠正了先前的“内部队列”解释：`0x7eac` 调用 `0x85c0`
+构造协议 header，调用 `0x8606` 追加 group `0x20`、opcode `0x0c` 和两个
+零字节，再经 `0xacac` 进入协议发送路径。完整输出为：
+
+```text
+7b 12 43 00 04 00 00 7d 20 0c 00 00
+```
+
+这证明输入 `20/0c` 是 BLE 模块主动发起、官方键盘主控必须回复的握手请求，
+而不是 connect 命令的同步返回值。旧 QMK 只把所有 11-byte RX 覆盖到
+`ble_capslock`，没有发出这条回复。
+
+对 `0x7eac` 的全映像 callsite 检查还发现两处主动发送 opcode `0x0b`：
+`0xa42c` 发送 `(0x0b, value, 1)`，`0xa444` 发送
+`(0x0b, value, 0)`。它们是键盘主控主动状态通知，不是当前已确认的 BLE→主控
+断开 counterpart。这个负面结果不能排除 BLE 通过其他 group/opcode 报告
+断链，但足以说明不能凭空定义一个 disconnect frame。
 
 ## 主控 → BLE：帧格式
 
@@ -56,7 +118,9 @@ sequenceDiagram
 7b 12 53 00 LL 00 FF 7d GG OO [payload...]
 ```
 
-- `LL 00`：**推断**为小端长度。键盘报告的 `LL=0x0a` 恰好等于 `GG+OO` 两字节加 8-byte boot keyboard report；consumer 的 `0x06` 同理等于两字节加 4-byte payload。
+- `LL`：**已确认（BLE 固件）**为从 byte 8 开始的 payload 长度；总帧长为
+  `8 + LL`。键盘报告的 `LL=0x0a` 等于 `GG+OO` 两字节加 8-byte boot
+  keyboard report；consumer 的 `0x06` 同理。byte 5 在已知路径中保持 0。
 - `FF`：在 wakeup 为 `0x01`，普通命令为 `0x00`；语义未知。
 - `0x7d`：所有已知模板固定出现；语义未知，不能当作校验和或转义字节处理。
 - `GG` / `OO`：**推断**为命令组和操作码。下表的分组名称仅为实现时的便捷命名。
@@ -98,7 +162,34 @@ QMK 的 4-byte consumer payload 只使用 `C0`，其余三字节始终为 0：
 
 ## BLE → 主控：状态回传
 
-**已确认（QMK）**：主控从 UART RX 流中按固定大小读取 `ble_capslock_t`：
+### 通用回包格式
+
+官方 BLE 固件的构造器和实机日志共同确认，回包也使用 `8 + LL` framing：
+
+```text
+7b 12 35 00 LL 00 00 7d GG OO [payload...]
+```
+
+`0x53` 到 `0x35` 符合请求/响应 routing 字段交换，但具体 nibble 语义尚未完全
+命名。当前已观察到：
+
+| 帧 | 结论 |
+| --- | --- |
+| `... 40 01 00` | broadcast 命令 ACK，高置信度 |
+| `... 40 04 00` | connect 命令 ACK，高置信度 |
+| `7b 12 35 00 03 00 00 7d 20 0c 00` | BLE 发起的建链后握手请求；官方主控回复下行帧 |
+| `7b 12 43 00 04 00 00 7d 20 0c 00 00` | 官方主控对上述握手的固定回复 |
+
+一次 macOS 新连接中，`20/0c` 在 broadcast ACK 约 3 秒后连续出现两次。
+它与连接/HID 配置完成强相关。由于旧 QMK 没有实现官方回复，两次出现更可能
+是 BLE 侧重试；这是基于汇编和时序的推断，需验证修复后是否只出现一次。
+目前将它命名为 `HID handshake request`，不声称已经定位到 BLE 固件内的精确
+GAP callback。
+
+### Caps Lock 兼容 ABI
+
+**已确认（旧 QMK 行为）**：原移植把任意 RX 数据按固定大小读入
+`ble_capslock_t`：
 
 ```c
 struct __attribute__((packed)) {
@@ -107,17 +198,24 @@ struct __attribute__((packed)) {
 };
 ```
 
-因此目前可以保证的兼容接口只有：BLE 在 Caps Lock 状态改变时（或按其既有节奏）发送 **11-byte 记录**，第 10 个字节为 0/非 0 的 Caps Lock 状态。前 10 字节没有被 QMK 解释；它们的帧头、长度、校验和、发送时机均未还原。新的 BLE 实现应先保持 11-byte 格式，再通过逻辑分析仪确定是否存在其他键盘固件依赖。
+这并不能证明“协议固定为 11 字节”；它只是一个碰巧覆盖 `LL=3` 回包的旧 ABI。
+新 parser 应先按 `8 + LL` 分帧，再为已确认的 Caps Lock group/opcode 更新状态。
+由于 Caps Lock 的精确 opcode 尚未静态还原，当前 QMK 仍对 11-byte 完整帧保留
+旧的最后一字节兼容行为，并通过 debug log 收集真实帧供后续收紧。
 
 ## 清洁室 BLE 实现契约
 
 一个兼容替代实现的最小边界如下：
 
 1. 先确认实际 BLE SoC 型号、供电、复位、SWD/debug 与 UART0 引脚；不得仅因本分析而直接刷写 CC2541 目标。
-2. UART0 以 115200 8N1 工作，采用可恢复的环形缓冲/parser；完整匹配上表的字节序列，尤其是 slot 命令和 HID 命令前的额外 `0x00`。
+2. UART0 以 115200 8N1 工作，采用可恢复的环形缓冲/parser；按
+   `8 + byte[4]` 分帧，完整匹配上表的字节序列，尤其是 slot 命令和 HID
+   命令前的额外 `0x00`。
 3. 维护四个持久化 bond/profile slot，对应设备名中的 `P1..P4`；slot 行为应通过实机抓包定义（广播、连接、覆盖、删除）。
 4. 提供 BLE HID keyboard 和 consumer-control 报告路径；至少覆盖表中的 boot keyboard 8-byte 和 consumer `C0` 位掩码。
-5. 向主控发送 11-byte Caps Lock 状态记录，最后一字节为状态值。
+5. 建链/HID 配置到达相应阶段后向主控发送 11-byte `20/0c` handshake
+   request，并等待 12-byte `20/0c 00 00` response；超时和重试参数仍需实机
+   测定。保持 Caps Lock 回包兼容，直到其 group/opcode 被抓包确认。
 6. IAP/bootloader 命令在完成抓包、失败恢复与映像格式确认前不实现或默认拒绝，避免把未验证的 `0x7b 10 51 10...` 帧暴露为刷写入口。
 7. 只使用有授权的 8051/BLE SDK、协议栈和自行编写的代码；官方二进制只作行为和接口参考。
 
@@ -131,7 +229,9 @@ struct __attribute__((packed)) {
 4. 删除配对与重新绑定四个 slot。
 5. 官方 BLE 更新/IAP 的完整会话；仅在有可恢复刷写流程后测试。
 
-将每一类样本做成可回放测试：输入 UART 字节流，断言 BLE 状态机、GATT 通知和 11-byte Caps Lock 回传。这比基于静态字符串猜测协议字段更可靠。
+将每一类样本做成可回放测试：输入 UART 字节流，断言 BLE 状态机、GATT
+通知、变长 framing、握手请求/回复和 Caps Lock 回传。特别收集 host 主动断开、
+超时断开和关闭蓝牙三种 PA5 流量；当前固件静态分析尚未给出断链 counterpart。
 
 ## 证据索引
 
@@ -139,4 +239,10 @@ struct __attribute__((packed)) {
 - [`annepro2.c`](../../modules/qmk_firmware/keyboards/annepro2/annepro2.c)：115200 UART 初始化、wakeup 时序、RX 读取。
 - [`annepro2.h`](../../modules/qmk_firmware/keyboards/annepro2/annepro2.h)：11-byte Caps Lock 记录定义。
 - [`c18/config.h`](../../modules/qmk_firmware/keyboards/annepro2/c18/config.h)：C18 UART 引脚。
+- [`key-c18-2.36.3.bin`](../../assets/ap2_fw/key-c18-2.36.3.bin)：主控 USART1
+  parser、group callback 表与 `20/0c` 握手回复构造路径。
+- [`ble-c18-2.00-alpha.bin`](../../assets/ap2_fw/ble-c18-2.00-alpha.bin)：CC254x
+  UART0 DMA、128-byte TX ring 与 `8 + length` framing 构造器。
+- [`DecompileAt.java`](../../tools/reverse/annepro2/DecompileAt.java)：复现主控关键
+  地址反汇编/反编译输出的 Ghidra headless helper。
 - [TI CC2541 product page](https://www.ti.com/product/CC2541)、[datasheet](https://www.ti.com/lit/ds/symlink/cc2541.pdf)、[CC253x/CC254x user guide](https://www.ti.com/lit/ug/swru191f/swru191f.pdf)：8051/UART/flash 寄存器与器件能力交叉验证。
