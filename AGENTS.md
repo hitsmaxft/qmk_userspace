@@ -1,8 +1,9 @@
 # Repository guidance
 
-This is an external QMK userspace. `modules/qmk_firmware` is pinned to an
-official QMK revision. Use the repository's Nix/direnv environment for all
-QMK commands.
+This is an external QMK userspace. `modules/qmk_firmware` is pinned to the
+`annepro2-upstream` branch in the user's QMK fork until its AnnePro2 fix is
+accepted upstream. Use the repository's Nix/direnv environment for all QMK
+commands.
 
 ## Environment initialization
 
@@ -14,14 +15,15 @@ direnv allow .
 direnv exec . just annepro2
 ```
 
-- `scripts/qmk-worktree.sh` creates a disposable worktree from the pinned
-  official submodule, reuses its initialized nested QMK dependencies, overlays
+- `scripts/qmk-worktree.sh` creates a disposable worktree from the pinned QMK
+  submodule, reuses its initialized nested QMK dependencies, overlays
   local custom keyboards into its standard `keyboards/` directory, and applies
-  `patches/qmk/*.patch` in lexical order.
+  any optional `patches/qmk/*.patch` in lexical order.
 - Do not reintroduce `EXTRA_KEYBOARD_FOLDER_PATH`; it was a private fork
   extension. Add custom keyboard source under this userspace instead.
-- Keep QMK core changes as focused patches under `patches/qmk/`. They must
-  pass `git apply --check` against the pinned official revision.
+- The AnnePro2 BLE fix is part of the pinned fork branch, not a userspace
+  patch. Future temporary core patches belong under `patches/qmk/` and must
+  pass `git apply --check` against the pinned revision.
 - The worktree is temporary. Firmware files copied to the userspace root are
   generated artifacts and should not be committed.
 
@@ -39,7 +41,7 @@ Build another target through the same wrapper, for example:
 direnv exec . just qmk compile -kb bhekb/dk6064 -km 6064 -j20
 ```
 
-Before handing off changes, run `git diff --check`, verify every QMK patch
-with `git -C modules/qmk_firmware apply --check "$(pwd)/patches/qmk/<patch>"`,
-and run the relevant QMK build. Generated firmware files are build artifacts
-and should not be committed.
+Before handing off changes, run `git diff --check` and the relevant QMK build.
+When `patches/qmk/` contains a patch, also verify it with
+`git -C modules/qmk_firmware apply --check "$(pwd)/patches/qmk/<patch>"`.
+Generated firmware files are build artifacts and should not be committed.

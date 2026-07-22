@@ -28,8 +28,8 @@ This is a template repository which allows for an external set of QMK keymaps to
 
 ## Howto build locally
 
-This repository pins an official QMK revision as a submodule and provides its
-toolchain through Nix. From the repository root:
+This repository pins the user's AnnePro2 QMK fork branch as a submodule and
+provides its toolchain through Nix. From the repository root:
 
 ```sh
 git submodule update --init --recursive modules/qmk_firmware
@@ -38,9 +38,9 @@ direnv exec . just annepro2
 direnv exec . just lily58
 ```
 
-`scripts/qmk-worktree.sh` builds in a disposable worktree of that official
-checkout. It presents userspace keyboard definitions at standard QMK keyboard
-paths and applies the focused core patches in `patches/qmk/`. No global QMK
+`scripts/qmk-worktree.sh` builds in a disposable worktree of that checkout.
+It presents userspace keyboard definitions at standard QMK keyboard paths and
+applies any future focused core patches in `patches/qmk/`. No global QMK
 configuration or `EXTRA_KEYBOARD_FOLDER_PATH` is required.
 
 ## Extra info

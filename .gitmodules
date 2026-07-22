@@ -1,9 +1,7 @@
 [submodule "modules/qmk_firmware"]
 	path = modules/qmk_firmware
-	url = https://github.com/qmk/qmk_firmware.git
+	url = https://github.com/hitsmaxft/qmk_firmware.git
+	branch = annepro2-upstream
 [submodule "modules/getreuer"]
 	path = modules/getreuer
 	url = https://github.com/getreuer/qmk-modules.git
-[submodule "modules/qmk-keyboard-lily58-2040"]
-	path = modules/qmk-keyboard-lily58-2040
-	url = git@github.com:hitsmaxft/lily58-2040-fw.git

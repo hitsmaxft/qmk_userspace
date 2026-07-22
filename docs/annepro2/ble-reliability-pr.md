@@ -1,6 +1,6 @@
 # Anne Pro 2 BLE 可靠性修复：QMK 上游 PR 说明
 
-本文是 [`keyboards/annepro2`](../../modules/qmk_firmware/keyboards/annepro2/) 的 BLE 可靠性修复说明和未来上游 PR 的提交依据。它只描述 QMK 端可由源码确认的问题与改动；闭源 BLE 固件的连接完成回包仍未还原，因此本文不把固定延时称为连接成功确认。
+本文是 [`keyboards/annepro2`](../../modules/qmk_firmware/keyboards/annepro2/) 的 BLE 可靠性修复说明和未来上游 PR 的提交依据。当前实现位于本仓库固定的 `annepro2-upstream` QMK fork 分支，而非 userspace 补丁。它只描述 QMK 端可由源码确认的问题与改动；闭源 BLE 固件的连接完成回包仍未还原，因此本文不把固定延时称为连接成功确认。
 
 相关协议证据见 [BLE 固件与 UART 协议分析](ble-firmware-and-uart-protocol.md)。
 
@@ -19,13 +19,14 @@ Anne Pro 2 的 HT32 主控通过 115200 bit/s UART 控制闭源 BLE 模块。原
 
 第一项是最接近“连接不可靠”反馈的 QMK 侧证据，但它不能证明 BLE 固件没有其他问题。BLE 模块没有在现有移植代码中被解析的 connect-complete / disconnect UART 事件，因此端到端可靠性不能仅由此补丁保证。
 
-## 补丁行为
+## 当前分支行为
 
-补丁在构建时由 [`0001-annepro2-local-enhancements.patch`](../../patches/qmk/0001-annepro2-local-enhancements.patch) 应用于官方 QMK worktree，涉及三个文件：
+固定的 QMK fork 分支直接包含该实现，涉及四个文件：
 
 - [`annepro2_ble.c`](../../modules/qmk_firmware/keyboards/annepro2/annepro2_ble.c)
 - [`annepro2_ble.h`](../../modules/qmk_firmware/keyboards/annepro2/annepro2_ble.h)
 - [`annepro2.c`](../../modules/qmk_firmware/keyboards/annepro2/annepro2.c)
+- [`annepro2.h`](../../modules/qmk_firmware/keyboards/annepro2/annepro2.h)
 
 ### 连接与 host driver
 
