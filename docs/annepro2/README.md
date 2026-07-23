@@ -6,6 +6,8 @@
   event-driven host driver 切换和上游 PR 草案。
 - [USB Console 验证](ble-usb-console-validation.md)：debug 构建、日志字段、
   handshake/ACK/断链验证矩阵。
+- [二次 connect 实验记录](ble-double-connect-experiment.md)：归档未刷入的
+  200 ms 双 connect 实验、已知竞态、回滚基线和后续 single-flight 方向。
 
 当前最重要的未完成项是从 BLE 固件或 PA5 抓包确认断链 counterpart，以及确认
 Caps Lock 回包的精确 group/opcode。构建成功不能替代 radio、bond 或 HID 实机
