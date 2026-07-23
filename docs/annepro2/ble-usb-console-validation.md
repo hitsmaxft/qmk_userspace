@@ -37,6 +37,8 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
 | 日志 | 含义 |
 | --- | --- |
 | `state N -> M` | 显式状态转换 |
+| `tx wakeup slot=...` | 从 keyboard EEPROM 读取的上次成功 slot；`-1` 表示不自动连接 |
+| `auto slot=...` | wakeup 回包解析后启动冷启动重连 |
 | `tx broadcast slot=... attempt=...` | 发出或重试 `40/01` |
 | `tx connect slot=... attempt=...` | 收到匹配的 broadcast ACK 后发出或重试 `40/04` |
 | `rx command ack=... value=... state=...` | 与当前 pending 命令关联的 ACK；value 语义未知 |
@@ -70,6 +72,23 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
 4. 记录从 connect 命令到 `20/0c` 的时间，以及握手请求出现次数；重点确认
    回复后是否停止重复请求。
 5. 特别记录：macOS 显示“已连接”的时间、首次可输入时间是否一致。
+
+### 断电后的自动重连
+
+1. 先手动连接一个 slot，确认出现 `20/0c`、`route ble`，并能通过 BLE 输入。
+   只有这一步完成后 slot 才写入 EEPROM。
+2. 完全断电再上电，不按 `MO(9)` 或 slot。
+3. 启动日志应依次包含 `tx wakeup slot=0`、`auto slot=0` 和
+   `tx broadcast slot=0 ... reconnect=1`（slot 1 的内部编号是 `0`）。
+4. 收到 `40/01` ACK 后才发送 `40/04`；收到 `20/0c` 后才出现 `route ble`。
+5. 拔掉 USB，确认按键继续通过 BLE 输入。
+6. 再连接 USB，按 `KC_AP2_USB` 后完全断电重启；日志应为
+   `tx wakeup slot=-1`，且不能出现 `auto slot`。这验证显式 USB 选择会清除
+   自动重连偏好。
+7. 再次选择 BLE slot 并完成握手后，自动重连应重新启用。
+
+广播、配对或握手失败不能写入新 slot。测试失败路径时先记录原来的成功 slot，
+选择另一个未配对 slot 但不完成连接，然后重启；固件应仍自动请求原成功 slot。
 
 ### ACK 重试
 
@@ -110,6 +129,9 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
   `7B 12 43 00 04 00 00 7D 20 0C 00 00`，因此重复请求更可能是 BLE 侧等待
   回复后的重试。必须用新固件验证次数；`hid handshake` 仍是行为名称，不是
   已确认的 BLE stack 函数名。
+- C18 实测的新配对在 broadcast ACK 后约 5.2 秒收到 `20/0c`，回复后进入
+  BLE route，并在拔掉 USB 后继续输入；这验证了 event gate 和 HID 报告路径。
+  EEPROM 自动重连是后续补丁，仍必须按上面的断电流程单独验证。
 - 尚未确认断链 UART 帧。若断链时没有 RX，当前 QMK 无法只靠 UART 自动恢复
   USB route；USB 键仍是确定的恢复操作。
 - USB console 会增加时序扰动。出现吞吐或 latency 异常时，应改用 PA4/PA5
