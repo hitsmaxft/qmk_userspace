@@ -21,3 +21,17 @@ Useful entries for the BLE UART path:
 
 The firmware images are analysis inputs and remain under `assets/ap2_fw/`;
 the helper does not modify them or export proprietary code.
+
+`replay_uart.py` replays raw hexadecimal bytes or `qmk console` lines through
+the same `8 + payload length` framing rules used by the QMK driver. It prints
+complete frames and the keyboard-MCU response expected for the confirmed
+`20/07` and `20/0c` requests:
+
+```sh
+direnv exec . python tools/reverse/annepro2/replay_uart.py --self-test
+direnv exec . python tools/reverse/annepro2/replay_uart.py ap2-console.log
+```
+
+The self-test covers garbage-prefix resynchronization, variable frame lengths,
+the value-preserving `20/07` response, and the fixed `20/0c` response. This is
+a host-side protocol replay, not an RF or physical UART test.

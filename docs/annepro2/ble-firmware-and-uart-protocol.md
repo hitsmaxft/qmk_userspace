@@ -90,7 +90,8 @@ USART1 IRQ vector +0xa0 -> 0xec83
 | `0x12` | `0x62fd` | `0x80` | `0x67e3` |
 
 `0x11`、`0x21`、`0x60` 的 handler 为空。group `0x20` 再按 `frame[9]`
-跳转；opcode `0x0c` 的 `0x66d6` 分支用 `(12, 0, 0)` 调用 `0x7eac`。
+跳转；opcode `0x07` 进入 `0x6612`，opcode `0x0c` 的 `0x66d6` 分支用
+`(12, 0, 0)` 调用 `0x7eac`。
 
 进一步沿调用链检查纠正了先前的“内部队列”解释：`0x7eac` 调用 `0x85c0`
 构造协议 header，调用 `0x8606` 追加 group `0x20`、opcode `0x0c` 和两个
@@ -103,6 +104,16 @@ USART1 IRQ vector +0xa0 -> 0xec83
 这证明输入 `20/0c` 是 BLE 模块主动发起、官方键盘主控必须回复的握手请求，
 而不是 connect 命令的同步返回值。旧 QMK 只把所有 11-byte RX 覆盖到
 `ble_capslock`，没有发出这条回复。
+
+`0x6612` 分支同样不是 disconnect handler。它读取 `20/07` 的单字节 value，
+保留该值，把 routing 字段反转为 `0x43` 并发送：
+
+```text
+7b 12 43 00 03 00 00 7d 20 07 VV
+```
+
+因此 `20/07` 是 BLE 发起、主控必须原值回复的状态同步请求。固件静态分析尚未
+确定 `VV` 的业务名称，但已足以实现兼容响应；它本身不改变 QMK host route。
 
 对 `0x7eac` 的全映像 callsite 检查还发现两处主动发送 opcode `0x0b`：
 `0xa42c` 发送 `(0x0b, value, 1)`，`0xa444` 发送
@@ -177,6 +188,8 @@ QMK 的 4-byte consumer payload 只使用 `C0`，其余三字节始终为 0：
 | --- | --- |
 | `... 40 01 00` | broadcast 命令 ACK，高置信度 |
 | `... 40 04 00` | connect 命令 ACK，高置信度 |
+| `7b 12 35 00 03 00 00 7d 20 07 VV` | BLE 发起的状态同步请求；官方主控原值回复 |
+| `7b 12 43 00 03 00 00 7d 20 07 VV` | 官方主控对上述状态同步请求的回复 |
 | `7b 12 35 00 03 00 00 7d 20 0c 00` | BLE 发起的建链后握手请求；官方主控回复下行帧 |
 | `7b 12 43 00 04 00 00 7d 20 0c 00 00` | 官方主控对上述握手的固定回复 |
 
@@ -187,9 +200,8 @@ QMK 的 4-byte consumer payload 只使用 `C0`，其余三字节始终为 0：
 目前将它命名为 `HID handshake request`，不声称已经定位到 BLE 固件内的精确
 GAP callback。
 
-一次 USB console 重新连接附近还捕获到 `... 20 07 00`。由于当时 USB 与 BLE
-状态同时变化，无法把它可靠归因于 radio disconnect；当前只保留为未知事件
-样本，不据此改变 QMK route。
+一次 USB console 重新连接附近捕获到的 `... 20 07 00` 与上述静态路径一致。
+QMK 现在会回复 `... 20 07 00`，但不会把它当作 radio disconnect 或连接成功。
 
 冷启动实测进一步证明 `40/04` ACK 不能作为连接依据：第一版自动重连在约
 600 ms 依次得到 `40/01 00` 和 `40/04 00`，但 macOS 未连接且 BLE 没有发送
@@ -244,6 +256,9 @@ struct __attribute__((packed)) {
 将每一类样本做成可回放测试：输入 UART 字节流，断言 BLE 状态机、GATT
 通知、变长 framing、握手请求/回复和 Caps Lock 回传。特别收集 host 主动断开、
 超时断开和关闭蓝牙三种 PA5 流量；当前固件静态分析尚未给出断链 counterpart。
+已有的主控侧 framing 与 `20/07`、`20/0c` 回复可用
+[`replay_uart.py`](../../tools/reverse/annepro2/replay_uart.py) 重放；它不模拟
+CC254x radio/GATT 状态。
 
 ## 证据索引
 
@@ -257,4 +272,6 @@ struct __attribute__((packed)) {
   UART0 DMA、128-byte TX ring 与 `8 + length` framing 构造器。
 - [`DecompileAt.java`](../../tools/reverse/annepro2/DecompileAt.java)：复现主控关键
   地址反汇编/反编译输出的 Ghidra headless helper。
+- [`replay_uart.py`](../../tools/reverse/annepro2/replay_uart.py)：逐字节重放 UART
+  输入，验证 framing 重同步和已确认的主控回复。
 - [TI CC2541 product page](https://www.ti.com/product/CC2541)、[datasheet](https://www.ti.com/lit/ds/symlink/cc2541.pdf)、[CC253x/CC254x user guide](https://www.ti.com/lit/ug/swru191f/swru191f.pdf)：8051/UART/flash 寄存器与器件能力交叉验证。
