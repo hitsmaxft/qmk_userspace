@@ -23,8 +23,9 @@
 4. 命令 ACK 500 ms 未到时最多重发两次。该 timer 只恢复丢失的命令/ACK，
    永远不用于推断 radio 或 HID 已就绪；
 5. 只在 `0x20/0x0c` 握手成功、BLE route 真正启用后，将 slot 写入 QMK
-   keyboard EEPROM。下次上电在 wakeup 回包解析完毕后自动重走该 slot 的
-   broadcast/connect/handshake 状态机；选择 USB 或 unpair 会清除自动重连。
+   keyboard EEPROM。下次上电等待 BLE MCU 稳定 500 ms 后，以“本次会话首次
+   选择”的语义发送 broadcast，再等待 handshake；选择 USB 或 unpair 会清除
+   自动重连。
 
 ## 原代码的确定问题
 
@@ -38,7 +39,8 @@
 | BLE 中切换 slot | 旧 BLE driver 继续接收按键 | 等待新 slot 时报告可能仍投向旧链路 | 进入 pending 前恢复原 host driver |
 | 重连命令顺序 | broadcast 后立即发送 connect | BLE MCU 尚在切换 advertising/profile 时可能忽略 connect | 收到匹配的 `40/01` ACK 后才发送 `40/04` |
 | 命令丢失 | 没有 ACK 关联、重试或状态日志 | 状态可能永久卡住且无法诊断 | 500 ms ACK timeout、最多两次重试；记录 ACK value |
-| 断电重开 | slot 只保存在 RAM，启动只发送 wakeup | BLE bond 仍在，但 QMK 不请求该 profile，必须手动重新按 slot | 成功握手后持久化 slot，冷启动自动请求重连 |
+| 断电重开 | slot 只保存在 RAM，启动只发送 wakeup | BLE bond 仍在，但 QMK 不请求该 profile，必须手动重新按 slot | 成功握手后持久化 slot，冷启动延迟发送 broadcast |
+| 持久化 slot 语义 | `last_slot` 原本只表示本次上电已选择过的 slot | 把 EEPROM 值直接装入它会让冷启动误发 `40/04 connect`，只有 UART ACK、没有 radio link | 单独使用 `startup_slot`；冷启动保持 `last_slot=-1`，复现断电后手动按 slot 的有效路径 |
 
 以下旧实验改动不保留：
 
@@ -100,7 +102,7 @@ QMK 不回复，重复帧很可能是 BLE 侧握手重试；仍需实机验证�
 ```mermaid
 stateDiagram-v2
     [*] --> USB
-    USB --> BroadcastAck: 冷启动读取已保存 slot
+    USB --> BroadcastAck: 冷启动延迟 500 ms 后发送 40/01
     USB --> BroadcastAck: 发送 40/01
     BroadcastAck --> ConnectAck: 匹配 ACK 且为重连
     BroadcastAck --> Handshake: 匹配 ACK 且为首次广播
@@ -135,6 +137,13 @@ EEPROM 中 `0` 表示保持 USB、禁用冷启动自动连接，`1..4` 分别编
 启动的选择。只有收到 `20/0c` 并切入 BLE route 后才写入 EEPROM，而且仅在
 值变化时写，避免每次重连产生 flash wear。`KC_AP2_USB` 和 unpair 写回 `0`。
 
+`last_slot` 保持原来的会话内含义：同一上电周期再次选择相同 slot，才走
+broadcast ACK 后追加 `40/04 connect` 的路径。EEPROM 读取值放在独立的
+`startup_slot`，因此冷启动自动选择与断电后第一次手动按 slot 完全一致，只发
+`40/01`。500 ms 等待是非阻塞 timer；实测 100 ms 的首次命令没有 ACK，而
+约 600 ms 的重试开始得到 ACK，说明旧的 100 ms wakeup 等待不足以代表 BLE
+MCU/radio 已稳定。
+
 尚未从 BLE 固件静态确认断链对应 UART 帧。因此当前实现不会根据猜测的 opcode
 自动切回 USB；USB 键和 unpair 是已知的本地恢复路径。debug 构建会打印每个
 完整 RX 帧，后续可用断链实测补齐协议。
@@ -155,7 +164,7 @@ EEPROM 中 `0` 表示保持 USB、禁用冷启动自动连接，`1..4` 分别编
 | --- | --- |
 | 首次选择 slot | `40/01` ACK 不切 driver；收到 `20/0c`，回发响应后才切 BLE |
 | 已配对 slot 重连 | `40/04` ACK 不切 driver；握手之后开始发送 HID |
-| 冷启动自动重连 | 已有成功 slot 时，wakeup RX 排空后自动执行 broadcast → connect → handshake；不需再按 slot |
+| 冷启动自动重连 | 已有成功 slot 时，wakeup 后约 500 ms 自动执行 broadcast → handshake；该路径不得发送 `40/04`，也不需再按 slot |
 | 首次/失败选择 | 未收到 `20/0c`、未切 BLE route 时不覆盖 EEPROM 中的上次成功 slot |
 | USB 后冷启动 | `KC_AP2_USB` 清除自动重连；下次启动停留 USB |
 | 重连命令顺序 | 必须先收到匹配的 `40/01` ACK，然后才打印/发送 `40/04` |
@@ -188,7 +197,8 @@ Fix Anne Pro 2's keyboard-side BLE UART state handling:
 - switch the QMK host driver only after that handshake, not after a connect
   command or its acknowledgement;
 - remember the slot only after a successful handshake and automatically request
-  that slot after the next power-on;
+  that slot after the next power-on, without treating it as a slot already
+  selected in the current session;
 - cancel a pending BLE route on USB selection/unpair.
 
 The official keyboard firmware answers an incoming group 0x20 opcode 0x0c
@@ -202,7 +212,10 @@ reports can be delivered.
 - `qmk compile -kb annepro2/c18 -km <keymap>`
 - Hardware: C18, BLE firmware BLE-1.5.0, macOS; fresh slot 1 pairing reached
   `20/0c`, switched to BLE, and continued typing after USB was unplugged.
-- Pending: cold-boot autoconnect and USB-preference persistence with this patch.
+- Hardware cold boot: the saved slot was selected automatically at 504 ms,
+  emitted `40/01` with `reconnect=0`, reached `20/0c`/BLE route at 536 ms,
+  and macOS reported AnnePro2 connected. No `40/04` was emitted.
+- Pending: explicit USB-preference persistence and failed-slot preservation.
 
 No disconnect notification opcode is assumed by this change.
 ```

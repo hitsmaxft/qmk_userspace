@@ -191,6 +191,13 @@ GAP callback。
 状态同时变化，无法把它可靠归因于 radio disconnect；当前只保留为未知事件
 样本，不据此改变 QMK route。
 
+冷启动实测进一步证明 `40/04` ACK 不能作为连接依据：第一版自动重连在约
+600 ms 依次得到 `40/01 00` 和 `40/04 00`，但 macOS 未连接且 BLE 没有发送
+`20/0c`。修正版保持会话内 `last_slot=-1`，500 ms 后只发送 `40/01`；
+BLE 在约 532 ms 发出 `20/0c`，QMK 于约 536 ms 切换 route，macOS 同时显示
+AnnePro2 已连接。因此对这个冷启动路径，额外 `40/04` 不但不能证明成功，
+还会破坏原本有效的 advertising/host reconnect 流程。
+
 ### Caps Lock 兼容 ABI
 
 **已确认（旧 QMK 行为）**：原移植把任意 RX 数据按固定大小读入

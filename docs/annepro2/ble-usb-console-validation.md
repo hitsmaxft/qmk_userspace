@@ -37,8 +37,8 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
 | 日志 | 含义 |
 | --- | --- |
 | `state N -> M` | 显式状态转换 |
-| `tx wakeup slot=...` | 从 keyboard EEPROM 读取的上次成功 slot；`-1` 表示不自动连接 |
-| `auto slot=...` | wakeup 回包解析后启动冷启动重连 |
+| `wake ...` | 从 keyboard EEPROM 读取的上次成功 slot；`-1` 表示不自动连接 |
+| `auto ...` | wakeup 约 500 ms 后启动冷启动 broadcast |
 | `tx broadcast slot=... attempt=...` | 发出或重试 `40/01` |
 | `tx connect slot=... attempt=...` | 收到匹配的 broadcast ACK 后发出或重试 `40/04` |
 | `rx command ack=... value=... state=...` | 与当前 pending 命令关联的 ACK；value 语义未知 |
@@ -78,12 +78,13 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
 1. 先手动连接一个 slot，确认出现 `20/0c`、`route ble`，并能通过 BLE 输入。
    只有这一步完成后 slot 才写入 EEPROM。
 2. 完全断电再上电，不按 `MO(9)` 或 slot。
-3. 启动日志应依次包含 `tx wakeup slot=0`、`auto slot=0` 和
-   `tx broadcast slot=0 ... reconnect=1`（slot 1 的内部编号是 `0`）。
-4. 收到 `40/01` ACK 后才发送 `40/04`；收到 `20/0c` 后才出现 `route ble`。
+3. 启动日志应依次包含 `wake 0`、约 500 ms 后的 `auto 0`，以及
+   `tx broadcast slot=0 ... reconnect=0`（slot 1 的内部编号是 `0`）。
+4. 冷启动不得发送 `40/04`；`40/01` ACK 后应进入 state 3，收到 `20/0c`
+   后才出现 `route ble`。
 5. 拔掉 USB，确认按键继续通过 BLE 输入。
 6. 再连接 USB，按 `KC_AP2_USB` 后完全断电重启；日志应为
-   `tx wakeup slot=-1`，且不能出现 `auto slot`。这验证显式 USB 选择会清除
+   `wake -1`，且不能出现 `auto`。这验证显式 USB 选择会清除
    自动重连偏好。
 7. 再次选择 BLE slot 并完成握手后，自动重连应重新启用。
 
@@ -131,7 +132,16 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
   已确认的 BLE stack 函数名。
 - C18 实测的新配对在 broadcast ACK 后约 5.2 秒收到 `20/0c`，回复后进入
   BLE route，并在拔掉 USB 后继续输入；这验证了 event gate 和 HID 报告路径。
-  EEPROM 自动重连是后续补丁，仍必须按上面的断电流程单独验证。
+  这是手动新配对样本；冷启动自动重连结果见下两项。
+- 第一版自动重连实测把 EEPROM slot 装入 `last_slot`，导致冷启动日志为
+  `reconnect=1` 并发送 `40/04`。两条命令都有 `00` ACK，但 macOS 始终未连接，
+  也没有 `20/0c`；手动的断电后首次 slot 选择则成功。修正版将持久化
+  `startup_slot` 与会话内 `last_slot` 分离，冷启动必须显示 `reconnect=0`。
+- 修正版 C18 冷启动实测通过：`auto 0` 在 MCU 时间 `0x1f8`（504 ms）出现，
+  同时发送 `40/01` 且 `reconnect=0`；`40/01` ACK 在 `0x202`，`20/0c` 在
+  `0x214`，`route ble` 在 `0x218`（536 ms）。整个样本没有 `40/04`。
+  macOS 同时报告 AnnePro2 已连接，地址 `F8:30:02:4B:8C:84`、固件
+  `BLE-1.5.0`。
 - 尚未确认断链 UART 帧。若断链时没有 RX，当前 QMK 无法只靠 UART 自动恢复
   USB route；USB 键仍是确定的恢复操作。
 - USB console 会增加时序扰动。出现吞吐或 latency 异常时，应改用 PA4/PA5
