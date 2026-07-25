@@ -49,3 +49,24 @@ recovered data to `/tmp/ap2d-key-3.08.data.bin`. Unicorn emulates only the
 firmware decompressor; the script does not emulate the board, UART, BLE radio,
 or RTOS and therefore provides static binary evidence rather than hardware
 validation.
+
+## BLE cross-flash input validation
+
+`validate_ble_crossflash.py` validates the exact official C18 BLE 2.05 and
+AP2D BLE 2.13 update images without accessing hardware:
+
+```sh
+direnv exec . python3 tools/reverse/annepro2/validate_ble_crossflash.py
+```
+
+It also accepts debugger-created 256 KiB CC2541 flash and 2 KiB Information
+Page backups. These backups are device-private and must not be committed:
+
+```sh
+direnv exec . python3 tools/reverse/annepro2/validate_ble_crossflash.py \
+  --full-flash-backup /private/path/full-flash.bin \
+  --information-page-backup /private/path/information-page.bin \
+  --require-hardware-backups
+```
+
+This is a preflight checker, not a flasher. It performs no USB or CC2541 I/O.

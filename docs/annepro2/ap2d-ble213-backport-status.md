@@ -137,8 +137,10 @@ C18 BLE 板安全启动，也不证明 radio、bond 或四主机切换已通过�
 
 ## 下一步门禁
 
-1. 在可恢复 BLE bootloader、information page、IEEE/RF 和 SNV 的条件下完成
-   BLE 2.13 交叉刷写门禁。
+1. 按 [BLE 2.13 交叉刷写门禁](ble213-crossflash-gate.md) 使用 CC254x
+   调试接口保存 256 KiB 全 flash 和 2 KiB Information Page，并验证两次读取
+   哈希一致。当前 `annepro2_tools` 的 BLE 路径没有严格 ACK、readback 或
+   erase 边界证明，禁止直接使用。
 2. 依次验证键盘 press/release、Consumer、清除配对、四个 slot 的
    广播/连接/超时/迟到事件。
 3. Vendor Report ID 2 的方向适配保持关闭，直到业务 UART opcode 被确认。

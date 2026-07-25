@@ -63,6 +63,19 @@ annepro2-recover-ap2d-data output='/tmp/ap2d-key-3.08.data.bin':
         assets/ap2_fw/ap2d/3.08/annepro2_discovery_KEY_APP.bin \
         --output {{ output }}
 
+annepro2-ble-crossflash-check:
+    PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
+        -s tools/reverse/annepro2/tests -p 'test_*.py' -v
+    PYTHONDONTWRITEBYTECODE=1 python3 \
+        tools/reverse/annepro2/validate_ble_crossflash.py
+
+annepro2-ble-crossflash-backup-check full_flash information_page:
+    PYTHONDONTWRITEBYTECODE=1 python3 \
+        tools/reverse/annepro2/validate_ble_crossflash.py \
+        --full-flash-backup {{ full_flash }} \
+        --information-page-backup {{ information_page }} \
+        --require-hardware-backups
+
 flash-annepro2-log:
     ANNEPRO2_BLE_DEBUG=yes bash scripts/qmk-worktree.sh qmk flash -kb annepro2/c18 -km macvim
 
