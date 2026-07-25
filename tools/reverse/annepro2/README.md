@@ -35,3 +35,17 @@ direnv exec . python tools/reverse/annepro2/replay_uart.py ap2-console.log
 The self-test covers garbage-prefix resynchronization, variable frame lengths,
 the value-preserving `20/07` response, and the fixed `20/0c` response. This is
 a host-side protocol replay, not an RF or physical UART test.
+
+`recover_ap2d_data.py` executes only AP2D KEY 3.08's position-independent
+Thumb decompressor at `0x13700`. It restores the initialized RAM image and
+prints the protocol group dispatch table at `0x20000414`:
+
+```sh
+direnv exec . just annepro2-recover-ap2d-data
+```
+
+The helper validates the expected eleven group IDs before writing the
+recovered data to `/tmp/ap2d-key-3.08.data.bin`. Unicorn emulates only the
+firmware decompressor; the script does not emulate the board, UART, BLE radio,
+or RTOS and therefore provides static binary evidence rather than hardware
+validation.

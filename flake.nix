@@ -33,9 +33,12 @@
                 nativeBuildInputs = old.nativeBuildInputs ++ [
                   annepro2Tools
                   annepro2ToolsQmk
-                    pkgs.addlicense
-                    pkgs.license-cli
-                    pkgs.just
+                  pkgs.addlicense
+                  pkgs.license-cli
+                  pkgs.just
+                  (pkgs.python312.withPackages (pythonPackages: [
+                    pythonPackages.unicorn
+                  ]))
                 ];
             });
         }

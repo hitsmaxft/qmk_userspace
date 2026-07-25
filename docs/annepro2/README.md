@@ -19,6 +19,8 @@
   200 ms 双 connect 实验、已知竞态、回滚基线和后续 single-flight 方向。
 
 当前 backport 的主体固定为 C18 KEY 源码，BLE 2.13 二进制保持原样。首版需要
-同时支持 C18 BLE 2.05 和 AP2D BLE 2.13，并覆盖键盘、Consumer、锁定灯、配对
-和四主机切换。尚未由完整调用链或抓包确认的 UART 命令必须保持实验状态。
-构建成功不能替代 radio、bond、HID 或交叉刷写安全性的实机验证。
+同时支持 C18 BLE 2.05 和 AP2D BLE 2.13，并覆盖键盘、Consumer、配对和四主机
+切换。AP2D 已取消 C18 的独立 LED MCU，因此 AP2D 的锁定灯、RGB 和 LED 输出
+实现不属于本次 backport；C18 灯控保持原有板级路径。尚未由完整调用链或抓包
+确认的 UART 命令必须保持实验状态。构建成功不能替代 radio、bond、HID 或
+交叉刷写安全性的实机验证。

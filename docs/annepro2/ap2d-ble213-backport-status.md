@@ -16,6 +16,18 @@
   - 连接：`0x20/0x24 slot,2`。
 - `0x82DE` 处理的 `0x21/0x22` 属于 AP2D 对象/厂商业务回调及四块 9 字节
   槽数据访问。它不是“AP2D 配对/连接 UART opcode”的充分证据。
+- KEY 3.08 在 `0x138C0` 保存压缩初始化数据描述，固件自己的 `0x13700`
+  解压器会恢复 RAM `0x20000000..0x20000473`。恢复后的
+  `0x20000414` 是 11 项 UART 主组分发表：
+
+```text
+01 -> 99A1   02 -> C1FD   03 -> C27B   10 -> 7EA9
+11 -> DADD   12 -> C259   20 -> AB79   30 -> 8B01
+40 -> B115   50 -> B5B1   60 -> 800D
+```
+
+该表由 `tools/reverse/annepro2/recover_ap2d_data.py` 调用固件自身解压器恢复，
+不是按相邻常量猜出的地址。
 
 因此首版继续使用已验证的 `0x40/0x01` 广播和 `0x40/0x04` 连接命令，不把
 `0x21/0x22` 猜测为 BLE slot 命令。原 QMK 在 slot 字节后额外写出的一个
@@ -29,6 +41,9 @@ QMK 分支：`codex/annepro2-ble213-backport`
 
 slot 状态差异修正：`da28ab855d Match AP2D BLE slot state commands`
 
+slot 事务顺序与 LED 范围修正：
+`8109af3c33 Match AP2D slot transaction ordering`
+
 - 同一 C18 KEY 源码内置 `C18_BLE205` 和 `AP2D_BLE213` profile。
 - Consumer 编码：
   - BLE 2.05：4 字节位图，补齐亮度增减两个原来遗漏的 bit。
@@ -41,18 +56,26 @@ slot 状态差异修正：`da28ab855d Match AP2D BLE slot state commands`
 - 新增 `KC_AP2_BLE205`、`KC_AP2_BLE213` 维护键码。
 - slot 状态通知按 profile 编码：BLE 2.05 保留已实测的
   `0x20/0x0B slot,0/1`；BLE 2.13 使用 AP2D 3.08 汇编确认的
-  `0x20/0x0B slot,1` 与 `0x20/0x24 slot,2`。状态通知仍只在动作边沿发送
-  一次，不随主命令重试。
-- 增加无硬件依赖的 host 测试，覆盖 Consumer golden vectors、两种 LED
-  payload、slot 状态 golden vectors、profile/slot 全组合、校验损坏和越界
-  输入。
+  `0x20/0x0B slot,1` 与 `0x20/0x24 slot,2`。状态通知先于主命令发送，仍只
+  在动作边沿发送一次，不随 `0x40/0x01` 或 `0x40/0x04` 重试。
+- 增加无硬件依赖的 host 测试，覆盖 Consumer release、1–4 个 Usage、
+  golden vectors、slot 状态 golden vectors、profile/slot 全组合、校验损坏
+  和越界输入。
 
-锁定灯的 1/2 字节 decoder 已实现并测试，但尚未接到 UART event handler。
-AP2D KEY 的 `0x8426` 证明两种 HID Output 长度都被接受，却不足以单独确定
-BLE→KEY UART 的外层 group/opcode；接入前仍需继续追完整调用链或抓包。旧
-QMK 的 `ble_capslock_t` 只是把任意 11 字节 RX 帧的末字节当作 Caps 状态，
-会被命令 ACK 和握手帧污染，而且 host driver 实际始终返回 0。该伪兼容路径
-已经移除，debug 构建仍记录每个完整 RX 帧。
+## 明确排除的 LED 路径
+
+AP2D 取消了 C18 的独立 LED MCU，KEY MCU 直接驱动 RGB。`0x8426`、
+`0xBE1A`、`0xBE5A`、`0xBE60` 属于 AP2D 自身的 HID Output/RGB 状态实现，
+不能作为 C18 LED MCU 的替代代码直接回移。按当前范围：
+
+- 不移植 AP2D 的锁定灯、RGB、LED Output callback 或 suspend 灯控；
+- 不在 BLE UART parser 中猜测 LED group/opcode；
+- C18 原有 LED MCU 与板级实现保持不变；
+- 已删除曾经隔离实现、但未接入 UART 的 1/2 字节 LED decoder 和测试。
+
+旧 QMK 的 `ble_capslock_t` 会把任意 11 字节 RX 帧的末字节当作 Caps 状态，
+容易被命令 ACK 和握手帧污染，而且 host driver 实际始终返回 0；该伪兼容
+路径仍保持删除。debug 构建继续记录每个完整 RX 帧，供未来独立研究使用。
 
 Vendor Report ID 2 的方向适配也保持关闭，直到业务 UART opcode 被确认。
 
@@ -88,14 +111,14 @@ profile 切换会清除自动连接 slot。随后应按目标 slot 重新连接�
   userspace 已按原约定关闭一组较大的 RGB 效果。
 
 这些结果只证明编码器、持久化格式和 QMK 构建成立，不证明 BLE 2.13 已能在
-C18 BLE 板安全启动，也不证明 radio、bond、锁定灯或四主机切换已通过硬件
+C18 BLE 板安全启动，也不证明 radio、bond 或四主机切换已通过硬件
 验收。
 
 ## 下一步门禁
 
-1. 继续追踪 BLE 2.13 LED Output 与 Vendor Report 的 UART 外层命令。
-2. 在可恢复 BLE bootloader、information page、IEEE/RF 和 SNV 的条件下完成
+1. 在可恢复 BLE bootloader、information page、IEEE/RF 和 SNV 的条件下完成
    BLE 2.13 交叉刷写门禁。
-3. 依次验证键盘 press/release、Consumer、锁定灯、清除配对、四个 slot 的
+2. 依次验证键盘 press/release、Consumer、清除配对、四个 slot 的
    广播/连接/超时/迟到事件。
+3. Vendor Report ID 2 的方向适配保持关闭，直到业务 UART opcode 被确认。
 4. 验证通过后再考虑把 BLE 2.13 profile 纳入上游 PR；在此之前它保持实验性。

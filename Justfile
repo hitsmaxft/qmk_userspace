@@ -48,6 +48,11 @@ annepro2-profile-test:
         -o /tmp/annepro2_ble_profile_test
     /tmp/annepro2_ble_profile_test
 
+annepro2-recover-ap2d-data output='/tmp/ap2d-key-3.08.data.bin':
+    python3 tools/reverse/annepro2/recover_ap2d_data.py \
+        assets/ap2_fw/ap2d/3.08/annepro2_discovery_KEY_APP.bin \
+        --output {{ output }}
+
 flash-annepro2-log:
     ANNEPRO2_BLE_DEBUG=yes bash scripts/qmk-worktree.sh qmk flash -kb annepro2/c18 -km macvim
 
