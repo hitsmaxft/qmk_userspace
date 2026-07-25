@@ -12,11 +12,16 @@ Nix/direnv environment for all QMK commands.
 From the repository root:
 
 ```sh
-git submodule update --init --recursive modules/qmk_firmware
+git submodule update --init --recursive
 direnv allow .
 direnv exec . just annepro2
 ```
 
+- `assets/ap2_fw` is the pinned
+  `https://github.com/hitsmaxft/annepro-2-firmware.git` archive. Official,
+  historical, and derived images use the archive's own directory structure;
+  do not copy firmware binaries back into userspace. Locally generated
+  firmware remains an ignored build artifact in the userspace root.
 - `scripts/qmk-worktree.sh` creates a disposable worktree from the pinned QMK
   submodule, reuses its initialized nested QMK dependencies, overlays
   local custom keyboards into its standard `keyboards/` directory, and applies

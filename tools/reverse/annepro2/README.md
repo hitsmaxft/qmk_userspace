@@ -2,10 +2,10 @@
 
 `DecompileAt.java` is a small Ghidra headless post-script used to make the
 official keyboard-MCU analysis reproducible. Import
-`assets/ap2_fw/key-c18-2.36.3.bin` as a raw little-endian Cortex-M image with
-base address `0x4000`, then pass one or more function entry addresses to the
-script. It disassembles up to 80 instructions and prints Ghidra's decompiler
-output for each address.
+`assets/ap2_fw/annepro2/c18/firmware/2.36.3/key-c18-2.36.3.bin` as a raw
+little-endian Cortex-M image with base address `0x4000`, then pass one or more
+function entry addresses to the script. It disassembles up to 80 instructions
+and prints Ghidra's decompiler output for each address.
 
 Useful entries for the BLE UART path:
 
@@ -19,8 +19,8 @@ Useful entries for the BLE UART path:
 | `0x8606` | append group/opcode/payload |
 | `0xacac` | protocol transmit path |
 
-The firmware images are analysis inputs and remain under `assets/ap2_fw/`;
-the helper does not modify them or export proprietary code.
+The firmware images are analysis inputs provided by the `assets/ap2_fw`
+submodule; the helper does not modify them or export proprietary code.
 
 `replay_uart.py` replays raw hexadecimal bytes or `qmk console` lines through
 the same `8 + payload length` framing rules used by the QMK driver. It prints
@@ -77,6 +77,10 @@ This is a preflight checker, not a flasher. It performs no USB or CC2541 I/O.
 ```sh
 direnv exec . just annepro2-ble213-name-image
 ```
+
+The generated image is written to the userspace root by default. It is an
+ignored build artifact; the archived, checksummed derivative remains in the
+firmware submodule.
 
 `plan_ble_iap.py` 为已知官方 BLE 2.05/2.13 镜像生成不可执行的 IAP 请求计划。
 它固定 BLE route、C18 实测的 `0x4000` transport base 和 32 字节分块，输出

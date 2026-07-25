@@ -5,3 +5,7 @@
 [submodule "modules/getreuer"]
 	path = modules/getreuer
 	url = https://github.com/getreuer/qmk-modules.git
+[submodule "assets/ap2_fw"]
+	path = assets/ap2_fw
+	url = https://github.com/hitsmaxft/annepro-2-firmware.git
+	branch = main

@@ -85,7 +85,7 @@ annepro2-validate: annepro2-test annepro2 annepro2-ble213 annepro2-c15
 
 annepro2-recover-ap2d-data output='/tmp/ap2d-key-3.08.data.bin':
     python3 tools/reverse/annepro2/recover_ap2d_data.py \
-        assets/ap2_fw/ap2d/3.08/annepro2_discovery_KEY_APP.bin \
+        assets/ap2_fw/annepro2d/firmware/3.08/annepro2_discovery_KEY_APP.bin \
         --output {{ output }}
 
 annepro2-ble-crossflash-check:
@@ -94,7 +94,7 @@ annepro2-ble-crossflash-check:
     PYTHONDONTWRITEBYTECODE=1 python3 \
         tools/reverse/annepro2/validate_ble_crossflash.py
 
-annepro2-ble213-name-image output='assets/ap2_fw/generated/c18-ble-2.13-annepro2c.bin':
+annepro2-ble213-name-image output='c18-ble-2.13-annepro2c.bin':
     PYTHONDONTWRITEBYTECODE=1 python3 \
         tools/reverse/annepro2/patch_ble213_name.py \
         --output "{{ output }}"
