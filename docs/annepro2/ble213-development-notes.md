@@ -76,6 +76,55 @@ slot 1 时，旧 ACK 或半帧可能落入新事务，表现为需要再按一�
 这降低了旧事务污染，但协议本身仍无法给 ACK 增加 transaction ID，四槽快速
 切换需要继续做实机压力测试。
 
+## UART 半帧可能永久污染后续事件
+
+早期 parser 只看 payload length 的低 8 位，且没有帧间超时。如果 UART 丢失
+一部分字节，后续合法帧会被继续拼到旧缓冲；非零 length 高字节也可能被静默
+截断。结果是 ACK 或 `0x20/0x0C` 明明到达，却无法被状态机识别。
+
+解决：
+
+- 独立出无 ChibiOS 依赖的流式 parser；
+- 校验完整 24 位 length，高字节必须为零，payload 上限为 32 字节；
+- 校验 header 的 `0x7D` delimiter；
+- 20 ms 没有新字节就丢弃半帧，随后允许从 `0x7B` 重同步；
+- 保留 payload 内部合法的 `0x7B`，不能在帧中间盲目重启；
+- host 测试覆盖噪声、断帧、无效长度、错误 delimiter 和 32 位 timer 回绕。
+
+## 把 C18 backport 链接进 C15 会耗尽 RAM
+
+第一版把 parser、profile 和完整状态机放在 Anne Pro 2 公共 `rules.mk` 路径，
+C15 链接时报：
+
+```text
+cannot move location counter backwards (from 20002030 to 20001ffc)
+```
+
+C15 的 RAM magic 位于 `0x20001FFC`，新增静态状态越过了可用 RAM 上界。这也
+说明“源码能被两个型号共同看到”不等于“两个型号都应承担同一实现”。
+
+解决：
+
+- C18 的 BLE 2.05/2.13 适配移到
+  `keyboards/annepro2/c18/annepro2_ble.c`；
+- parser/profile/state 只由 `c18/rules.mk` 链接；
+- C15 继续链接原 `annepro2_ble.c`，只补齐公共调用所需的无状态兼容 API；
+- 增加 `just annepro2-c15` 门禁，当前 default 构建为 37,504 字节。
+
+## 构建成功不能证明当前二进制通过实机
+
+BLE 2.13 的启动、slot 1 配对、HID-ready 和普通输入来自状态机演进期间的实机
+记录。之后增加的 parser 加固和 C18/C15 范围隔离虽然通过 host 测试与构建，
+但生成的是新的精确二进制。
+
+处理原则：
+
+- 旧日志继续作为 UART 语义和方案方向的证据；
+- 不把它写成当前 `ac2fcb3ead` 固件已经完成硬件回归；
+- 当前精确二进制仍需重测普通键盘、媒体、四槽和外部 LED MCU；
+- 验收状态集中记录在
+  [C18 KEY 双 BLE 首版验证矩阵](ble213-validation-matrix.md)。
+
 ## macOS 名称缓存会造成误判
 
 刷入 2.13 后，系统设置曾同时保留旧的 `AnnePro2 / BLE-1.5.0` 未连接条目；
@@ -108,6 +157,10 @@ slot 1 时，旧 ACK 或半帧可能落入新事务，表现为需要再按一�
 - advertising length `0x13`、type `0x09` 和 GAP NUL 不变；
 - 精确校验只有四个字节变化；
 - 官方输入保持只读，生成产物不提交 Git。
+
+这个 2C 镜像是可选显示变体，不属于“BLE 2.13 二进制保持原样”的核心
+backport 验证。核心路径继续使用官方 SHA-256
+`1b904ae9cd8bf6835c0b77c72618256b701a2c3b74dc04e9dddb8a388bdfc73d`。
 
 ## Nix 环境问题
 
