@@ -1,7 +1,7 @@
 # C18 KEY 适配 AP2D BLE 2.13：实现状态
 
-本页记录在完整调研报告之后新增的静态证据、QMK 实现和验证结果。原始报告保留
-不变，以便继续通过其 `SHA256SUMS.txt` 复核。
+本页记录完整调研报告之后新增的静态证据、QMK 实现和验证结果。调研报告中的
+范围修正与实施文件一并更新，并通过其 `SHA256SUMS.txt` 复核。
 
 ## 新增静态证据
 
@@ -131,17 +131,28 @@ profile 切换会清除自动连接 slot。随后应按目标 slot 重新连接�
 - 当前普通构建为 43,736 字节；日志构建为 42,532 字节。日志构建更小是因为
   userspace 已按原约定关闭一组较大的 RGB 效果。
 
-这些结果只证明编码器、持久化格式和 QMK 构建成立，不证明 BLE 2.13 已能在
-C18 BLE 板安全启动，也不证明 radio、bond 或四主机切换已通过硬件
-验收。
+## 已完成的实机验证
+
+- 修复版 `annepro2-tools` 从 C18 IAP 读取到 BLE transport base `0x4000`，
+  完成 erase 和 4,864 个 32 字节 write；每条回复都匹配
+  target/command/key 且 status 为零。
+- 官方 AP2D BLE 2.13 镜像在 C18 上启动。
+- slot 1 广播后，USB console 收到 `0x20/0x0C` HID-ready；QMK 只在该事件
+  后切换到 BLE route。命令 ACK 没有被误当作连接成功。
+- 从广播到 HID-ready 的一次样本延迟约 6.09 秒。
+- macOS 显示 `HEXCORE AnnePro 2D`、`BLE-1.5.2` 且已连接；用户确认普通
+  键盘输入正常。旧的 `AnnePro2 / BLE-1.5.0` 条目来自 macOS 配对缓存。
+
+这些结果证明 BLE 2.13 已在目标板上完成启动、连接和普通键盘输入。IAP
+协议没有可用的 flash readback，所以 status-zero 传输不能解释成逐字节写回
+验证；媒体键、完整四槽和外部 LED MCU 回归也仍需单独验收。
 
 ## 下一步门禁
 
-1. 按 [BLE 2.13 交叉刷写门禁](ble213-crossflash-gate.md) 使用 CC254x
-   调试接口保存 256 KiB 全 flash 和 2 KiB Information Page，并验证两次读取
-   哈希一致。当前 `annepro2_tools` 的 BLE 路径没有严格 ACK、readback 或
-   erase 边界证明，禁止直接使用。
-2. 依次验证键盘 press/release、Consumer、清除配对、四个 slot 的
+1. 依次验证 Consumer、清除配对、四个 slot 的
    广播/连接/超时/迟到事件。
-3. Vendor Report ID 2 的方向适配保持关闭，直到业务 UART opcode 被确认。
-4. 验证通过后再考虑把 BLE 2.13 profile 纳入上游 PR；在此之前它保持实验性。
+2. 回归 C18 独立 LED MCU 的 Caps/灯效行为；不移植 AP2D 直驱 LED/RGB。
+3. 若要把刷写从“status-zero 传输”提升到完整验证，仍需 CC254x 调试接口保存
+   256 KiB flash 与 Information Page，并完成写后 readback。
+4. Vendor Report ID 2 的方向适配保持关闭，直到业务 UART opcode 被确认。
+5. 验证通过后再考虑把 BLE 2.13 profile 纳入上游 PR；在此之前它保持实验性。

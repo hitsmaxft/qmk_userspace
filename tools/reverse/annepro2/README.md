@@ -70,3 +70,20 @@ direnv exec . python3 tools/reverse/annepro2/validate_ble_crossflash.py \
 ```
 
 This is a preflight checker, not a flasher. It performs no USB or CC2541 I/O.
+`patch_ble213_name.py` 从已知官方 BLE 2.13 镜像生成固定宽度的 C18 兼容名称
+变体。它只把两个 18 字节名称改为 `HEXCORE AnnePro 2C`，并验证输入/输出
+哈希及完整 diff 范围：
+
+```sh
+direnv exec . just annepro2-ble213-name-image
+```
+
+`plan_ble_iap.py` 为已知官方 BLE 2.05/2.13 镜像生成不可执行的 IAP 请求计划。
+它固定 BLE route、C18 实测的 `0x4000` transport base 和 32 字节分块，输出
+首末帧与整体摘要。计划同时记录已验证工具要求回复匹配
+target/command/key 且 status 为零，但脚本本身没有 HID transport：
+
+```sh
+direnv exec . just annepro2-ble-crossflash-plan \
+  /tmp/annepro2-ble213-iap-plan.json
+```

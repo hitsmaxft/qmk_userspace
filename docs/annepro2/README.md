@@ -7,6 +7,10 @@
   独立保存的实现规划原稿。
 - [AP2D 3.x 固件样本索引](ap2d-3x-firmware-release-index.md)：官方
   3.04–3.08 KEY/BLE 版本链、本地样本路径、已确认边界和实现约束。
+- [BLE 2.13 AnnePro 2C 名称变体](ble213-name-variant.md)：保持固件布局不变
+  的固定宽度兼容名称补丁、生成命令与验证边界。
+- [BLE 2.13 开发问题与解决记录](ble213-development-notes.md)：IAP base、
+  strict ACK、连接握手、切槽隔离、macOS 缓存、console 与 Nix 环境。
 - [AP2D BLE 2.13 backport 状态](ap2d-ble213-backport-status.md)：新增静态
   证据、双 profile 实现、构建方法、维护键位和剩余硬件门禁。
 - [BLE 2.13 交叉刷写门禁](ble213-crossflash-gate.md)：官方镜像包络、

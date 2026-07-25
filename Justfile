@@ -69,6 +69,16 @@ annepro2-ble-crossflash-check:
     PYTHONDONTWRITEBYTECODE=1 python3 \
         tools/reverse/annepro2/validate_ble_crossflash.py
 
+annepro2-ble213-name-image output='assets/ap2_fw/generated/c18-ble-2.13-annepro2c.bin':
+    PYTHONDONTWRITEBYTECODE=1 python3 \
+        tools/reverse/annepro2/patch_ble213_name.py \
+        --output "{{ output }}"
+
+annepro2-ble-crossflash-plan output='/tmp/annepro2-ble213-iap-plan.json':
+    PYTHONDONTWRITEBYTECODE=1 python3 \
+        tools/reverse/annepro2/plan_ble_iap.py \
+        --output {{ output }}
+
 annepro2-ble-crossflash-backup-check full_flash information_page:
     PYTHONDONTWRITEBYTECODE=1 python3 \
         tools/reverse/annepro2/validate_ble_crossflash.py \
