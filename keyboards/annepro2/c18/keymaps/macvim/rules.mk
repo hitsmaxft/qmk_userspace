@@ -38,6 +38,10 @@ ifeq ($(ANNEPRO2_BLE_DEBUG),yes)
     CONSOLE_ENABLE = yes
     OPT_DEFS += -DANNEPRO2_BLE_DEBUG
 endif
+
+ifeq ($(ANNEPRO2_BLE_PROFILE),ap2d213)
+    OPT_DEFS += -DANNEPRO2_BLE_DEFAULT_PROFILE=ANNEPRO2_BLE_PROFILE_AP2D_213
+endif
 COMMAND_ENABLE = no # Commands for debug and configuration
 
 SRC += custom.c os_autoconfig.c

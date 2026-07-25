@@ -34,6 +34,20 @@ annepro2: ( _compile_kb 'annepro2/c18')
 annepro2-log:
     ANNEPRO2_BLE_DEBUG=yes bash scripts/qmk-worktree.sh qmk compile -kb annepro2/c18 -km macvim -j20
 
+annepro2-ble213:
+    ANNEPRO2_BLE_PROFILE=ap2d213 bash scripts/qmk-worktree.sh qmk compile -kb annepro2/c18 -km macvim -j20
+
+annepro2-ble213-log:
+    ANNEPRO2_BLE_PROFILE=ap2d213 ANNEPRO2_BLE_DEBUG=yes bash scripts/qmk-worktree.sh qmk compile -kb annepro2/c18 -km macvim -j20
+
+annepro2-profile-test:
+    cc -std=c11 -Wall -Wextra -Werror \
+        -I modules/qmk_firmware/keyboards/annepro2 \
+        modules/qmk_firmware/keyboards/annepro2/annepro2_ble_profile.c \
+        modules/qmk_firmware/keyboards/annepro2/tests/ble_profile_test.c \
+        -o /tmp/annepro2_ble_profile_test
+    /tmp/annepro2_ble_profile_test
+
 flash-annepro2-log:
     ANNEPRO2_BLE_DEBUG=yes bash scripts/qmk-worktree.sh qmk flash -kb annepro2/c18 -km macvim
 

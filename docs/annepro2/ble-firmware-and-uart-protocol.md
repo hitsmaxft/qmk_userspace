@@ -144,8 +144,8 @@ USART1 IRQ vector +0xa0 -> 0xec83
 | --- | --- | --- |
 | 唤醒 BLE | `7b 12 53 00 03 00 01 7d 02 01 02` | 系统组（推断）`0x02/0x01`，值 `0x02`。 |
 | 请求 BLE IAP/bootloader | `7b 10 51 10 03 00 00 7d 02 01 01` | 特殊前缀/版本字段；不要与普通帧合并解释。尚未在实机捕获验证。 |
-| 广播/选择 slot | `7b 12 53 00 03 00 00 7d 40 01 S 00` | profile/pairing 组（推断）`0x40/0x01`。 |
-| 连接 slot | `7b 12 53 00 03 00 00 7d 40 04 S 00` | profile/pairing 组（推断）`0x40/0x04`。 |
+| 广播/选择 slot | `7b 12 53 00 03 00 00 7d 40 01 S` | profile/pairing 组 `0x40/0x01`；AP2D KEY 3.08 `0x7DF4` 也只编码一个 slot 字节。 |
+| 连接 slot | `7b 12 53 00 03 00 00 7d 40 04 S` | profile/pairing 组 `0x40/0x04`；AP2D KEY 3.08 `0x7DF4` 也只编码一个 slot 字节。 |
 | 删除配对 | `7b 12 53 00 02 00 00 7d 40 05` | `0x40/0x05`，无额外 payload。 |
 | 键盘 HID 报告 | `00 7b 12 53 00 0a 00 00 7d 10 04 R0..R7` | 先送一个额外 `00`，再送 `0x10/0x04` 和 8-byte boot keyboard report。 |
 | Consumer 报告 | `00 7b 12 53 00 06 00 00 7d 10 08 C0 00 00 00` | 先送一个额外 `00`，再送 `0x10/0x08` 和 4-byte payload。 |

@@ -7,6 +7,8 @@
   独立保存的实现规划原稿。
 - [AP2D 3.x 固件样本索引](ap2d-3x-firmware-release-index.md)：官方
   3.04–3.08 KEY/BLE 版本链、本地样本路径、已确认边界和实现约束。
+- [AP2D BLE 2.13 backport 状态](ap2d-ble213-backport-status.md)：新增静态
+  证据、双 profile 实现、构建方法、维护键位和剩余硬件门禁。
 - [BLE 固件与 UART 协议](ble-firmware-and-uart-protocol.md)：官方主控/CC254x
   镜像布局、UART framing、`20/0c` 握手请求/回复与未确认边界。
 - [QMK BLE 可靠性修复](ble-reliability-pr.md)：旧 200 ms 补丁为何撤回、
