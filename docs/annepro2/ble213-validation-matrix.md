@@ -1,7 +1,8 @@
 # C18 KEY 双 BLE 首版验证矩阵
 
-本页是 `codex/annepro2-ble213-backport` 当前状态的验收入口。结论严格区分
-源码/host 测试、固件构建、旧版本实机记录和当前精确二进制实机验证。
+本页是 `codex/annepro2-ble213-backport` 当前状态的验收入口，记录时的 QMK
+提交为 `d674a458db`。结论严格区分源码/host 测试、固件构建、旧版本实机记录
+和当前精确二进制实机验证。
 
 ## 范围与不变量
 
@@ -28,6 +29,7 @@
 | 上电恢复 | 软件通过 | 保存 slot、被动握手、500 ms fallback、一次有界恢复和停止条件测试 | 两种 BLE 固件的多轮断电重连 |
 | 锁定灯/外部 LED MCU | 源码非回归通过 | `ap2_led.*`、`protocol.*`、`rgb_driver.*` 与分支基线逐字节无差异 | Caps/Num 状态和灯效的 C18 实机回归；不能用 AP2D LED 代码代替 |
 | UART RX 健壮性 | 软件通过 | 完整 24 位长度检查、32 字节上限、delimiter、20 ms 半帧超时、噪声重同步和 timer wrap host 测试 | 当前固件上的 UART 噪声/断帧压力测试 |
+| 日志与源码绑定 | 软件通过 | debug 启动日志包含 `QMK_GIT_HASH` 和可用的 `QMK_USERSPACE_VERSION` | 刷写后保存 revision 行 |
 | C15 非回归 | 构建通过 | C15 继续链接原 BLE 驱动，default 固件构建为 37,504 字节 | C15 实机回归 |
 | BLE 2.13 二进制不变 | 通过 | 官方输入按精确大小与 SHA-256 校验；QMK 构建不修改或嵌入 BLE 镜像 | IAP 仍没有已验证的写后 readback |
 

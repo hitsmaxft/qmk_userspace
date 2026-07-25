@@ -54,6 +54,9 @@ C18 范围隔离与 C15 非回归：
 `01dd36c04c Limit BLE backport to Anne Pro 2 C18`、
 `ac2fcb3ead Preserve Anne Pro 2 C15 BLE behavior`
 
+日志构建版本绑定：
+`d674a458db Log Anne Pro 2 firmware revisions`
+
 - 同一 C18 KEY 源码内置 `C18_BLE205` 和 `AP2D_BLE213` profile。
 - 完整 BLE 2.05/2.13 实现只由 C18 的 `rules.mk` 链接；C15 继续使用原
   `annepro2_ble.c`，不会承担 parser/profile/state 的 RAM 开销。
@@ -147,6 +150,9 @@ profile 切换会清除自动连接 slot。随后应按目标 slot 重新连接�
   无差异。
 - 新增/修改的 C18、parser、profile、state 和 host test 文件通过
   `clang-format --dry-run --Werror`；两个仓库通过 `git diff --check`。
+- debug 固件启动时输出 `QMK_GIT_HASH` 与可用的
+  `QMK_USERSPACE_VERSION`，后续实机日志可以绑定到实际构建来源；普通固件不
+  包含这些字符串，大小与哈希不受影响。
 - `qmk lint` 仍报告上游已有的 license header 和带连字符 keymap 名称问题；
   报告涉及的文件/名称不在本分支差异中。
 
@@ -168,8 +174,8 @@ profile 切换会清除自动连接 slot。随后应按目标 slot 重新连接�
 这些结果证明 BLE 2.13 已在目标板上完成启动、连接和普通键盘输入。IAP
 协议没有可用的 flash readback，所以 status-zero 传输不能解释成逐字节写回
 验证；媒体键、完整四槽和外部 LED MCU 回归也仍需单独验收。上述实机记录来自
-parser/C18 范围隔离之前的同一状态机演进版本；当前 `ac2fcb3ead` 精确源码及其
-43,844 字节固件尚未重新刷入，不能把旧记录写成当前二进制已验证。
+parser/C18 范围隔离之前的同一状态机演进版本；当前分支最新
+`d674a458db` debug 标记版本尚未重新刷入，不能把旧记录写成当前二进制已验证。
 
 核心 backport 的实机使用官方 BLE 2.13 原始镜像。另行提供的
 `HEXCORE AnnePro 2C` 固定宽度名称变体只用于兼容模式显示，不参与上述结论，

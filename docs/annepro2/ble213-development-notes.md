@@ -120,7 +120,7 @@ BLE 2.13 的启动、slot 1 配对、HID-ready 和普通输入来自状态机演
 处理原则：
 
 - 旧日志继续作为 UART 语义和方案方向的证据；
-- 不把它写成当前 `ac2fcb3ead` 固件已经完成硬件回归；
+- 不把它写成当前 `d674a458db` 固件已经完成硬件回归；
 - 当前精确二进制仍需重测普通键盘、媒体、四槽和外部 LED MCU；
 - 验收状态集中记录在
   [C18 KEY 双 BLE 首版验证矩阵](ble213-validation-matrix.md)。
@@ -144,6 +144,10 @@ BLE 2.13 的启动、slot 1 配对、HID-ready 和普通输入来自状态机演
 
 解决：继续读取原 console 会话；需要重启时先明确结束旧进程。console 日志
 证明 UART/QMK 路由和 report 提交，不单独证明无线主机已收到按键。
+
+debug 固件现在会在启动时打印 `QMK_GIT_HASH` 和可用的
+`QMK_USERSPACE_VERSION`。USB 产品名不会随构建变化，不能用它判断硬件上是否
+已经运行最新固件；后续日志必须先保存 revision 行，再关联测试结果。
 
 ## 2C 名称必须保持固定宽度
 
