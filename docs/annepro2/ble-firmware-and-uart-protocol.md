@@ -222,10 +222,13 @@ struct __attribute__((packed)) {
 };
 ```
 
-这并不能证明“协议固定为 11 字节”；它只是一个碰巧覆盖 `LL=3` 回包的旧 ABI。
-新 parser 应先按 `8 + LL` 分帧，再为已确认的 Caps Lock group/opcode 更新状态。
-由于 Caps Lock 的精确 opcode 尚未静态还原，当前 QMK 仍对 11-byte 完整帧保留
-旧的最后一字节兼容行为，并通过 debug log 收集真实帧供后续收紧。
+这并不能证明“协议固定为 11 字节”；它只是一个碰巧覆盖 `LL=3` 回包的旧 ABI，
+会把 `40/01`、`40/04` ACK 或 `20/07`、`20/0c` 的末字节误当锁灯状态。旧
+host driver 又始终返回 0，因此这条路径没有真正提供 Caps Lock 同步。
+
+当前 QMK 已移除该伪兼容，只按 `8 + LL` 分帧并记录完整 debug 帧。1 字节
+`LED bits` 与 2 字节 `[Report ID, LED bits]` 的严格 decoder 已测试，但在
+Caps Lock 的 BLE→KEY group/opcode 被静态确认或抓包确认前不接入事件处理。
 
 ## 清洁室 BLE 实现契约
 

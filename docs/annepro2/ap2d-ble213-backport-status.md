@@ -11,7 +11,9 @@
   8 字节；四个槽位是小端 `uint16_t Usage`。
 - `0x7DF4` 是 slot 动作发送路径。动作 1 构造 `0x40/0x01`，动作 2 构造
   `0x40/0x04`，两者都只发送一个 slot 字节。
-- 同一路径在 slot 动作前发送 `0x20/0x0B` 或 `0x20/0x24` 状态消息。
+- 同一路径在 slot 动作前发送两字节 payload：
+  - 广播：`0x20/0x0B slot,1`；
+  - 连接：`0x20/0x24 slot,2`。
 - `0x82DE` 处理的 `0x21/0x22` 属于 AP2D 对象/厂商业务回调及四块 9 字节
   槽数据访问。它不是“AP2D 配对/连接 UART opcode”的充分证据。
 
@@ -25,6 +27,8 @@ QMK 分支：`codex/annepro2-ble213-backport`
 
 基线后的首个 backport 提交：`d1b9d6df06 Add Anne Pro 2 BLE firmware profiles`
 
+slot 状态差异修正：`da28ab855d Match AP2D BLE slot state commands`
+
 - 同一 C18 KEY 源码内置 `C18_BLE205` 和 `AP2D_BLE213` profile。
 - Consumer 编码：
   - BLE 2.05：4 字节位图，补齐亮度增减两个原来遗漏的 bit。
@@ -35,12 +39,20 @@ QMK 分支：`codex/annepro2-ble213-backport`
 - 切换 profile 时清除自动连接 slot，避免把另一 BLE 模块的 bond slot
   当作当前模块的有效状态。
 - 新增 `KC_AP2_BLE205`、`KC_AP2_BLE213` 维护键码。
+- slot 状态通知按 profile 编码：BLE 2.05 保留已实测的
+  `0x20/0x0B slot,0/1`；BLE 2.13 使用 AP2D 3.08 汇编确认的
+  `0x20/0x0B slot,1` 与 `0x20/0x24 slot,2`。状态通知仍只在动作边沿发送
+  一次，不随主命令重试。
 - 增加无硬件依赖的 host 测试，覆盖 Consumer golden vectors、两种 LED
-  payload、profile/slot 全组合、校验损坏和越界输入。
+  payload、slot 状态 golden vectors、profile/slot 全组合、校验损坏和越界
+  输入。
 
 锁定灯的 1/2 字节 decoder 已实现并测试，但尚未接到 UART event handler。
 AP2D KEY 的 `0x8426` 证明两种 HID Output 长度都被接受，却不足以单独确定
-BLE→KEY UART 的外层 group/opcode；接入前仍需继续追完整调用链或抓包。
+BLE→KEY UART 的外层 group/opcode；接入前仍需继续追完整调用链或抓包。旧
+QMK 的 `ble_capslock_t` 只是把任意 11 字节 RX 帧的末字节当作 Caps 状态，
+会被命令 ACK 和握手帧污染，而且 host driver 实际始终返回 0。该伪兼容路径
+已经移除，debug 构建仍记录每个完整 RX 帧。
 
 Vendor Report ID 2 的方向适配也保持关闭，直到业务 UART opcode 被确认。
 
@@ -72,7 +84,7 @@ profile 切换会清除自动连接 slot。随后应按目标 slot 重新连接�
 - host 测试以 `-std=c11 -Wall -Wextra -Werror` 编译并通过。
 - `annepro2`、`annepro2-ble213`、`annepro2-log`、
   `annepro2-ble213-log` 四种构建均通过。
-- 普通构建为 44,164 字节；日志构建为 43,540 字节。日志构建更小是因为
+- 普通构建为 44,200 字节；日志构建为 43,612 字节。日志构建更小是因为
   userspace 已按原约定关闭一组较大的 RGB 效果。
 
 这些结果只证明编码器、持久化格式和 QMK 构建成立，不证明 BLE 2.13 已能在
