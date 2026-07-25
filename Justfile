@@ -40,6 +40,9 @@ annepro2-ble213:
 annepro2-ble213-log:
     ANNEPRO2_BLE_PROFILE=ap2d213 ANNEPRO2_BLE_DEBUG=yes bash scripts/qmk-worktree.sh qmk compile -kb annepro2/c18 -km macvim -j20
 
+annepro2-c15:
+    bash scripts/qmk-worktree.sh qmk compile -kb annepro2/c15 -km default -j20
+
 annepro2-profile-test:
     cc -std=c11 -Wall -Wextra -Werror \
         -I modules/qmk_firmware/keyboards/annepro2 \
@@ -56,7 +59,29 @@ annepro2-state-test:
         -o /tmp/annepro2_ble_state_test
     /tmp/annepro2_ble_state_test
 
-annepro2-test: annepro2-profile-test annepro2-state-test
+annepro2-parser-test:
+    cc -std=c11 -Wall -Wextra -Werror \
+        -I modules/qmk_firmware/keyboards/annepro2 \
+        modules/qmk_firmware/keyboards/annepro2/annepro2_ble_parser.c \
+        modules/qmk_firmware/keyboards/annepro2/tests/ble_parser_test.c \
+        -o /tmp/annepro2_ble_parser_test
+    /tmp/annepro2_ble_parser_test
+
+annepro2-led-regression:
+    # AP2D removed C18's external LED MCU. Keep the C18 LED protocol and
+    # driver files byte-identical to the branch base.
+    base="$(git -C modules/qmk_firmware merge-base origin/master HEAD)"; \
+      git -C modules/qmk_firmware diff --exit-code "$base" -- \
+        keyboards/annepro2/ap2_led.c \
+        keyboards/annepro2/ap2_led.h \
+        keyboards/annepro2/protocol.c \
+        keyboards/annepro2/protocol.h \
+        keyboards/annepro2/rgb_driver.c \
+        keyboards/annepro2/rgb_driver.h
+
+annepro2-test: annepro2-profile-test annepro2-state-test annepro2-parser-test annepro2-led-regression
+
+annepro2-validate: annepro2-test annepro2 annepro2-ble213 annepro2-c15
 
 annepro2-recover-ap2d-data output='/tmp/ap2d-key-3.08.data.bin':
     python3 tools/reverse/annepro2/recover_ap2d_data.py \
@@ -68,6 +93,16 @@ annepro2-ble-crossflash-check:
         -s tools/reverse/annepro2/tests -p 'test_*.py' -v
     PYTHONDONTWRITEBYTECODE=1 python3 \
         tools/reverse/annepro2/validate_ble_crossflash.py
+
+annepro2-ble213-name-image output='assets/ap2_fw/generated/c18-ble-2.13-annepro2c.bin':
+    PYTHONDONTWRITEBYTECODE=1 python3 \
+        tools/reverse/annepro2/patch_ble213_name.py \
+        --output "{{ output }}"
+
+annepro2-ble-crossflash-plan output='/tmp/annepro2-ble213-iap-plan.json':
+    PYTHONDONTWRITEBYTECODE=1 python3 \
+        tools/reverse/annepro2/plan_ble_iap.py \
+        --output {{ output }}
 
 annepro2-ble-crossflash-backup-check full_flash information_page:
     PYTHONDONTWRITEBYTECODE=1 python3 \

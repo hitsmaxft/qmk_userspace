@@ -1,8 +1,9 @@
 # C18 BLE 2.13 交叉刷写门禁
 
-本页只定义 AP2D BLE 2.13 写入 C18 BLE 副控前必须满足的条件。当前静态镜像
-门禁已通过，硬件备份与 IAP 行为门禁尚未通过；因此现在不应使用
-`annepro2_tools -t ble` 写入 BLE 芯片。
+本页记录 AP2D BLE 2.13 写入 C18 BLE 副控的门禁、工具修复和实机结果。
+2026-07-26 已使用修复后的 `annepro2-tools` 完成官方镜像传输并启动 BLE；
+原始镜像仍保持不变，传输日志只能证明每条 IAP 请求收到成功状态，不能代替
+独立 flash readback。
 
 ## 已确认的镜像边界
 
@@ -33,6 +34,28 @@ direnv exec . just annepro2-ble-crossflash-check
 该命令只读取文件，不访问键盘。它会拒绝未知哈希、长度变化、非 32 字节对齐、
 错误 reset vector 或 `0x20000` 以上出现非 `FF` 数据。
 
+只读 IAP 计划：
+
+```sh
+direnv exec . just annepro2-ble-crossflash-plan \
+  /tmp/annepro2-ble213-iap-plan.json
+```
+
+计划器没有 HID 依赖和硬件 transport，只生成当前已知协议的请求字节摘要：
+
+- BLE route 固定为 `0x51`；
+- C18 IAP 描述符报告的 BLE transport base 为 `0x4000`；
+- erase payload 固定为 `02 43 00 40 00 00`；
+- `0x26000` 镜像固定拆为 4,864 个 32 字节写块；
+- 首块 transport 地址为 `0x04000`，末块为 `0x29FE0`，结束地址为
+  `0x2A000`；
+- JSON 明确标记 `executable=false`、`hardware_access=false`；
+- 回复策略要求 target/command/key 匹配且 status 为零。
+
+官方文件仍从 image offset 0 开始；`0x4000` 是 KEY IAP 报告并使用的 transport
+地址，不能直接解释为 CC254x 物理 flash 中需要保留的 `0x0000..0x3FFF`。
+该计划只证明请求字节和边界可重复生成，不提供 HID 传输或 readback。
+
 ## CC2541 必须保留的数据
 
 TI 的 CC2541 产品资料确认该器件有 128 KiB 与 256 KiB 两种 flash 版本。本项目
@@ -56,30 +79,29 @@ flash。
 - [CC253x/4x User's Guide, SWRU191F](https://www.ti.com/lit/ug/swru191f/swru191f.pdf)
 - [CC2540/CC2541 BLE Software Developer's Guide, SWRU271I](https://www.ti.com/lit/ug/swru271i/swru271i.pdf)
 
-## 当前 `annepro2_tools` 为什么不能用于 BLE 交叉刷写
+## `annepro2-tools` 修复
 
-Nix 环境固定的 `annepro2-tools` 源码版本为
-`OpenAnnePro/AnnePro2-Tools@aa84bd1d34c961ada8c812dfea524592f7d2be2c`。
-源码审计得到：
+旧版 `OpenAnnePro/AnnePro2-Tools@aa84bd1d` 的 BLE 路径存在会使失败被误报为
+完成的问题：固定默认 base、不校验回复来源和命令、非零状态只打印后继续、超时
+无界、完成后仍可能写 main MCU AP flag。
 
-1. README 明确写明只有 main MCU 被测试过。
-2. CLI 虽接受 `-t ble`，但默认 base 是 main MCU 使用的 `0x4000`；BLE 官方
-   镜像从地址 `0` 开始，误用默认值会整体错位。
-3. erase 请求只携带一个起始地址，不携带长度；目前没有证据证明 C18 IAP 对
-   BLE target 的实际擦除范围。
-4. BLE 以 32 字节分块写入，但单块写失败时工具只打印 warning 并继续。
-5. 工具读取 IAP 回复后只打印原始字节，不验证 ACK、地址或状态。
-6. 写完后没有逐字节 readback，也没有保护区前后哈希比较。
-7. 无论中途是否出现 warning，流程仍可能写 main MCU 的 AP flag。
+修复版分别保存在：
 
-因此，即使使用看似正确的：
+- `hitsmaxft/AnnePro2-Tools@3a0b4903012faa710d442140c3a84a92c7b284db`；
+- `hitsmaxft/nix-annepro2-tools@3a1602d652180c72930d1fb82b56069f43004d30`。
 
-```text
-annepro2_tools -t ble --base 0 ...
-```
+当前实现：
 
-也不能满足本项目的恢复、边界和写后校验要求。此命令仅作为协议取证线索，
-不是建议执行的刷写命令。
+1. `--probe` 只读获取 main/LED/BLE IAP layout 和 mode；
+2. 默认采用设备报告的 target base，显式 `--base` 不一致时拒绝执行；
+3. 只接受 destination/source、command 和 key 与请求匹配的回复；
+4. erase/write 回复 body 的第一个字节必须为零，非零立即中止；
+5. 普通请求 5 秒、erase 30 秒超时；
+6. 每 4 KiB 报告进度，任意错误使进程以非零状态退出；
+7. `--boot` 只向 main target 发送 mode 2，匹配 ObinsKit 启动流程。
+
+工具仍没有经过验证的 BLE flash readback 命令，因此“传输完成”严格表示
+erase 和 4,864 次 write 都收到匹配的 status-zero 回复，不表示已逐字节读回。
 
 ## 硬件备份门禁
 
@@ -112,19 +134,23 @@ direnv exec . just annepro2-ble-crossflash-backup-check \
 文件长度和非空检查只能发现明显错误，不能证明调试器读取过程正确；两次读取哈希
 一致和实际恢复演练仍是人工门禁。
 
-## 写入与回滚验收
+## 已执行的写入与回滚边界
 
-后续 BLE flasher 至少要先增加：
+实机 `--probe` 报告 main、LED、BLE 的 transport base 均为 `0x4000`，BLE
+target mode 为 1。修复版工具随后：
 
-- 明确拒绝 BLE base 非 `0`、镜像长度非 `0x26000` 或哈希未知；
-- 在 erase 前读取并保存目标范围与保护范围；
-- 把每个 IAP 回复解析为严格 ACK，任何失败立即停止；
-- 明确、验证 erase 的首尾页，不使用含义未知的整区擦除；
-- 写完逐字节读取 `0x00000..0x25FFF` 并与 BLE 2.13 镜像比较；
-- 再次读取 `0x26000..0x3FFFF` 与 Information Page，确认和写前完全一致；
-- 只有全部校验通过后才启动 BLE 应用。
+- 在 `0x4000` 发出 erase；
+- 从 `0x4000` 写到 `0x29FE0`，共 4,864 个 32 字节块；
+- 每个 erase/write 都收到匹配的 status-zero 回复；
+- 传输结束后由 main IAP 启动键盘。
 
-任一步失败：
+官方输入镜像 SHA-256 为
+`1b904ae9cd8bf6835c0b77c72618256b701a2c3b74dc04e9dddb8a388bdfc73d`。
+刷写日志 SHA-256 为
+`1702b86607f4b641fbd16004952f07654f4c8a72c55c1b476fbac5725485b1ba`；
+日志是本机验证产物，不提交仓库。
+
+任一步失败时的恢复原则仍是：
 
 1. 不继续启动或配对；
 2. 通过 CC254x 调试接口恢复写前完整 flash；
@@ -135,11 +161,16 @@ direnv exec . just annepro2-ble-crossflash-backup-check \
 
 静态镜像门禁：**PASS**。
 
-硬件全量备份：**BLOCKED**。
+修复版 IAP status-zero 传输：**PASS**。
 
-IAP erase 边界与 readback：**BLOCKED**。
+官方 BLE 2.13 启动、macOS 连接与普通按键：**PASS**。USB console 收到
+`0x20/0x0C` HID-ready 后切到 BLE route，并记录 keyboard report；macOS
+同时显示已连接，用户确认输入正常。
 
-C18 上 BLE 2.13 的 RF、广播、连接和四主机验收：**BLOCKED**。
+硬件全量备份与逐字节 readback：**未完成**。工具协议仍无法证明物理擦除边界
+或写后字节完全一致。
 
-在后三项完成前，BLE 2.13 profile 仍是实验功能，构建成功不能被解释为交叉刷写
-安全或无线功能可用。
+媒体键、清配对、四槽切换与 C18 外部 LED MCU 非回归：**待验收**。
+
+因此 BLE 2.13 已从“仅构建”推进到“实机可启动、连接、普通输入”，但在剩余
+行为测试及 readback 边界解决前仍按实验功能管理。

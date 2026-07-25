@@ -4,8 +4,8 @@
 
 发布分层：
 
-- 首版兼容固件：双 profile、普通键盘、媒体、锁定灯、四槽、UART 容错、USB 维护/救援。
-- 第二阶段完整 backport：加入 C18 语义的 USB suspend/resume 与功耗验收。
+- 首版兼容固件：双 profile、普通键盘、媒体、四槽、UART 容错、USB 维护/救援。
+- AP2D LED/RGB、锁定灯和 suspend 灯控明确排除；C18 原 LED MCU 路径只做回归验证。
 
 ## 烧录前门禁
 
@@ -140,7 +140,6 @@ BLE 2.13 广告中的 preferred connection interval 为 15 ms，BLE 2.10 为 11.
 | Consumer payload 仍按 C18 4 B 发送 | 媒体键错误/丢失 | 高 | profile encoder + 黄金向量 |
 | 切槽立即写 `active_slot` | 假连接、槽状态错乱 | 高 | 仅在安全连接完成后持久化 |
 | 迟到事件覆盖新事务 | 快速切换失败 | 高 | generation ID |
-| LED MCU ACK 无限等待 | suspend 卡死 | 中 | 短超时、有限重试 |
 | suspend 前未全释放 | stuck key | 中 | Keyboard/Consumer release all |
 | 自动探测 BLE 版本误触发命令 | 配对/IAP 状态改变 | 中 | 首版采用显式构建 profile |
 | 升级后保留旧 bond | 无法重连或双键盘冲突 | 高 | 清槽并要求主机端删除旧项 |
@@ -188,7 +187,7 @@ BLE 2.13 广告中的 preferred connection interval 为 15 ms，BLE 2.10 为 11.
 - AP2D 3.08 四项修复的 KEY/BLE 归属；
 - C18/BLE 2.05 与 AP2D/BLE 2.13 协议差异；
 - C18 KEY 双 profile 架构；
-- 四槽、suspend、锁定灯和串口容错设计；
+- 四槽和串口容错设计；
 - 测试、风险和回滚计划。
 
 进入编码前仍需取得：

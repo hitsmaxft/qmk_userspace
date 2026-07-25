@@ -1,12 +1,16 @@
 # C18 KEY 源码升级实施计划
 
+> 2026-07-26 范围修正：忽略 AP2D 的 LED/RGB、HID LED Output、锁定灯和
+> suspend 灯控改动。AP2D 已不再使用 C18 的外置 LED MCU，这些实现不适用于
+> C18。现有 C18 LED MCU 与板级灯控代码保持原样，只做非回归验证。
+
 实施目标：
 
 - 修改 C18 KEY 源码；
-- BLE 2.05 和 BLE 2.13 二进制均不修改；
+- BLE 2.05 和官方 BLE 2.13 样本均不修改；可选 2C 名称镜像独立生成；
 - 同一代码库内置两个 profile，并生成两个默认值不同的固件目标；
-- 首版覆盖普通键盘、媒体键、锁定灯、配对、四主机切换、串口容错和 USB 救援；
-- USB suspend 作为第二阶段完整 backport，设计与验证要求保留在本报告；
+- 首版覆盖普通键盘、媒体键、配对、四主机切换、串口容错和 USB 救援；
+- 不移植 AP2D USB suspend 中的 LED/RGB 行为；
 - 保持 C18 矩阵、USB、独立 LED MCU、IAP 和板级 HAL。
 
 ## 代码模块
@@ -44,12 +48,12 @@ c18-key/
 | `ble_profile` | 选择 BLE 2.05/2.13，提供 Consumer、Vendor、槽位能力 |
 | `ble_uart_framer` | 搜索帧头、收齐头/负载、超时、重新同步 |
 | `ble_protocol` | 头字段、长度、序号、命令和槽号校验 |
-| `ble_hid_codec` | Keyboard、Consumer、LED Output 编解码 |
+| `ble_hid_codec` | Keyboard、Consumer 编解码 |
 | `ble_vendor_bridge` | 18 B 厂商数据逻辑方向映射 |
 | `ble_host_slots` | 四槽配对/切换异步状态机 |
-| `ble_status` | 连接、配对、广播、错误、锁定灯统一状态 |
+| `ble_status` | 连接、配对、广播和错误状态 |
 | `usb_power_manager` | suspend/resume 顺序与全释放 |
-| `c18_led_uart` | LED MCU 命令、ACK/超时、锁定灯重同步 |
+| `c18_led_uart` | C18 原有 LED MCU 路径；本项目不修改 |
 | `protocol_counters` | 半帧、错长度、错序号、超时、旧事务计数 |
 
 板级模块不得依赖 BLE 版本。BLE 业务模块不得直接访问 GPIO、USB 寄存器或 LED MCU 协议。
@@ -100,7 +104,7 @@ reset
   7. 初始化 USB 与模式检测
   8. 读取 KEY 持久化的 active_slot 提示
   9. 等待 BLE 返回真实状态
- 10. 连接确认后同步锁定灯和活动槽
+ 10. 连接确认后更新活动槽
 ```
 
 KEY 保存的 `active_slot` 只能作为启动提示。BLE 的实际 bond/连接结果具有更高优先级。
@@ -237,34 +241,13 @@ FEATURE_VENDOR_BLE213=0  默认关闭
 FEATURE_VENDOR_BLE213=1  抓包验证后启用
 ```
 
-普通键盘、媒体、锁定灯和四槽首版不应依赖 Vendor 配置通道。
+普通键盘、媒体和四槽首版不应依赖 Vendor 配置通道。
 
-## 锁定灯与 LED MCU
+## LED/RGB 范围
 
-统一状态：
-
-```c
-struct lock_state {
-    bool num;
-    bool caps;
-    bool scroll;
-    uint32_t generation;
-};
-```
-
-处理流程：
-
-1. USB 或 BLE 收到 Output report；
-2. 归一化 1 B 或 `[0x01,bits]`；
-3. 与当前状态比较；
-4. 更新 KEY 状态；
-5. 生成带 generation 的 LED MCU 命令；
-6. ACK 成功后记录已同步；
-7. 超时只记录并有限重试，不阻塞 HID。
-
-连接到新主机后，该主机的锁定灯状态具有优先级。旧主机事件如果属于旧 generation，直接丢弃。
-
-USB/BLE 模式切换时，先清除旧接口的 pending LED event，随后等待新接口的实际 Output report。短暂期间可以保留最近状态，不能自行翻转 Caps。
+AP2D 的 LED Output、锁定灯、KEY MCU 直驱 RGB 和 suspend 灯控只作为差异
+证据保留，不生成实现任务。C18 继续使用现有外置 LED MCU、UART 与 QMK
+驱动；BLE 2.13 profile 不解释 LED group/opcode，也不新增 LED 状态机。
 
 ## UART 容错
 
@@ -305,32 +288,27 @@ suspend 入口：
 3. 发送 Keyboard release all
 4. 发送 Consumer release all
 5. BLE UART 有界 flush
-6. LED MCU 发送 suspend/all-off
-7. 等待 LED ACK 或短超时
-8. 停止动画/锁定灯重发
-9. 配置 C18 矩阵唤醒源
-10. 停止 USB endpoint/PHY 时钟
-11. 进入低功耗
+6. 配置 C18 矩阵唤醒源
+7. 停止 USB endpoint/PHY 时钟
+8. 进入低功耗
 ```
 
 resume：
 
 ```text
 1. 恢复系统时钟
-2. 恢复 BLE/LED UART
+2. 恢复 BLE UART；C18 LED UART 由原实现负责
 3. 恢复矩阵 GPIO 与消抖状态
 4. 恢复 USB endpoint/PHY
 5. 清空旧 framer/分片/输入队列
 6. 发送 Keyboard/Consumer release all
 7. 查询或等待接口状态
-8. 恢复锁定灯与用户灯效
-9. power_state = ACTIVE
-10. 允许新 HID 入队
+8. power_state = ACTIVE
+9. 允许新 HID 入队
 ```
 
 关键约束：
 
-- LED ACK 等待必须有超时；
 - suspend 和槽位切换互斥；
 - IAP 期间禁止进入会关闭升级通道的深度 suspend；
 - resume 事件只能执行一次；

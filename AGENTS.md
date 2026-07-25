@@ -3,9 +3,9 @@
 This is an external QMK userspace. `modules/qmk_firmware` is pinned to the
 temporary `codex/annepro2-ble213-backport` branch in the user's QMK fork. It is
 based on QMK `origin/master` and adds the evidence-based AnnePro2 BLE UART
-handshake fix, C18 BLE 2.05/AP2D BLE 2.13 profiles, and optional USB console
-instrumentation. Use the repository's Nix/direnv environment for all QMK
-commands.
+handshake fix, C18 BLE 2.05/AP2D BLE 2.13 profiles, bounded UART parser, host
+tests, and optional USB console instrumentation. Use the repository's
+Nix/direnv environment for all QMK commands.
 
 ## Environment initialization
 
@@ -27,11 +27,14 @@ direnv exec . just annepro2
   pinned fork branch, not userspace patches. Build the console variant with
   `direnv exec . just annepro2-log`. Build the experimental AP2D BLE 2.13
   profile with `direnv exec . just annepro2-ble213` or
-  `direnv exec . just annepro2-ble213-log`. Run its hardware-independent codec
-  tests with `direnv exec . just annepro2-profile-test`. After hardware
-  validation, keep only the upstreamable fix when preparing the QMK PR. Future
-  temporary core patches belong under `patches/qmk/` and must pass
-  `git apply --check` against the pinned revision.
+  `direnv exec . just annepro2-ble213-log`. Run all hardware-independent
+  profile/state/parser and LED-source gates with
+  `direnv exec . just annepro2-test`; use
+  `direnv exec . just annepro2-validate` to include both C18 profile builds and
+  the C15 non-regression build. After hardware validation, keep only the
+  upstreamable fix when preparing the QMK PR. Future temporary core patches
+  belong under `patches/qmk/` and must pass `git apply --check` against the
+  pinned revision.
 - The worktree is temporary. Firmware files copied to the userspace root are
   generated artifacts and should not be committed.
 

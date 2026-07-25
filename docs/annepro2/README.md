@@ -7,8 +7,14 @@
   独立保存的实现规划原稿。
 - [AP2D 3.x 固件样本索引](ap2d-3x-firmware-release-index.md)：官方
   3.04–3.08 KEY/BLE 版本链、本地样本路径、已确认边界和实现约束。
+- [BLE 2.13 AnnePro 2C 名称变体](ble213-name-variant.md)：保持固件布局不变
+  的固定宽度兼容名称补丁、生成命令与验证边界。
+- [BLE 2.13 开发问题与解决记录](ble213-development-notes.md)：IAP base、
+  strict ACK、连接握手、切槽隔离、macOS 缓存、console 与 Nix 环境。
 - [AP2D BLE 2.13 backport 状态](ap2d-ble213-backport-status.md)：新增静态
   证据、双 profile 实现、构建方法、维护键位和剩余硬件门禁。
+- [C18 KEY 双 BLE 首版验证矩阵](ble213-validation-matrix.md)：逐项区分
+  源码、host 测试、构建、既有实机证据和当前仍缺的硬件验收。
 - [BLE 2.13 交叉刷写门禁](ble213-crossflash-gate.md)：官方镜像包络、
   CC2541 flash/Information Page/SNV 边界、现有刷写工具缺陷及私有备份检查。
 - [BLE 固件与 UART 协议](ble-firmware-and-uart-protocol.md)：官方主控/CC254x
@@ -23,6 +29,6 @@
 当前 backport 的主体固定为 C18 KEY 源码，BLE 2.13 二进制保持原样。首版需要
 同时支持 C18 BLE 2.05 和 AP2D BLE 2.13，并覆盖键盘、Consumer、配对和四主机
 切换。AP2D 已取消 C18 的独立 LED MCU，因此 AP2D 的锁定灯、RGB 和 LED 输出
-实现不属于本次 backport；C18 灯控保持原有板级路径。尚未由完整调用链或抓包
-确认的 UART 命令必须保持实验状态。构建成功不能替代 radio、bond、HID 或
-交叉刷写安全性的实机验证。
+实现不属于本次 backport；锁定灯只按 C18 原有板级路径做非回归和实机验收。
+尚未由完整调用链或抓包确认的 UART 命令必须保持实验状态。构建成功不能替代
+radio、bond、HID、外部 LED MCU 或交叉刷写安全性的实机验证。
