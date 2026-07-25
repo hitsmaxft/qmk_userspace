@@ -41,7 +41,7 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
 | `auto ... after passive window` | 500 ms 内没有被动握手，启动冷启动 broadcast |
 | `tx broadcast slot=... attempt=...` | 发出或重试 `40/01` |
 | `tx connect slot=... attempt=...` | 发出或重试 `40/04` |
-| `tx slot state=0/1` | 一次 slot 动作的 `20/0b` 边沿通知；重试中不得重复 |
+| `tx slot state command=0B/24 action=0/1/2` | profile 对应的一次 slot 动作边沿通知；重试中不得重复 |
 | `queue ...`、`dispatch ...` | 切槽期间只保留最后一次意图，并在 1 秒后启动 |
 | `rx command ack=... value=... state=...` | 与当前 pending 命令关联的 ACK；value 语义未知 |
 | `command timeout ...` | 两次重试仍无 ACK；继续等可能迟到的握手，不切 driver |
@@ -60,7 +60,8 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
 ### 首次广播和连接
 
 1. 按住一个未配对 BT slot 至少 500 ms。
-2. 确认出现一次 `tx broadcast` 和一次 `tx slot state=1`；松开后不得再发
+2. 确认出现一次 `tx broadcast` 和一次
+   `tx slot state command=0B action=1`；松开后不得再发
    connect。
 3. `40/01` ACK 出现时不应有 `route ble`。
    广播应转换到 state 3，不发送 `40/04`。
@@ -71,7 +72,9 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
 
 ### 已配对 slot 重连
 
-1. 短按已配对 slot，确认发送一次 `40/04` 和一次 `tx slot state=0`，不得先发
+1. 短按已配对 slot，确认发送一次 `40/04`；2.05 profile 同时只出现一次
+   `tx slot state command=0B action=0`，2.13 profile 同时只出现一次
+   `tx slot state command=24 action=2`，不得先发
    `40/01`。
 2. 命令 ACK 丢失时，只允许重发 `40/04`；`20/0b` 不得随重试再次发送。
 3. `40/04` ACK 后不能立即切 driver。

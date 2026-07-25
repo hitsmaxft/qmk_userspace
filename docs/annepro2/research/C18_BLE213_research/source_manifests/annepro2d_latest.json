@@ -1,0 +1,130 @@
+[
+    {
+        "version": "3.08",
+        "key": {
+            "name": "annepro2_discovery_KEY_APP.bin",
+            "version": "3.08",
+            "sha": "AB7A91FE4150B18FACE32DF40CB122B8FA95E4821EBEAC63927B60CA6F69F7C1"
+        },
+        "ble": {
+            "name": "annepro2_discovery_ble.bin",
+            "version": "2.13",
+            "sha": "1B904AE9CD8BF6835C0B77C72618256B701A2C3B74DC04E9DDDB8A388BDFC73D"
+        },
+        "date": "2023-03-20",
+        "warning": {
+            "zh": [
+                "此次更新完成后需要删除并重新绑定键盘"
+            ],
+            "en": [
+                "After the update is complete, you need to delete and rebind the keyboard"
+            ]
+        },
+        "describe": {
+            "zh": [
+                "修复:AP2D 两台无法连接同一台电脑",
+                "修复:蓝牙模式下，capslock led 在蓝牙模式下异常",
+                "修复: 有线模式下，WN10电脑关机后灯光不自动熄灭",
+                "优化: 多设备切换"
+            ],
+            "en": [
+                "Fix: Cann't bind 2 AnnePro2D keyboard to one Host",
+                "Fix: CapsLock LED bug on macos",
+                "Fix: Keyboard suspend error on usb mode",
+                "perf: multi-device switching "
+            ]
+        }
+    },
+    {
+        "version": "3.06",
+        "key": {
+            "name": "annepro2_discovery_KEY_APP.bin",
+            "version": "3.06",
+            "sha": "8914176A3D34214668CCCD700D10EE81C060763C73FBB0224E23B48BDB054B01"
+        },
+        "ble": {
+            "name": "annepro2_discovery_ble.bin",
+            "version": "2.10",
+            "sha": "3494FFEDF34708E3B0DDCB3FA2D26D7BA7BBAD32E2B2B9E9D330DBBD5E0C8EEA"
+        },
+        "date": "2023-01-05",
+        "warning": {
+            "zh": [
+                "此次更新完成后需要删除并重新绑定键盘"
+            ],
+            "en": [
+                "After the update is complete, you need to delete and rebind the keyboard"
+            ]
+        },
+        "describe": {
+            "zh": [
+                "修复:MAC 下多媒体按键异常",
+                "修复:MAC Tap连击",
+                "优化: 蓝牙功耗和链接",
+                "优化: 多设备切换"
+            ],
+            "en": [
+                "Fix: Consumer device error on macos",
+                "Fix: Tap key bug on macos",
+                "perf: Power consumption and connection",
+                "perf: switch host between multiple devices "
+            ]
+        }
+    },
+    {
+        "version": "3.05",
+        "key": {
+            "name": "annepro2_discovery_KEY_APP.bin",
+            "version": "3.05",
+            "sha": "E3B5B40EC370C4147DCBA8817D67B3D057ED6F33EE845F756741970CA5AD81B2"
+        },
+        "ble": {
+            "name": "annepro2_discovery_ble.bin",
+            "version": "2.09",
+            "sha": "36322742dc061ee217d500be0392741e2e4b63a2ae27453df3f153a4b9dc0ef3"
+        },
+        "date": "2022-11-22",
+        "warning": {
+            "zh": [],
+            "en": []
+        },
+        "describe": {
+            "zh": [
+                "修复已知问题:",
+                "1. 在灯光关闭的情况，概率性丢失按键释放数据",
+                "2. 鼠标按键抬起信号丢失"
+            ],
+            "en": [
+                "Fix issues:",
+                "1. Release keycode lost probabilistic when backlight has been turn off",
+                "2. Button release signal lost for virtual mouse"
+            ]
+        }
+    },
+    {
+        "version": "3.0.4",
+        "key": {
+            "name": "annepro2_discovery_KEY_APP.bin",
+            "version": "3.04",
+            "sha": "D2007CD4E5C4B71ABE20E54484DBC49A8C6CD3C923D839652A9A856A94200A54"
+        },
+        "ble": {
+            "name": "annepro2_discovery_ble.bin",
+            "version": "2.09",
+            "sha": "36322742dc061ee217d500be0392741e2e4b63a2ae27453df3f153a4b9dc0ef3"
+        },
+        "date": "2022-11-20",
+        "warning": {
+            "zh": [],
+            "en": []
+        },
+        "describe": {
+            "zh": [
+                "第一个正式版本"
+            ],
+            "en": [
+                "First release"
+            ]
+        }
+    }
+]

@@ -182,9 +182,9 @@ UART 字节可靠归属。single-flight 消除了 QMK 主动重叠命令，并�
 
 | 场景 | 预期 |
 | --- | --- |
-| 长按 slot 配对 | 一次 `40/01` 加一次 `20/0b slot,1`；ACK 不切 driver，`20/0c` 后才切 BLE |
-| 短按 slot 重连 | 一次 `40/04` 加一次 `20/0b slot,0`；ACK 不切 driver，握手之后开始发送 HID |
-| `20/0b` 与重试 | 主命令可重发，`20/0b` 整个动作只能发送一次 |
+| 长按 slot 配对 | 一次 `40/01`；2.05/2.13 都加一次 `20/0b slot,1`；ACK 不切 driver，`20/0c` 后才切 BLE |
+| 短按 slot 重连 | 一次 `40/04`；2.05 加 `20/0b slot,0`，2.13 加 `20/24 slot,2`；ACK 不切 driver，握手之后开始发送 HID |
+| slot 状态与重试 | 主命令可重发，`20/0b` 或 `20/24` 整个动作只能发送一次 |
 | `20/07` | 对任意 value 原值回复，不改变 route |
 | 冷启动自动重连 | 先等待 500 ms 被动握手；未发生时只对上次成功 slot 执行 broadcast，不发送 `40/04`/`20/0b` |
 | 首次/失败选择 | 未收到 `20/0c`、未切 BLE route 时不覆盖 EEPROM 中的上次成功 slot |
@@ -198,7 +198,7 @@ UART 字节可靠归属。single-flight 消除了 QMK 主动重叠命令，并�
 | BLE 状态下选择另一 slot | 立即退出旧 BLE route，等待新 slot 握手 |
 | unpair | 发出原有 `40/05`，清除 slot 并恢复 USB |
 | RX 半帧/粘包/垃圾前缀 | 矩阵扫描不阻塞；parser 在 `0x7b` 重同步 |
-| Caps Lock | 保持原有 11-byte ABI 行为，并记录实际 opcode 供后续收紧 |
+| Caps Lock | 不再把任意 11-byte 帧末字节当状态；记录实际帧，确认 opcode 后接入严格 1/2-byte decoder |
 
 构建通过只证明代码可编译。上游 PR 前还需用 C18 实机完成上述矩阵，并保存
 USB console 或 PA4/PA5 115200 8N1 双向抓包。
