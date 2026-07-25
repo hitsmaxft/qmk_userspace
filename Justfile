@@ -48,6 +48,16 @@ annepro2-profile-test:
         -o /tmp/annepro2_ble_profile_test
     /tmp/annepro2_ble_profile_test
 
+annepro2-state-test:
+    cc -std=c11 -Wall -Wextra -Werror \
+        -I modules/qmk_firmware/keyboards/annepro2 \
+        modules/qmk_firmware/keyboards/annepro2/annepro2_ble_state.c \
+        modules/qmk_firmware/keyboards/annepro2/tests/ble_state_test.c \
+        -o /tmp/annepro2_ble_state_test
+    /tmp/annepro2_ble_state_test
+
+annepro2-test: annepro2-profile-test annepro2-state-test
+
 annepro2-recover-ap2d-data output='/tmp/ap2d-key-3.08.data.bin':
     python3 tools/reverse/annepro2/recover_ap2d_data.py \
         assets/ap2_fw/ap2d/3.08/annepro2_discovery_KEY_APP.bin \

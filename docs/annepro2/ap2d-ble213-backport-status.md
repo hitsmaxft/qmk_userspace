@@ -44,6 +44,9 @@ slot 状态差异修正：`da28ab855d Match AP2D BLE slot state commands`
 slot 事务顺序与 LED 范围修正：
 `8109af3c33 Match AP2D slot transaction ordering`
 
+可测试状态机与切槽隔离：
+`a2e6e9585f Test Anne Pro 2 BLE slot state machine`
+
 - 同一 C18 KEY 源码内置 `C18_BLE205` 和 `AP2D_BLE213` profile。
 - Consumer 编码：
   - BLE 2.05：4 字节位图，补齐亮度增减两个原来遗漏的 bit。
@@ -58,9 +61,26 @@ slot 事务顺序与 LED 范围修正：
   `0x20/0x0B slot,0/1`；BLE 2.13 使用 AP2D 3.08 汇编确认的
   `0x20/0x0B slot,1` 与 `0x20/0x24 slot,2`。状态通知先于主命令发送，仍只
   在动作边沿发送一次，不随 `0x40/0x01` 或 `0x40/0x04` 重试。
+- 四槽事务已提取为无 QMK/ChibiOS 依赖的状态机。UART、EEPROM 和 host
+  driver 只是执行状态机给出的动作，host 测试与固件使用同一份迁移逻辑。
+- 快速切槽只保留最后一次意图。新意图入队时立即停止旧事务重试并切回 USB
+  路由；等待 1 秒静默窗口后才发送新槽的状态帧和主命令。窗口内到达的旧
+  ACK 因状态不匹配而丢弃。
+- 命令 ACK 只进入握手等待，不能切换 QMK host driver；只有收到
+  `0x20/0x0C` HID ready 握手后才保存槽位并切到 BLE。
+- connect 握手超时只执行一次有界 wakeup + 启动广播恢复；第二次超时停止，
+  不无限广播。用户主动长按广播继续遵守原决定，不自动超时回滚。
+- unpair、显式 USB 切换和 profile 切换会清除 held/pending/retry/timeout
+  状态；适配层同时清空 UART 半帧，避免旧 parser 数据进入下一次事务。
 - 增加无硬件依赖的 host 测试，覆盖 Consumer release、1–4 个 Usage、
   golden vectors、slot 状态 golden vectors、profile/slot 全组合、校验损坏
-  和越界输入。
+  和越界输入；状态机测试覆盖启动恢复、tap/hold、命令重试、ACK/握手分离、
+  快速切槽、超时恢复、解绑、状态清理和 32 位计时器回绕。
+
+UART `0x40/0x01`、`0x40/0x04` ACK 不包含 KEY 侧 transaction ID 或可确认的
+槽号。静默窗口能隔离通常的迟到 ACK，但无法从协议上证明在新命令发出后才
+到达的同 opcode 旧 ACK 属于哪个事务。由于 ACK 本身不启用输入路由，风险已
+收窄；最终仍须以四槽实机日志验证。
 
 ## 明确排除的 LED 路径
 
@@ -84,6 +104,7 @@ Vendor Report ID 2 的方向适配也保持关闭，直到业务 UART opcode 被
 所有命令从 userspace 根目录通过 direnv 环境执行：
 
 ```sh
+direnv exec . just annepro2-test
 direnv exec . just annepro2
 direnv exec . just annepro2-ble213
 direnv exec . just annepro2-log
@@ -107,7 +128,7 @@ profile 切换会清除自动连接 slot。随后应按目标 slot 重新连接�
 - host 测试以 `-std=c11 -Wall -Wextra -Werror` 编译并通过。
 - `annepro2`、`annepro2-ble213`、`annepro2-log`、
   `annepro2-ble213-log` 四种构建均通过。
-- 普通构建为 44,200 字节；日志构建为 43,612 字节。日志构建更小是因为
+- 当前普通构建为 43,736 字节；日志构建为 42,532 字节。日志构建更小是因为
   userspace 已按原约定关闭一组较大的 RGB 效果。
 
 这些结果只证明编码器、持久化格式和 QMK 构建成立，不证明 BLE 2.13 已能在
