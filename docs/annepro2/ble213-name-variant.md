@@ -31,8 +31,10 @@ direnv exec . just annepro2-ble213-name-image
 | 生成的 `c18-ble-2.13-annepro2c.bin` | `3779983ad762edb42ded93744076b0674c016b014488fa59aa02dfc5ca171daf` |
 
 生成器会拒绝未知输入哈希、错误大小、偏移处内容不符或任何声明外的字节变化。
-生成的 `.bin` 属于本地固件产物，不提交 Git；Git 保存生成器、测试、输入来源
-和预期哈希。
+命令默认把生成的 `.bin` 写到 userspace 根目录，作为被忽略的本地构建产物。
+已经校验的派生镜像、官方输入和完整来源说明保存在
+[`assets/ap2_fw`](../../assets/ap2_fw/README.md) 固件 submodule 中；userspace
+只保存生成器、测试和预期哈希。
 
 ## 验证边界
 
