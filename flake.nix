@@ -5,7 +5,9 @@
       nixpkgs.url = "flake:nixpkgs";
       flake-utils.url = "github:numtide/flake-utils";
       annepro2-tools = {
-          url = "github:hitsmaxft/nix-annepro2-tools/master";
+          # Hardened IAP transport: device-reported bases, strict reply/status
+          # checks, bounded timeouts, and read-only probing.
+          url = "git+https://github.com/hitsmaxft/nix-annepro2-tools.git?rev=3a1602d652180c72930d1fb82b56069f43004d30";
           inputs = {
               nixpkgs.follows = "nixpkgs";
           };
@@ -19,27 +21,55 @@
 
           pkgs = nixpkgs.legacyPackages.${system};
           shell = import ./shell.nix { inherit pkgs; };
-          annepro2Tools = (pkgs.callPackage annepro2-tools {
-            pkgs = pkgs // { pkgconfig = pkgs.pkg-config; };
-          }).overrideAttrs (_: {
-            CARGO_HOME = "cargo-home";
-          });
-          annepro2ToolsQmk = pkgs.writeShellScriptBin "annepro2_tools" ''
-            exec ${annepro2Tools}/bin/annepro2-tools "$@"
-          '';
+          agentPython = pkgs.python312.withPackages (pythonPackages: [
+            pythonPackages.unicorn
+          ]);
+          agentElfBinutils = pkgs.pkgsCross.gnu64.buildPackages.binutils;
+          agentElfTools = pkgs.symlinkJoin {
+            name = "annepro2-agent-elf-tools";
+            paths = [
+              (pkgs.writeShellScriptBin "elf-nm" ''
+                exec ${agentElfBinutils}/bin/x86_64-unknown-linux-gnu-nm "$@"
+              '')
+              (pkgs.writeShellScriptBin "elf-objdump" ''
+                exec ${agentElfBinutils}/bin/x86_64-unknown-linux-gnu-objdump "$@"
+              '')
+              (pkgs.writeShellScriptBin "elf-readelf" ''
+                exec ${agentElfBinutils}/bin/x86_64-unknown-linux-gnu-readelf "$@"
+              '')
+            ];
+          };
+          # Agent-only reverse-engineering and packaging tools. Keep these in
+          # the default shell so `direnv exec . ...` never falls back to
+          # Homebrew or host-global Rust/Node installations.
+          agentTools = with pkgs; [
+            cargo
+            rustc
+            nodejs
+            nodePackages.asar
+            unzip
+            zip
+            p7zip
+            jq
+            file
+            xxd
+            ghidra
+            agentElfBinutils
+            agentElfTools
+            agentPython
+          ] ++ lib.optionals stdenv.isDarwin [
+            lldb
+          ];
+          annepro2Tools = annepro2-tools.packages.${system}.default;
       in
         {
             devShells.default =  shell.overrideAttrs (old: {
                 nativeBuildInputs = old.nativeBuildInputs ++ [
                   annepro2Tools
-                  annepro2ToolsQmk
                   pkgs.addlicense
                   pkgs.license-cli
                   pkgs.just
-                  (pkgs.python312.withPackages (pythonPackages: [
-                    pythonPackages.unicorn
-                  ]))
-                ];
+                ] ++ agentTools;
             });
         }
       );

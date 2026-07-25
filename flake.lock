@@ -7,18 +7,18 @@
         ]
       },
       "locked": {
-        "lastModified": 1720559118,
-        "narHash": "sha256-HjzxksjuX0v+ikIaeja2UBfWUj0/f64yf/VzY7XhYew=",
-        "owner": "hitsmaxft",
-        "repo": "nix-annepro2-tools",
-        "rev": "590e878c4d3f584ee1975e2a14516ba7da41915d",
-        "type": "github"
+        "lastModified": 1785002154,
+        "narHash": "sha256-JPWDihN3S2EuDqSVKa3MNZftiBoLohwjB7nn2+r7OXw=",
+        "ref": "refs/heads/master",
+        "rev": "3a1602d652180c72930d1fb82b56069f43004d30",
+        "revCount": 19,
+        "type": "git",
+        "url": "https://github.com/hitsmaxft/nix-annepro2-tools.git"
       },
       "original": {
-        "owner": "hitsmaxft",
-        "ref": "master",
-        "repo": "nix-annepro2-tools",
-        "type": "github"
+        "rev": "3a1602d652180c72930d1fb82b56069f43004d30",
+        "type": "git",
+        "url": "https://github.com/hitsmaxft/nix-annepro2-tools.git"
       }
     },
     "flake-utils": {
