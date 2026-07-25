@@ -15,8 +15,10 @@ from pathlib import Path
 from typing import Iterable
 
 
-SOURCE = Path("assets/ap2_fw/ap2d/3.08/annepro2_discovery_ble.bin")
-DEFAULT_OUTPUT = Path("assets/ap2_fw/generated/c18-ble-2.13-annepro2c.bin")
+SOURCE = Path(
+    "assets/ap2_fw/annepro2d/firmware/3.08/annepro2_discovery_ble.bin"
+)
+DEFAULT_OUTPUT = Path("c18-ble-2.13-annepro2c.bin")
 IMAGE_SIZE = 0x26000
 SOURCE_SHA256 = "1b904ae9cd8bf6835c0b77c72618256b701a2c3b74dc04e9dddb8a388bdfc73d"
 OUTPUT_SHA256 = "3779983ad762edb42ded93744076b0674c016b014488fa59aa02dfc5ca171daf"

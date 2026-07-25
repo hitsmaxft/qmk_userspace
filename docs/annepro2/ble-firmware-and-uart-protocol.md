@@ -10,9 +10,9 @@ QMK 键盘侧可靠性补丁、验证边界与上游 PR 模板见 [BLE 可靠性
 
 | 映像 | 路径 | 大小 | SHA-256 | 静态结论 |
 | --- | --- | ---: | --- | --- |
-| 键盘主控 | [`key-c18-2.36.3.bin`](../../assets/ap2_fw/key-c18-2.36.3.bin) | 46,779 B (`0xb6bb`) | `b9bfa750e8c7ccdbed0c1f6de8aeb4eb1d569dc5cc075afdb2a93fe5e20730de` | 裸 Cortex-M0 映像；初始 SP `0x20001db0`，复位向量 `0x0000f479`。 |
-| BLE 旧版 | [`ble-c18-1.00.bin`](../../assets/ap2_fw/ble-c18-1.00.bin) | 155,648 B (`0x26000`) | `48389584acaecc90b7ae012760dc6048ee9eb72b254c4619461d2eaf672ea123` | 8051 系列原始 flash 映像，尾部以 `0xff` 填充。 |
-| BLE alpha | [`ble-c18-2.00-alpha.bin`](../../assets/ap2_fw/ble-c18-2.00-alpha.bin) | 155,648 B (`0x26000`) | `d7547d8cfd7b05685539b6d6eef2d2a0ae88d8fba9a775b740766e32b9f86ba6` | 同为 8051 系列原始 flash 映像，尾部以 `0xff` 填充。 |
+| 键盘主控 | [`key-c18-2.36.3.bin`](../../assets/ap2_fw/annepro2/c18/firmware/2.36.3/key-c18-2.36.3.bin) | 46,779 B (`0xb6bb`) | `b9bfa750e8c7ccdbed0c1f6de8aeb4eb1d569dc5cc075afdb2a93fe5e20730de` | 裸 Cortex-M0 映像；初始 SP `0x20001db0`，复位向量 `0x0000f479`。 |
+| BLE 旧版 | [`ble-c18-1.00.bin`](../../assets/ap2_fw/annepro2/c18/archive/ble-c18-1.00.bin) | 155,648 B (`0x26000`) | `48389584acaecc90b7ae012760dc6048ee9eb72b254c4619461d2eaf672ea123` | 8051 系列原始 flash 映像，尾部以 `0xff` 填充。 |
+| BLE alpha | [`ble-c18-2.00-alpha.bin`](../../assets/ap2_fw/annepro2/c18/archive/ble-c18-2.00-alpha.bin) | 155,648 B (`0x26000`) | `d7547d8cfd7b05685539b6d6eef2d2a0ae88d8fba9a775b740766e32b9f86ba6` | 同为 8051 系列原始 flash 映像，尾部以 `0xff` 填充。 |
 
 ### BLE SoC
 
@@ -269,9 +269,9 @@ CC254x radio/GATT 状态。
 - [`annepro2.c`](../../modules/qmk_firmware/keyboards/annepro2/annepro2.c)：115200 UART 初始化、wakeup 时序、RX 读取。
 - [`annepro2.h`](../../modules/qmk_firmware/keyboards/annepro2/annepro2.h)：11-byte Caps Lock 记录定义。
 - [`c18/config.h`](../../modules/qmk_firmware/keyboards/annepro2/c18/config.h)：C18 UART 引脚。
-- [`key-c18-2.36.3.bin`](../../assets/ap2_fw/key-c18-2.36.3.bin)：主控 USART1
+- [`key-c18-2.36.3.bin`](../../assets/ap2_fw/annepro2/c18/firmware/2.36.3/key-c18-2.36.3.bin)：主控 USART1
   parser、group callback 表与 `20/0c` 握手回复构造路径。
-- [`ble-c18-2.00-alpha.bin`](../../assets/ap2_fw/ble-c18-2.00-alpha.bin)：CC254x
+- [`ble-c18-2.00-alpha.bin`](../../assets/ap2_fw/annepro2/c18/archive/ble-c18-2.00-alpha.bin)：CC254x
   UART0 DMA、128-byte TX ring 与 `8 + length` framing 构造器。
 - [`DecompileAt.java`](../../tools/reverse/annepro2/DecompileAt.java)：复现主控关键
   地址反汇编/反编译输出的 Ghidra headless helper。

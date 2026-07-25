@@ -21,13 +21,13 @@ USB suspend，以及多设备切换修复；升级后要求删除旧配对并重
 
 ## 本地样本
 
-下载的二进制保存在以下忽略目录，不提交 Git：
+下载的二进制已归档在 `assets/ap2_fw` submodule 的以下目录：
 
 ```text
-assets/ap2_fw/ap2d/3.04/
-assets/ap2_fw/ap2d/3.05/
-assets/ap2_fw/ap2d/3.06/
-assets/ap2_fw/ap2d/3.08/
+assets/ap2_fw/annepro2d/firmware/3.04/
+assets/ap2_fw/annepro2d/firmware/3.05/
+assets/ap2_fw/annepro2d/firmware/3.06/
+assets/ap2_fw/annepro2d/firmware/3.08/
 ```
 
 每个目录包含对应的 `annepro2_discovery_KEY_APP.bin` 和
