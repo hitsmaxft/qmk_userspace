@@ -21,7 +21,6 @@ C18 矩阵、USB、LED MCU、板级驱动
 
 - 普通键盘、修饰键和 6KRO；
 - Consumer 媒体键按下与释放；
-- Num Lock、Caps Lock、Scroll Lock 状态回传；
 - 四个主机槽的配对、切换、断电重连和重新配对；
 - BLE 2.05 与 BLE 2.13 profile 的手动选择及持久化；
 - USB 下的恢复、重新刷写和降级能力。
@@ -30,6 +29,7 @@ C18 矩阵、USB、LED MCU、板级驱动
 
 - AP2D KEY 3.08 的 USB suspend 重构；
 - AP2D 的 RGB、矩阵和板级 HAL；
+- AP2D 的锁定灯、HID LED Output 和 KEY MCU 直驱 RGB 实现；
 - BLE 2.13 内部身份密钥、连接参数和协议栈逻辑的 KEY 侧复刻；
 - 未确认的 BLE 2.13 在线升级命令；
 - 无可靠版本查询命令时的自动识别。
@@ -38,6 +38,7 @@ C18 矩阵、USB、LED MCU、板级驱动
 
 1. BLE 2.13 二进制保持原样。
 2. C18 KEY 的矩阵 GPIO、USB、`PB0/PB1` LED MCU UART、IAP 和板级时钟保持原实现。
+   本次 backport 不修改、替换或扩展这条 C18 LED 路径。
 3. AP2D BLE 2.13 能否在 C18 BLE 副控硬件上可靠启动、射频工作并保留工厂 IEEE/RF 信息页，必须先通过实机门槛测试。KEY 代码无法修复 BLE 副控自身的硬件或 Bootloader 不兼容。
 4. BLE 2.13 的广播名称、GATT Report Map 和主机侧设备身份由 BLE 固件决定。KEY 兼容层无法让主机把它完整识别为原版 C18。
 
@@ -48,7 +49,6 @@ C18 矩阵、USB、LED MCU、板级驱动
 | BLE 2.05 回归 | 改造后的 KEY 在 2.05 profile 下与原 C18 功能一致 |
 | BLE 2.13 基础输入 | 普通键、组合键、长按和全键释放无错报、无 stuck key |
 | 媒体键 | 每个支持的 Consumer Usage 都能按下和释放，断线前主动发送全零报告 |
-| 锁定灯 | Windows、macOS 下 Caps Lock 状态正确；兼容 1 字节与带 Report ID 的 2 字节回包 |
 | 四主机 | 四槽可分别配对，短按切换、长按重配，重启后可恢复活动槽 |
 | 连续切换 | 至少 100 次跨槽切换无槽位串写、旧事件覆盖和永久失联 |
 | 恢复 | 无论 BLE profile 状态如何，USB 均可进入维护模式并重新刷写 KEY |
@@ -60,7 +60,6 @@ C18 矩阵、USB、LED MCU、板级驱动
 | 物理 UART | `PA4/PA5`、AF6、115200、8N1 | 相同 | 共用驱动 |
 | 基础帧族 | `0x7B` 起始、`0x10/0x12` 类型、8 字节头、`0x7D` 头部标记 | 相同 | 共用收发和重组层 |
 | Keyboard Report ID 1 | 标准 6KRO | 描述符逐字节相同 | 完全共用 |
-| LED Output | HID LED bits | HID LED bits | 同时接收 `[bits]` 与 `[0x01,bits]` |
 | Vendor Report ID 2 | Usage 2 为 OUT，Usage 3 为 IN，18 字节 | Usage 2 为 IN，Usage 3 为 OUT，18 字节 | profile 决定收发 Usage |
 | Consumer Report ID 3 | C18 现有媒体键位图 | 四个小端 `u16 Usage`，共 8 字节 | profile 决定编码器 |
 | 主机槽 | C18 原有实现 | 四槽，命令族包含 `0x21/0x22` | 2.13 profile 使用抓包确认后的结构 |
@@ -99,7 +98,6 @@ Vendor 方向按 HID 主机视角定义：
 ```c
 struct ble_profile_ops {
     void (*send_consumer)(const uint16_t *usage, size_t count);
-    bool (*decode_led)(const uint8_t *buf, size_t len, uint8_t *bits);
     uint8_t vendor_tx_usage;
     uint8_t vendor_rx_usage;
     int (*pair_slot)(uint8_t slot);
@@ -138,18 +136,9 @@ send_report(REPORT_ID_CONSUMER, report, sizeof(report));
 
 释放媒体键时必须发送同格式的全零报告。BLE 2.05 继续调用原 C18 位图编码器。
 
-LED 回包统一入口：
-
-```c
-if (len == 1)
-    bits = data[0];
-else if (len == 2 && data[0] == REPORT_ID_KEYBOARD)
-    bits = data[1];
-else
-    return;
-```
-
-随后按 `bit0=Num`、`bit1=Caps`、`bit2=Scroll` 更新状态，并通过 C18 原 LED MCU 路径显示。
+LED 不属于 profile 适配接口。AP2D 的 KEY MCU 直驱 RGB 与 HID Output
+处理建立在 AP2D 板级实现上，不能回移到仍使用独立 LED MCU 的 C18。本项目
+保持 C18 原有 LED MCU 路径，不根据 AP2D 固件新增 LED UART 解释或测试要求。
 
 profile 选择首版使用显式配置，不依赖自动探测：
 
@@ -230,7 +219,7 @@ IDLE
 | P0 备份与恢复 | 保存 C18 KEY 2.36、BLE 2.05；验证 USB IAP/SWD 恢复 | KEY 和 BLE 均可恢复原版 | 未建立恢复链前停止刷写 |
 | P1 BLE 2.13 硬件启动 | 只写 BLE 应用区，保留 Bootloader、IEEE、RF 校准和信息页 | 副控启动、UART 有稳定响应、可广播并连接 | 恢复 BLE 2.05；记录不兼容点 |
 | P2 公共层与 profile | 抽离公共帧层，加入 profile 配置；先运行 2.05 | BLE 2.05 全量回归通过 | 修复回归后再进入 2.13 |
-| P3 BLE 2.13 基础 HID | 接入 Report ID 1、LED 双格式、Consumer 8 字节、Vendor 方向 | 键盘、媒体、锁定灯和 Vendor 透传逐项通过 | 按功能隔离，保留 USB 调试 |
+| P3 BLE 2.13 基础 HID | 接入 Report ID 1、Consumer 8 字节、Vendor 方向 | 键盘、媒体和 Vendor 透传逐项通过 | 按功能隔离，保留 USB 调试 |
 | P4 四槽取证 | 完成上述 UART 抓包矩阵和协议表 | `0x21/0x22` 请求、回包、槽号、9 字节结构可重放 | 缺少字段时继续抓包，不猜协议 |
 | P5 四槽实现 | 完成 pair/select 状态机、超时、事务隔离和 NVM | 四主机配对、切换、重启恢复及 100 次压力测试通过 | 保留单槽模式用于诊断 |
 | P6 升降级流程 | KEY 双 profile、首次迁移、重绑提示、降级到 2.05 | 不重刷 KEY 即可切换 profile；USB 始终可救援 | 清 NVM profile 并默认 2.05 |
@@ -272,7 +261,6 @@ IDLE
 - 主机：Windows 10/11、macOS、Linux、iOS/Android；
 - profile：BLE 2.05、BLE 2.13；
 - 输入：字母、修饰键、组合键、重复按键、Consumer press/release；
-- 输出：Num/Caps/Scroll 的 1 字节与 2 字节 LED 回包；
 - 槽位：四槽首次配对、短按切换、长按重配、目标主机离线、快速连按；
 - 生命周期：冷启动、热重启、USB/BLE 切换、BLE 断线重连、低电量；
 - 容错：UART 半帧、错长度、未知命令、非法槽号、迟到回包；
@@ -282,7 +270,7 @@ IDLE
 
 1. `ble_profile_c18_205` 与 `ble_profile_ap2d_213`；
 2. 公共 `ble_uart`、`ble_frame` 与 Report ID 1 路径；
-3. BLE 2.13 Consumer、LED、Vendor 适配器；
+3. BLE 2.13 Consumer 与 Vendor 适配器；
 4. `0x21/0x22` 四槽协议表和原始 UART 抓包；
 5. 四槽状态机与 NVM 迁移逻辑；
 6. `c18-key-ble205.bin`、`c18-key-ble213.bin`；
