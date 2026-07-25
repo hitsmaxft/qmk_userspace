@@ -1,7 +1,7 @@
 # C18 KEY 适配 AP2D BLE 2.13：实现状态
 
-本页记录在完整调研报告之后新增的静态证据、QMK 实现和验证结果。原始报告保留
-不变，以便继续通过其 `SHA256SUMS.txt` 复核。
+本页记录完整调研报告之后新增的静态证据、QMK 实现和验证结果。调研报告中的
+范围修正与实施文件一并更新，并通过其 `SHA256SUMS.txt` 复核。
 
 ## 新增静态证据
 
@@ -47,7 +47,19 @@ slot 事务顺序与 LED 范围修正：
 可测试状态机与切槽隔离：
 `a2e6e9585f Test Anne Pro 2 BLE slot state machine`
 
+UART framing 加固：
+`538278883d Harden Anne Pro 2 BLE UART framing`
+
+C18 范围隔离与 C15 非回归：
+`01dd36c04c Limit BLE backport to Anne Pro 2 C18`、
+`ac2fcb3ead Preserve Anne Pro 2 C15 BLE behavior`
+
+日志构建版本绑定：
+`d674a458db Log Anne Pro 2 firmware revisions`
+
 - 同一 C18 KEY 源码内置 `C18_BLE205` 和 `AP2D_BLE213` profile。
+- 完整 BLE 2.05/2.13 实现只由 C18 的 `rules.mk` 链接；C15 继续使用原
+  `annepro2_ble.c`，不会承担 parser/profile/state 的 RAM 开销。
 - Consumer 编码：
   - BLE 2.05：4 字节位图，补齐亮度增减两个原来遗漏的 bit。
   - BLE 2.13：8 字节、最多四个小端 16 位 Usage。
@@ -72,10 +84,14 @@ slot 事务顺序与 LED 范围修正：
   不无限广播。用户主动长按广播继续遵守原决定，不自动超时回滚。
 - unpair、显式 USB 切换和 profile 切换会清除 held/pending/retry/timeout
   状态；适配层同时清空 UART 半帧，避免旧 parser 数据进入下一次事务。
+- UART parser 校验 24 位 payload length 的高字节、32 字节 payload 上限和
+  `0x7D` delimiter；20 ms 内没有补齐的半帧会过期，下一帧可从 `0x7B`
+  重新同步。payload 内部的 `0x7B` 不会被误认为新帧。
 - 增加无硬件依赖的 host 测试，覆盖 Consumer release、1–4 个 Usage、
   golden vectors、slot 状态 golden vectors、profile/slot 全组合、校验损坏
   和越界输入；状态机测试覆盖启动恢复、tap/hold、命令重试、ACK/握手分离、
-  快速切槽、超时恢复、解绑、状态清理和 32 位计时器回绕。
+  四个 slot、快速切槽、超时恢复、解绑、状态清理和 32 位计时器回绕；
+  parser 测试覆盖完整帧、噪声、断帧、无效长度/delimiter 和计时器回绕。
 
 UART `0x40/0x01`、`0x40/0x04` ACK 不包含 KEY 侧 transaction ID 或可确认的
 槽号。静默窗口能隔离通常的迟到 ACK，但无法从协议上证明在新命令发出后才
@@ -107,6 +123,7 @@ Vendor Report ID 2 的方向适配也保持关闭，直到业务 UART opcode 被
 direnv exec . just annepro2-test
 direnv exec . just annepro2
 direnv exec . just annepro2-ble213
+direnv exec . just annepro2-c15
 direnv exec . just annepro2-log
 direnv exec . just annepro2-ble213-log
 ```
@@ -126,22 +143,51 @@ profile 切换会清除自动连接 slot。随后应按目标 slot 重新连接�
 ## 已完成的软件验证
 
 - host 测试以 `-std=c11 -Wall -Wextra -Werror` 编译并通过。
-- `annepro2`、`annepro2-ble213`、`annepro2-log`、
-  `annepro2-ble213-log` 四种构建均通过。
-- 当前普通构建为 43,736 字节；日志构建为 42,532 字节。日志构建更小是因为
-  userspace 已按原约定关闭一组较大的 RGB 效果。
+- `annepro2` 与 `annepro2-ble213` 均通过，当前两个普通构建均为
+  43,844 字节；二者只改变无有效 EEPROM 记录时的默认 profile。
+- C15 default 继续链接原 BLE 驱动并构建通过，大小为 37,504 字节。
+- C18 的 `ap2_led.*`、`protocol.*`、`rgb_driver.*` 与 QMK 分支基线逐字节
+  无差异。
+- 新增/修改的 C18、parser、profile、state 和 host test 文件通过
+  `clang-format --dry-run --Werror`；两个仓库通过 `git diff --check`。
+- debug 固件启动时输出 `QMK_GIT_HASH` 与可用的
+  `QMK_USERSPACE_VERSION`，后续实机日志可以绑定到实际构建来源；普通固件不
+  包含这些字符串，大小与哈希不受影响。
+- `qmk lint` 仍报告上游已有的 license header 和带连字符 keymap 名称问题；
+  报告涉及的文件/名称不在本分支差异中。
 
-这些结果只证明编码器、持久化格式和 QMK 构建成立，不证明 BLE 2.13 已能在
-C18 BLE 板安全启动，也不证明 radio、bond 或四主机切换已通过硬件
-验收。
+完整命令、构建哈希与逐需求证据见
+[C18 KEY 双 BLE 首版验证矩阵](ble213-validation-matrix.md)。
+
+## 已完成的实机验证
+
+- 修复版 `annepro2-tools` 从 C18 IAP 读取到 BLE transport base `0x4000`，
+  完成 erase 和 4,864 个 32 字节 write；每条回复都匹配
+  target/command/key 且 status 为零。
+- 官方 AP2D BLE 2.13 镜像在 C18 上启动。
+- slot 1 广播后，USB console 收到 `0x20/0x0C` HID-ready；QMK 只在该事件
+  后切换到 BLE route。命令 ACK 没有被误当作连接成功。
+- 从广播到 HID-ready 的一次样本延迟约 6.09 秒。
+- macOS 显示 `HEXCORE AnnePro 2D`、`BLE-1.5.2` 且已连接；用户确认普通
+  键盘输入正常。旧的 `AnnePro2 / BLE-1.5.0` 条目来自 macOS 配对缓存。
+
+这些结果证明 BLE 2.13 已在目标板上完成启动、连接和普通键盘输入。IAP
+协议没有可用的 flash readback，所以 status-zero 传输不能解释成逐字节写回
+验证；媒体键、完整四槽和外部 LED MCU 回归也仍需单独验收。上述实机记录来自
+parser/C18 范围隔离之前的同一状态机演进版本；当前分支最新
+`d674a458db` debug 标记版本尚未重新刷入，不能把旧记录写成当前二进制已验证。
+
+核心 backport 的实机使用官方 BLE 2.13 原始镜像。另行提供的
+`HEXCORE AnnePro 2C` 固定宽度名称变体只用于兼容模式显示，不参与上述结论，
+也不覆盖官方镜像。
 
 ## 下一步门禁
 
-1. 按 [BLE 2.13 交叉刷写门禁](ble213-crossflash-gate.md) 使用 CC254x
-   调试接口保存 256 KiB 全 flash 和 2 KiB Information Page，并验证两次读取
-   哈希一致。当前 `annepro2_tools` 的 BLE 路径没有严格 ACK、readback 或
-   erase 边界证明，禁止直接使用。
-2. 依次验证键盘 press/release、Consumer、清除配对、四个 slot 的
+1. 依次验证 Consumer、清除配对、四个 slot 的
    广播/连接/超时/迟到事件。
-3. Vendor Report ID 2 的方向适配保持关闭，直到业务 UART opcode 被确认。
-4. 验证通过后再考虑把 BLE 2.13 profile 纳入上游 PR；在此之前它保持实验性。
+2. 用当前精确日志固件重新验证普通键盘，并换回 BLE 2.05 重复全部用例。
+3. 回归 C18 独立 LED MCU 的 Caps/灯效行为；不移植 AP2D 直驱 LED/RGB。
+4. 若要把刷写从“status-zero 传输”提升到完整验证，仍需 CC254x 调试接口保存
+   256 KiB flash 与 Information Page，并完成写后 readback。
+5. Vendor Report ID 2 的方向适配保持关闭，直到业务 UART opcode 被确认。
+6. 验证通过后再考虑把 BLE 2.13 profile 纳入上游 PR；在此之前它保持实验性。

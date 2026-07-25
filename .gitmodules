@@ -1,7 +1,7 @@
 [submodule "modules/qmk_firmware"]
 	path = modules/qmk_firmware
 	url = https://github.com/hitsmaxft/qmk_firmware.git
-	branch = codex/annepro2-uart-state-v2
+	branch = codex/annepro2-ble213-backport
 [submodule "modules/getreuer"]
 	path = modules/getreuer
 	url = https://github.com/getreuer/qmk-modules.git
