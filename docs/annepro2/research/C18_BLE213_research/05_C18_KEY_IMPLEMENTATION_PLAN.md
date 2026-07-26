@@ -1,15 +1,17 @@
 # C18 KEY 源码升级实施计划
 
-> 2026-07-26 范围修正：忽略 AP2D 的 LED/RGB、HID LED Output、锁定灯和
-> suspend 灯控改动。AP2D 已不再使用 C18 的外置 LED MCU，这些实现不适用于
-> C18。现有 C18 LED MCU 与板级灯控代码保持原样，只做非回归验证。
+> 2026-07-26 范围修正：不移植 AP2D 的 GPIO/RGB、HID LED Output callback
+> 和 suspend 灯控。AP2D 已不再使用 C18 的外置 LED MCU，这些硬件实现不适用
+> 于 C18。现有 C18 LED MCU 与板级灯控代码保持原样；共享的 `20/07` Caps
+> 逻辑状态通过 QMK host LED 接口桥接，并做实机回归。
 
 实施目标：
 
 - 修改 C18 KEY 源码；
 - BLE 2.05 和官方 BLE 2.13 样本均不修改；可选 2C 名称镜像独立生成；
 - 同一代码库内置两个 profile，并生成两个默认值不同的固件目标；
-- 首版覆盖普通键盘、媒体键、配对、四主机切换、串口容错和 USB 救援；
+- 首版覆盖普通键盘、媒体键、Caps 锁定灯、配对、四主机切换、串口容错和
+  USB 救援；
 - 不移植 AP2D USB suspend 中的 LED/RGB 行为；
 - 保持 C18 矩阵、USB、独立 LED MCU、IAP 和板级 HAL。
 
@@ -245,9 +247,11 @@ FEATURE_VENDOR_BLE213=1  抓包验证后启用
 
 ## LED/RGB 范围
 
-AP2D 的 LED Output、锁定灯、KEY MCU 直驱 RGB 和 suspend 灯控只作为差异
-证据保留，不生成实现任务。C18 继续使用现有外置 LED MCU、UART 与 QMK
-驱动；BLE 2.13 profile 不解释 LED group/opcode，也不新增 LED 状态机。
+AP2D 的 LED Output callback、KEY MCU 直驱 RGB 和 suspend 灯控只作为差异
+证据保留，不生成硬件实现任务。C18 继续使用现有外置 LED MCU、UART 与 QMK
+驱动。BLE driver 只严格解释两代固件共同确认的
+`7B 12 35 00 03 00 00 7D 20 07 00/01`，把它映射为标准 Caps bit；其他
+LED group/opcode 不猜测，Num/Scroll 也不在没有证据时虚构。
 
 ## UART 容错
 

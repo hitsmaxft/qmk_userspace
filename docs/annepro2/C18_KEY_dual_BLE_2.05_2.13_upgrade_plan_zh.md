@@ -21,6 +21,7 @@ C18 矩阵、USB、LED MCU、板级驱动
 
 - 普通键盘、修饰键和 6KRO；
 - Consumer 媒体键按下与释放；
+- `20/07` Caps Lock 状态与 C18 外置 LED MCU 灯位；
 - 四个主机槽的配对、切换、断电重连和重新配对；
 - BLE 2.05 与 BLE 2.13 profile 的手动选择及持久化；
 - USB 下的恢复、重新刷写和降级能力。
@@ -49,6 +50,7 @@ C18 矩阵、USB、LED MCU、板级驱动
 | BLE 2.05 回归 | 改造后的 KEY 在 2.05 profile 下与原 C18 功能一致 |
 | BLE 2.13 基础输入 | 普通键、组合键、长按和全键释放无错报、无 stuck key |
 | 媒体键 | 每个支持的 Consumer Usage 都能按下和释放，断线前主动发送全零报告 |
+| Caps 锁定灯 | `20/07 01/00` 严格解码，QMK 状态与 C18 实体灯同步，切槽不残留 |
 | 四主机 | 四槽可分别配对，短按切换、长按重配，重启后可恢复活动槽 |
 | 连续切换 | 至少 100 次跨槽切换无槽位串写、旧事件覆盖和永久失联 |
 | 恢复 | 无论 BLE profile 状态如何，USB 均可进入维护模式并重新刷写 KEY |
@@ -62,7 +64,7 @@ C18 矩阵、USB、LED MCU、板级驱动
 | Keyboard Report ID 1 | 标准 6KRO | 描述符逐字节相同 | 完全共用 |
 | Vendor Report ID 2 | Usage 2 为 OUT，Usage 3 为 IN，18 字节 | Usage 2 为 IN，Usage 3 为 OUT，18 字节 | profile 决定收发 Usage |
 | Consumer Report ID 3 | C18 现有媒体键位图 | 四个小端 `u16 Usage`，共 8 字节 | profile 决定编码器 |
-| 主机槽 | C18 原有实现 | 四槽，命令族包含 `0x21/0x22` | 2.13 profile 使用抓包确认后的结构 |
+| 主机槽 | `0x40/01` 广播、`0x40/04` 连接，`20/0B` 状态 | 同一主命令，广播前 `20/0B slot,1`、连接前 `20/24 slot,2` | profile 编码一次性状态通知；ACK 与 HID-ready 分离 |
 | BLE 安全身份 | C18 2.05 内部管理 | 2.13 使用工厂 IEEE 地址校验并重建 SNV 安全材料 | KEY 不生成密钥；升级后清除槽状态并重绑 |
 
 Vendor 方向按 HID 主机视角定义：
@@ -74,9 +76,7 @@ Vendor 方向按 HID 主机视角定义：
 
 仍需实机确认：
 
-- `0x21/0x22` 各自的业务语义；
-- 槽号在 payload 中的偏移；
-- 9 字节槽记录的字段定义；
+- AP2D `0x21/0x22` 厂商对象业务的精确语义（不把它们当作 slot 主命令）；
 - 配对开始、断开完成、切换成功、连接失败等 BLE→KEY 回包；
 - 启动握手、状态查询和清除 bond 命令是否与 C18 相同；
 - KEY 串口消息是否显式携带 Vendor Usage selector；
@@ -271,7 +271,7 @@ IDLE
 1. `ble_profile_c18_205` 与 `ble_profile_ap2d_213`；
 2. 公共 `ble_uart`、`ble_frame` 与 Report ID 1 路径；
 3. BLE 2.13 Consumer 与 Vendor 适配器；
-4. `0x21/0x22` 四槽协议表和原始 UART 抓包；
+4. `0x40/01`、`0x40/04`、`20/0B`、`20/24` 四槽协议表和原始 UART 日志；
 5. 四槽状态机与 NVM 迁移逻辑；
 6. `c18-key-ble205.bin`、`c18-key-ble213.bin`；
 7. 升级、重新绑定、降级和救援说明；
@@ -282,4 +282,9 @@ IDLE
 - `AnnePro2D_3.08_features_BLE_compatibility_C18_backport_analysis_zh.md`
 - `AnnePro2_C18_vs_AnnePro2D_official_KEY_GPIO_BLE_analysis_zh.md`
 
-当前最先执行的工作为 P0、P1 和 P4：先建立副控恢复链并确认 BLE 2.13 可在 C18 硬件启动，再抓取 AP2D 3.08 的完整四槽 UART 事务。完成这两个门槛后，KEY 侧的编码工作可以按 P2、P3、P5 顺序展开。
+当前 P0/P1 已完成到“IAP status-zero 传输、BLE 2.13 启动、广播、macOS
+连接和普通输入”层级，P2/P3/P5 已形成双 profile、Consumer、严格 parser、
+Caps 桥接和四槽状态机代码。尚未完成的是 IAP readback、BLE 2.05 实机回归、
+媒体键、Caps 实体灯以及四台真实主机的完整 P4/P6 压力矩阵；这些结果集中写入
+[`ble213-validation-matrix.md`](ble213-validation-matrix.md)，不能由静态分析
+或构建结果替代。

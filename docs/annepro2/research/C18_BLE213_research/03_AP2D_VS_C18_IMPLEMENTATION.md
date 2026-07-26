@@ -117,12 +117,17 @@ AP2D KEY 3.08 `0x8426`：
 
 - `length == 1` 时读取 `buffer[0]`；
 - `length == 2` 时读取 `buffer[1]`，跳过 Report ID；
-- 解析 Scroll bit 2、Num bit 0、Caps bit 1；
-- 调用 `0xBE1A`、`0xBE5A`、`0xBE60` 更新状态。
+- 分别把 Caps bit 1、Num bit 0、Scroll bit 2 传给
+  `0xBE1A`、`0xBE5A`、`0xBE60`。
 
 macOS 可能交付 `LED bits`，也可能交付 `[0x01, LED bits]`。3.06 丢弃第二种形式，3.08 兼容两者。
 
-C18 回移时将 USB 与 BLE 的 Output report 归一到同一个函数，再把结果发送给独立 LED MCU。AP2D 的内部 RGB 状态函数不能原样使用。
+C18 回移不复制这三个 AP2D 直驱 RGB 状态函数。BLE 模块与 KEY 之间已经把
+Caps 归一化为共同的 `20/07 00/01`：C18 KEY 2.36.3 的
+`0xC45E–0xC4CC` 从 LED Output bit 1 构造该帧，AP2D KEY 3.08 的 group
+`0x20`/opcode `0x07` 又把它交给 `0xBE1A` Caps 函数。QMK 因而只严格解码
+这个共享 UART ABI，再通过标准 host LED bit 1 和 C18 既有 LED MCU API
+显示；Num/Scroll 不在未确认 UART 契约下推断。
 
 ## USB suspend 修复
 
@@ -186,7 +191,7 @@ C18 KEY 需要采用显式异步状态机，避免以下故障：
 | KEY 直接驱动 RGB | 不移植；保留 LED MCU |
 | BLE 专用 UART 线程 | 移植完整帧思想，保留两路 UART |
 | 帧头/长度/序号检查 | 直接移植到 C18 协议层 |
-| CapsLock 1/2 B 兼容 | 直接移植并桥接 LED MCU |
+| CapsLock 1/2 B 兼容 | 不复制 AP2D callback；采用其归一化后的共享 `20/07` Caps ABI，并桥接 C18 LED MCU |
 | USB suspend hook | 按 C18 外设重写 |
 | pending event 修复 | 移植事件投递原则 |
 | 四槽命令与状态机 | 适配 BLE 2.13，保留 BLE 2.05 profile |

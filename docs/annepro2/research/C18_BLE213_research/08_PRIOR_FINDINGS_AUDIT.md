@@ -11,7 +11,7 @@
 | 尚未取得 AP2D BLE 2.13，无法判断其内部变化 | 用户提供原始镜像，SHA-256 与官方清单一致 | 已完成 BLE 2.13 二进制分析 |
 | BLE 优化仅能从 KEY 线程和帧解析推断 | BLE 2.13 样本显示栈、SNV 身份、广告和 Report Map 变化 | 已补齐 BLE 侧证据 |
 | 最稳妥路线需要同时修改 C18 BLE 应用和 KEY | 当前任务边界固定为 BLE 2.13 二进制不改，只修改 C18 KEY | 最终采用 KEY 双 profile 方案 |
-| AP2D BLE 2.13 不能直接用于 C18 | 物理 UART和基础帧同族，HID ID 1 兼容；ID 2/3 与四槽业务有差异 | 修正为“不能免适配使用”；C18 KEY 可通过 profile 对接，烧录安全仍需门禁 |
+| AP2D BLE 2.13 不能直接用于 C18 | 物理 UART和基础帧同族，HID ID 1 兼容；ID 2/3 与四槽业务有差异；后续实机交叉刷写、启动、连接和普通输入通过 | 修正为“不能免 KEY 适配使用”；IAP 无 readback，仍保留恢复和信息页边界 |
 | 2.13 可能只改设备描述信息 | 栈版本、SNV 初始化、工厂地址校验、Report Map、广告结构均变化 | 已否定 |
 | 改产品 ID 即可兼容 C18 KEY | Vendor 方向和 Consumer 布局发生协议变化 | 已否定 |
 | 首版可以忽略多主机 | 用户将四主机配对/切换列为首版要求 | 已纳入核心状态机和验收 |
@@ -25,9 +25,10 @@
 5. Keyboard Report ID 1 在 C18 2.05、AP2D 2.10 和 2.13 中一致。
 6. Vendor Report ID 2 在 2.13 中交换 IN/OUT 方向并改变 flags。
 7. Consumer Report ID 3 在 AP2D 中为四个 16 位 Usage，C18 使用 8 位媒体键图和 3 B padding。
-8. macOS CapsLock 修复来自 KEY 对 1 B/2 B LED Output 的兼容解析。
+8. AP2D 的 macOS CapsLock 修复来自 KEY 对 1 B/2 B LED Output 的兼容解析；
+   C18 backport 使用两代共同的 `20/07 00/01` 归一化 UART ABI。
 9. USB suspend 修复来自 KEY 3.08 用完整停用/恢复序列替换空 hook。
-10. 多主机切换包含 KEY pending event 恢复投递、四槽 `0x21/0x22` 处理和 BLE 统一广告身份。
+10. 多主机切换包含 KEY pending event 恢复投递、四槽对象业务和 BLE 统一广告身份；UART slot 主命令仍是 `0x40/01`、`0x40/04`。
 11. C18 的独立 LED MCU、矩阵 GPIO和 USB/电源 HAL 必须保留。
 
 ## 对关键问题的最终回答
@@ -52,7 +53,7 @@
 - Consumer ID 3 的 4 B→8 B 编码变化；
 - Vendor ID 2 的双向 Usage 对调；
 - 四槽命令和异步状态；
-- LED Output 1/2 B；
+- Caps `20/07` 状态桥接；AP2D 的 1/2 B callback 不直接移植；
 - 配对数据迁移和主机端重绑；
 - 烧录/IAP/板级安全。
 
@@ -63,16 +64,24 @@
 - 保留共同 UART 和外层帧；
 - 使用 `BLE205/BLE213` profile；
 - profile 选择 Consumer 编码和 Vendor 方向；
-- KEY 实现四槽状态机、CapsLock、suspend 和帧校验；
+- KEY 实现四槽状态机、CapsLock 和帧校验；AP2D suspend 灯控排除；
 - BLE 2.13 内部继续负责身份、安全、bond、广播和连接。
 
 “为什么早期方案没有多主机命令？”
 
-早期范围曾被压缩为最小键盘/HID兼容，四槽业务的完整负载也尚未从二进制和抓包中确定。当前任务明确要求四主机进入首版，KEY 3.08 已确认 `0x21/0x22` 和槽 0–3，最终方案已把配对、切换、超时、迟到事件与持久化全部纳入。
+早期范围曾被压缩为最小键盘/HID兼容，四槽业务的完整负载也尚未从二进制和
+抓包中确定。当前任务明确要求四主机进入首版；KEY 3.08 已确认广播前
+`20/0B slot,1`、连接前 `20/24 slot,2`，随后分别发送 `40/01` 或 `40/04`。
+`0x21/0x22` 属于四槽对象/厂商业务，不作为配对主命令。最终方案已把配对、
+切换、超时、迟到事件与持久化全部纳入。
 
 “BLE 2.13 能直接刷进 C18 吗？”
 
-软件协议层显示高度接近，C18 KEY 完成 profile 适配后具备通信基础。镜像交叉烧录的硬件安全仍缺少 bootloader、IAP、信息页、RF 校准和 BLE 板级引脚的完整证明。执行前必须通过 [06_VALIDATION_RISK_AND_ROLLBACK.md](06_VALIDATION_RISK_AND_ROLLBACK.md) 的烧录门禁。
+官方 BLE 2.13 已通过修复版 IAP 工具写入 C18，完成启动、广播、macOS 连接和
+普通输入。每个 erase/write 请求都收到匹配的 status-zero 回复，但 IAP 没有
+已验证的 readback，因此不能把它写成 flash 逐字节证明；信息页与 RF 校准区的
+保护边界仍以“不执行全片擦除”和独立恢复资料约束。详见
+[交叉刷写门禁](../../ble213-crossflash-gate.md)。
 
 “保持 BLE 2.13 原二进制后，设备名称还能显示 AnnePro2 吗？”
 
@@ -100,7 +109,7 @@
   普通键盘
   Consumer 媒体键
   Vendor 桥接框架
-  Num/Caps/Scroll
+  Caps via 20/07
   四槽配对与切换
   UART 完整帧与容错
   USB 维护与救援

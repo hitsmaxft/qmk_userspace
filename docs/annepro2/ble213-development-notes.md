@@ -24,7 +24,7 @@ C18 IAP 的 firmware-layout 回复实际为 main、LED、BLE 都报告 `0x4000`�
 旧版 flasher 对回复只做打印，写块失败后继续，缺少目标、命令、状态和超时
 约束。BLE erase 较慢时也可能无界等待。
 
-解决版 `hitsmaxft/AnnePro2-Tools@3a0b490`：
+解决版 `hitsmaxft/AnnePro2-Tools@158aa04`：
 
 - 回复必须匹配 destination/source、command 和 key；
 - erase/write status 必须为零；
@@ -59,6 +59,30 @@ Nix 包装固定在 `hitsmaxft/nix-annepro2-tools@3a1602d`，userspace flake
 - 只有 BLE 发来的 `0x20/0x0C` HID-ready 才持久化 slot 并切换路由；
 - 重复 HID-ready 可幂等应答，不重复切换；
 - 一次实测从广播到 HID-ready 约 6.09 秒。
+
+## 旧 Caps 结构既会误判又没有输出
+
+旧 QMK 把所有 11-byte BLE RX 帧覆盖到末字节为 `caps_lock` 的结构，因此
+`40/01`、`40/04` ACK 和 `20/0C` handshake 都可能误改该变量；与此同时
+`host_driver.keyboard_leds` 固定返回 0，实际又不会把状态交给 QMK 灯控。
+
+继续反汇编后得到可实现的共同契约：
+
+- C18 KEY 2.36.3 的 `0xC45E–0xC4CC` 从标准 LED Output byte 提取 bit 1，
+  归一化为 `0/1` 并构造 `20/07`；
+- AP2D KEY 3.08 的 group `0x20`/opcode `0x07` 调用 Caps 状态函数；
+- BLE 2.13 实机连接时已捕获 `20/07 00`。
+
+解决：
+
+- 只接受完整的 `7B 12 35 00 03 00 00 7D 20 07 00/01`；
+- 错误长度、routing、group/opcode 和 value `>1` 不改变状态；
+- 协议回复继续保留原 value；
+- QMK BLE host driver 返回标准 Caps LED bit，新 route 前清零防止跨 host
+  残留；
+- `macvim` keymap 只调用 C18 既有外置 LED MCU sticky-key 命令，不移植
+  AP2D 的 GPIO/RGB 实现；
+- host 测试覆盖合法开关和所有上述拒绝路径，实体灯仍单独实测。
 
 ## 快速切槽会混入旧事务
 
@@ -120,7 +144,7 @@ BLE 2.13 的启动、slot 1 配对、HID-ready 和普通输入来自状态机演
 处理原则：
 
 - 旧日志继续作为 UART 语义和方案方向的证据；
-- 不把它写成当前 `d674a458db` 固件已经完成硬件回归；
+- 不把它写成当前 `e3dfb6829d` 固件已经完成硬件回归；
 - 当前精确二进制仍需重测普通键盘、媒体、四槽和外部 LED MCU；
 - 验收状态集中记录在
   [C18 KEY 双 BLE 首版验证矩阵](ble213-validation-matrix.md)。

@@ -39,6 +39,13 @@ const ap2_led_t layer_color = {
     .pv = __INDICATOR_COLOR__,
 };
 
+const ap2_led_t caps_lock_color = {
+    .p.blue  = 0x00,
+    .p.red   = 0xff,
+    .p.green = 0x00,
+    .p.alpha = 0xff,
+};
+
 
 /* layer settings */
 uint8_t layer_mask[20];
@@ -68,6 +75,19 @@ void keyboard_post_init_user(void) {
     //debug_matrix=true;
     //debug_keyboard=true;
     //debug_mouse=true;
+}
+
+bool led_update_user(led_t led_state) {
+    /*
+     * C18 keeps a separate LED MCU. Use its existing sticky-key command for
+     * the physical Caps position; do not import Anne Pro 2D's direct LED path.
+     */
+    if (led_state.caps_lock) {
+        ap2_led_sticky_set_key(2, 0, caps_lock_color);
+    } else {
+        ap2_led_unset_sticky_key(2, 0);
+    }
+    return true;
 }
 
 void reset_to_iap(void) {

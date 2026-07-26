@@ -28,7 +28,8 @@
 
 当前 backport 的主体固定为 C18 KEY 源码，BLE 2.13 二进制保持原样。首版需要
 同时支持 C18 BLE 2.05 和 AP2D BLE 2.13，并覆盖键盘、Consumer、配对和四主机
-切换。AP2D 已取消 C18 的独立 LED MCU，因此 AP2D 的锁定灯、RGB 和 LED 输出
-实现不属于本次 backport；锁定灯只按 C18 原有板级路径做非回归和实机验收。
+切换。AP2D 已取消 C18 的独立 LED MCU，因此不移植 AP2D 的 GPIO/RGB/LED
+Output 实现；两代共同使用的 `20/07` Caps 逻辑状态则通过 QMK 标准 LED
+接口桥接到 C18 原有外置 LED MCU，并单独做实机验收。
 尚未由完整调用链或抓包确认的 UART 命令必须保持实验状态。构建成功不能替代
 radio、bond、HID、外部 LED MCU 或交叉刷写安全性的实机验证。

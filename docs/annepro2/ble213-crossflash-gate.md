@@ -87,7 +87,7 @@ flash。
 
 修复版分别保存在：
 
-- `hitsmaxft/AnnePro2-Tools@3a0b4903012faa710d442140c3a84a92c7b284db`；
+- `hitsmaxft/AnnePro2-Tools@158aa04a0755090506d1318b96836645586b1686`；
 - `hitsmaxft/nix-annepro2-tools@3a1602d652180c72930d1fb82b56069f43004d30`。
 
 当前实现：

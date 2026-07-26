@@ -25,8 +25,9 @@
    永远不用于推断 radio 或 HID 已就绪；
 5. profile 操作采用 single-flight：已有操作 pending 时只记录最后一次 slot
    意图，1 秒有界切换窗口后启动新事务，不进入旧事务的 10 秒握手等待；
-6. 按官方主控行为原值回复 BLE 的 `0x20/0x07` 状态同步请求，但不把它猜成
-   disconnect 或 connected 事件；
+6. 按官方主控行为原值回复 BLE 的 `0x20/0x07` Caps Lock 状态同步请求；
+   只有完整帧精确匹配且 value 为 `0/1` 时才更新 QMK host LED bit 1，
+   该帧仍不作为 disconnect 或 connected 事件；
 7. 只在 `0x20/0x0c` 握手成功、BLE route 真正启用后，将 slot 写入 QMK
    keyboard EEPROM。下次上电等待 BLE MCU 稳定 500 ms 后，以“本次会话首次
    选择”的语义发送 broadcast；500 ms 内如果 BLE 已自行恢复并发来 handshake，
@@ -40,7 +41,7 @@
 | BLE 建链握手 | 忽略所有 RX，除碰巧覆盖 Caps Lock 结构 | 官方主控要求的 `20/0c` 响应缺失；BLE 可能重试或不进入可收报告状态 | 回发官方主控使用的 12-byte 响应，再完成 route |
 | BLE RX framing | RX 非空后用 `sdReadTimeout(..., 11, 10)` | 变长帧会错位，矩阵扫描还可能阻塞 10 ms | 按长度字段逐字节非阻塞解析并重同步 |
 | 启动 RX | wakeup 后直接丢弃整个 RX 缓冲 | 可能丢失 ACK 或异步状态 | 将缓冲内容交给同一 parser |
-| `20/07` 状态同步 | 当作不透明 Caps Lock 结构覆盖 | 官方主控要求的原值响应缺失 | 回发 `20/07 VV`，不据此切 route |
+| `20/07` Caps 同步 | 任意 11-byte 帧都可能覆盖旧 Caps 结构，但 host callback 始终返回 0 | ACK/握手可污染状态，且官方主控要求的原值响应缺失 | 严格匹配 `20/07 00/01` 后更新 QMK LED bit 1；任意 value 仍原值回包，不据此切 route |
 | unpair 本地状态 | 发命令但不恢复 USB，也保留旧 slot | 断链后仍把按键送向 BLE；再次按 slot 可能误发 connect | 清除 slot/请求状态并恢复原 host driver |
 | BLE 中切换 slot | 旧 BLE driver 继续接收按键 | 等待新 slot 时报告可能仍投向旧链路 | 进入 pending 前恢复原 host driver |
 | 快速切换 slot | 多个操作共享隐式 slot 状态 | 旧 ACK/handshake 可完成错误事务 | single-flight 加 latest-intent；新操作延迟 1 秒有界启动 |
@@ -92,8 +93,12 @@ group `0x20` handler 的 opcode `0x0c` 分支位于 `0x66d6`：
 命令 ACK。旧 QMK 读取它却不回复，与官方主控行为不一致。
 
 同一 group 的 opcode `0x07` 分支位于 `0x6612`。它保留输入 value 并反转
-routing 字段，构造 `7B 12 43 00 03 00 00 7D 20 07 VV`。这确认了回复格式，
-但没有确认 `VV` 的业务名称，因此实现只响应、不切换 route。
+routing 字段，构造 `7B 12 43 00 03 00 00 7D 20 07 VV`。继续检查 C18 KEY
+2.36.3 的 HID Output 路径 `0xC45E–0xC4CC`，可见它从 LED Output byte
+提取 bit 1，归一化为 `0/1`，再发送同一个 `20/07` opcode。AP2D KEY 3.08
+的 group `0x20` handler 也在 opcode `0x07` 分支调用 Caps 状态函数。
+因此 `VV` 已确认是 Caps Lock 布尔状态；它更新 QMK 的标准 LED 状态，但仍
+不切换 route。
 
 实机 USB log 又提供了时序交叉验证：
 
@@ -185,7 +190,7 @@ UART 字节可靠归属。single-flight 消除了 QMK 主动重叠命令，并�
 | 长按 slot 配对 | 一次 `40/01`；2.05/2.13 都加一次 `20/0b slot,1`；ACK 不切 driver，`20/0c` 后才切 BLE |
 | 短按 slot 重连 | 一次 `40/04`；2.05 加 `20/0b slot,0`，2.13 加 `20/24 slot,2`；ACK 不切 driver，握手之后开始发送 HID |
 | slot 状态与重试 | 主命令可重发，`20/0b` 或 `20/24` 整个动作只能发送一次 |
-| `20/07` | 对任意 value 原值回复，不改变 route |
+| `20/07` | 对任意 value 原值回复；仅精确的 11-byte 帧且 value 为 `0/1` 时更新 Caps bit；不改变 route |
 | 冷启动自动重连 | 先等待 500 ms 被动握手；未发生时只对上次成功 slot 执行 broadcast，不发送 `40/04`/`20/0b` |
 | 首次/失败选择 | 未收到 `20/0c`、未切 BLE route 时不覆盖 EEPROM 中的上次成功 slot |
 | USB 后冷启动 | `KC_AP2_USB` 清除自动重连；下次启动停留 USB |
@@ -198,7 +203,7 @@ UART 字节可靠归属。single-flight 消除了 QMK 主动重叠命令，并�
 | BLE 状态下选择另一 slot | 立即退出旧 BLE route，等待新 slot 握手 |
 | unpair | 发出原有 `40/05`，清除 slot 并恢复 USB |
 | RX 半帧/粘包/垃圾前缀 | 矩阵扫描不阻塞；parser 在 `0x7b` 重同步 |
-| Caps Lock | 不再把任意 11-byte 帧末字节当状态；记录实际帧，确认 opcode 后接入严格 1/2-byte decoder |
+| Caps Lock | 不再把任意 11-byte 帧末字节当状态；严格 decoder 接受 `7B 12 35 00 03 00 00 7D 20 07 00/01`，新 route 前清除旧值 |
 
 构建通过只证明代码可编译。上游 PR 前还需用 C18 实机完成上述矩阵，并保存
 USB console 或 PA4/PA5 115200 8N1 双向抓包。
@@ -213,6 +218,8 @@ Fix Anne Pro 2's keyboard-side BLE UART state handling:
 - parse variable-length BLE UART frames without blocking matrix scan;
 - preserve wakeup responses instead of flushing the RX queue;
 - answer the module's 0x20/0x07 state-sync request while preserving its value;
+- expose a strictly decoded 0x20/0x07 boolean as QMK's Caps Lock host LED
+  state, clearing stale state before another route;
 - answer the module's 0x20/0x0c handshake with the same response emitted by
   the official keyboard firmware;
 - emit the stock slot-key state notification once per tap or hold, independently
@@ -244,7 +251,8 @@ reports can be delivered.
   AnnePro2 connected. No `40/04` was emitted. This validates the fallback
   path before the passive-startup state was added.
 - Host replay: garbage-prefix resynchronization, variable frame lengths,
-  value-preserving `20/07`, and fixed `20/0c` responses pass.
+  value-preserving `20/07`, strict Caps boolean decoding, and fixed `20/0c`
+  responses pass.
 - Pending hardware validation: passive startup handshake, one-shot `20/0b`,
   latest-intent slot switching, explicit USB-preference persistence, and
   failed-slot preservation.

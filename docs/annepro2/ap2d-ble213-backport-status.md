@@ -37,25 +37,13 @@
 
 QMK 分支：`codex/annepro2-ble213-backport`
 
-基线后的首个 backport 提交：`d1b9d6df06 Add Anne Pro 2 BLE firmware profiles`
+相对 QMK `origin/master` 的当前提交序列：
 
-slot 状态差异修正：`da28ab855d Match AP2D BLE slot state commands`
-
-slot 事务顺序与 LED 范围修正：
-`8109af3c33 Match AP2D slot transaction ordering`
-
-可测试状态机与切槽隔离：
-`a2e6e9585f Test Anne Pro 2 BLE slot state machine`
-
-UART framing 加固：
-`538278883d Harden Anne Pro 2 BLE UART framing`
-
-C18 范围隔离与 C15 非回归：
-`01dd36c04c Limit BLE backport to Anne Pro 2 C18`、
-`ac2fcb3ead Preserve Anne Pro 2 C15 BLE behavior`
-
-日志构建版本绑定：
-`d674a458db Log Anne Pro 2 firmware revisions`
+- `9a11173bf8 Harden Anne Pro 2 BLE connection state handling`
+- `27d55e7b52 Add Anne Pro 2 C18 BLE firmware profiles`
+- `7d3d33a8aa Extract and test Anne Pro 2 BLE state parsing`
+- `7c344d4e7d Scope the BLE backport to Anne Pro 2 C18`
+- `e3dfb6829d Handle Anne Pro 2 BLE Caps Lock state`
 
 - 同一 C18 KEY 源码内置 `C18_BLE205` 和 `AP2D_BLE213` profile。
 - 完整 BLE 2.05/2.13 实现只由 C18 的 `rules.mk` 链接；C15 继续使用原
@@ -87,6 +75,9 @@ C18 范围隔离与 C15 非回归：
 - UART parser 校验 24 位 payload length 的高字节、32 字节 payload 上限和
   `0x7D` delimiter；20 ms 内没有补齐的半帧会过期，下一帧可从 `0x7B`
   重新同步。payload 内部的 `0x7B` 不会被误认为新帧。
+- C18 KEY 2.36.3 与 AP2D KEY 3.08 静态路径共同确认 `0x20/0x07` 的 value
+  是 Caps Lock 布尔状态。driver 只接受完整精确帧和 `0/1`，映射到 QMK
+  host LED bit 1；任意 value 的原值协议回复继续保留，新 route 前清除旧状态。
 - 增加无硬件依赖的 host 测试，覆盖 Consumer release、1–4 个 Usage、
   golden vectors、slot 状态 golden vectors、profile/slot 全组合、校验损坏
   和越界输入；状态机测试覆盖启动恢复、tap/hold、命令重试、ACK/握手分离、
@@ -98,20 +89,22 @@ UART `0x40/0x01`、`0x40/0x04` ACK 不包含 KEY 侧 transaction ID 或可确认
 到达的同 opcode 旧 ACK 属于哪个事务。由于 ACK 本身不启用输入路由，风险已
 收窄；最终仍须以四槽实机日志验证。
 
-## 明确排除的 LED 路径
+## C18 锁定灯边界
 
 AP2D 取消了 C18 的独立 LED MCU，KEY MCU 直接驱动 RGB。`0x8426`、
 `0xBE1A`、`0xBE5A`、`0xBE60` 属于 AP2D 自身的 HID Output/RGB 状态实现，
 不能作为 C18 LED MCU 的替代代码直接回移。按当前范围：
 
-- 不移植 AP2D 的锁定灯、RGB、LED Output callback 或 suspend 灯控；
-- 不在 BLE UART parser 中猜测 LED group/opcode；
+- 不移植 AP2D 的 RGB、GPIO、LED Output callback 或 suspend 灯控；
+- 只采用两代固件共同确认的逻辑 ABI：`20/07 00/01` 是 Caps 状态；
 - C18 原有 LED MCU 与板级实现保持不变；
-- 已删除曾经隔离实现、但未接入 UART 的 1/2 字节 LED decoder 和测试。
+- QMK driver 通过标准 `host_driver.keyboard_leds` 暴露 Caps bit，当前
+  `macvim` keymap 再调用 C18 既有 `sticky key` 命令显示物理灯位。
 
 旧 QMK 的 `ble_capslock_t` 会把任意 11 字节 RX 帧的末字节当作 Caps 状态，
 容易被命令 ACK 和握手帧污染，而且 host driver 实际始终返回 0；该伪兼容
-路径仍保持删除。debug 构建继续记录每个完整 RX 帧，供未来独立研究使用。
+路径仍保持删除。新的严格 decoder 有 host 测试覆盖合法开/关、错误长度、
+routing、group/opcode、非法 value 和空指针。
 
 Vendor Report ID 2 的方向适配也保持关闭，直到业务 UART opcode 被确认。
 
@@ -144,7 +137,7 @@ profile 切换会清除自动连接 slot。随后应按目标 slot 重新连接�
 
 - host 测试以 `-std=c11 -Wall -Wextra -Werror` 编译并通过。
 - `annepro2` 与 `annepro2-ble213` 均通过，当前两个普通构建均为
-  43,844 字节；二者只改变无有效 EEPROM 记录时的默认 profile。
+  43,996 字节；二者只改变无有效 EEPROM 记录时的默认 profile。
 - C15 default 继续链接原 BLE 驱动并构建通过，大小为 37,504 字节。
 - C18 的 `ap2_led.*`、`protocol.*`、`rgb_driver.*` 与 QMK 分支基线逐字节
   无差异。
@@ -173,9 +166,10 @@ profile 切换会清除自动连接 slot。随后应按目标 slot 重新连接�
 
 这些结果证明 BLE 2.13 已在目标板上完成启动、连接和普通键盘输入。IAP
 协议没有可用的 flash readback，所以 status-zero 传输不能解释成逐字节写回
-验证；媒体键、完整四槽和外部 LED MCU 回归也仍需单独验收。上述实机记录来自
-parser/C18 范围隔离之前的同一状态机演进版本；当前分支最新
-`d674a458db` debug 标记版本尚未重新刷入，不能把旧记录写成当前二进制已验证。
+验证；媒体键、完整四槽和外部 LED MCU 回归也仍需单独验收。`7c344d4e7d`
+debug 固件后来已重新刷入，并记录到 BLE 2.13 的 `20/07 00`、HID-ready 和
+ACTIVE route；但新加入 Caps 状态桥接的 `e3dfb6829d` 尚未刷入，不能把旧记录
+写成当前精确二进制的锁定灯验证。
 
 核心 backport 的实机使用官方 BLE 2.13 原始镜像。另行提供的
 `HEXCORE AnnePro 2C` 固定宽度名称变体只用于兼容模式显示，不参与上述结论，
@@ -186,7 +180,8 @@ parser/C18 范围隔离之前的同一状态机演进版本；当前分支最新
 1. 依次验证 Consumer、清除配对、四个 slot 的
    广播/连接/超时/迟到事件。
 2. 用当前精确日志固件重新验证普通键盘，并换回 BLE 2.05 重复全部用例。
-3. 回归 C18 独立 LED MCU 的 Caps/灯效行为；不移植 AP2D 直驱 LED/RGB。
+3. 刷入 `e3dfb6829d` 日志固件，验证 `20/07 00/01`、QMK Caps bit 与 C18
+   外置 LED MCU 的实体灯位一致；不移植 AP2D 直驱 LED/RGB。
 4. 若要把刷写从“status-zero 传输”提升到完整验证，仍需 CC254x 调试接口保存
    256 KiB flash 与 Information Page，并完成写后 readback。
 5. Vendor Report ID 2 的方向适配保持关闭，直到业务 UART opcode 被确认。

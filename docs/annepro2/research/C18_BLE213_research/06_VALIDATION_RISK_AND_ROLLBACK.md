@@ -1,11 +1,16 @@
 # 验证、风险与回滚计划
 
-协议适配具备明确实现路径，BLE 2.13 镜像在 C18 副控板上的安全烧录仍属于实机门禁。测试顺序必须先建立恢复能力，再进入 BLE 2.13 实验。
+协议适配具备明确实现路径。官方 BLE 2.13 已在 C18 副控板完成 IAP
+status-zero 传输、启动、广播、macOS 连接和普通输入；IAP 没有已验证的
+readback，因此本页仍保留刷写前门禁和恢复边界，不能把运行结果扩大成 flash
+逐字节或所有硬件批次的证明。
 
 发布分层：
 
-- 首版兼容固件：双 profile、普通键盘、媒体、四槽、UART 容错、USB 维护/救援。
-- AP2D LED/RGB、锁定灯和 suspend 灯控明确排除；C18 原 LED MCU 路径只做回归验证。
+- 首版兼容固件：双 profile、普通键盘、媒体、Caps 锁定灯、四槽、UART
+  容错、USB 维护/救援。
+- AP2D GPIO/RGB、LED Output callback 和 suspend 灯控明确排除；共享
+  `20/07` Caps 状态桥接到保持不变的 C18 LED MCU 路径。
 
 ## 烧录前门禁
 
@@ -94,7 +99,7 @@ power_state
 | 普通键盘 | BLE 2.05/2.13，各 OS 连续输入、组合键、6KRO | 无丢键、重复、粘键 |
 | Consumer | Mute、音量、播放、上下曲、亮度 | 两 profile 均正确；release 无粘连 |
 | Vendor | 读取/写入可回滚配置 | 方向和 18 B 长度正确；配置工具无退化 |
-| CapsLock | macOS 发送 1 B 与 2 B Output；重连、睡眠、输入法切换 | Caps/Num/Scroll 不串位，LED 一致 |
+| CapsLock | BLE 发出 `20/07 01/00`；重连、切槽、睡眠和输入法切换 | 严格帧日志、QMK Caps bit 与 C18 实体灯一致；旧 host 状态不跨槽残留 |
 | 双键盘同主机 | 两块 BLE 2.13 键盘依次绑定 Windows/macOS/Linux | 两块均保留并可重连；地址/身份不冲突 |
 | 四槽配对 | 四台不同主机长按配对 | 每槽 bond 独立；超时不影响其他槽 |
 | 四槽切换 | 短按、快速连续切换、连接中再切换；至少 100 次跨槽压力 | 旧事件不污染新槽；状态灯真实；无永久失联 |

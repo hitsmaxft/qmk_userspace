@@ -74,9 +74,9 @@ GPIOD 0x400B6000
 | 协议线程 | `0xC0B8` | `Thread Protocl` |
 | UART 线程 | `0xCE7C` | `Thread Uart` 完整帧组包 |
 | LED Output 回调 | `0x8426` | 接受 1 B/2 B |
-| Scroll 状态 | `0xBE1A` | LED bit 2 |
+| Caps 状态 | `0xBE1A` | LED bit 1 |
 | Num 状态 | `0xBE5A` | LED bit 0 |
-| Caps 状态 | `0xBE60` | LED bit 1 |
+| Scroll 状态 | `0xBE60` | LED bit 2 |
 | pending 调度 | `0x6A1A` | flag 2 恢复回调 |
 | 恢复的事件调用 | `0x8216` | 调用 vtable `+0x18` |
 | 四槽对象回调 | `0x82DE` | 命令 `0x21/0x22`、槽 0–3 |

@@ -1,7 +1,7 @@
 # C18 KEY 双 BLE 首版验证矩阵
 
 本页是 `codex/annepro2-ble213-backport` 当前状态的验收入口，记录时的 QMK
-提交为 `d674a458db`。结论严格区分源码/host 测试、固件构建、旧版本实机记录
+提交为 `e3dfb6829d`。结论严格区分源码/host 测试、固件构建、旧版本实机记录
 和当前精确二进制实机验证。
 
 ## 范围与不变量
@@ -14,7 +14,8 @@
 - `HEXCORE AnnePro 2C` 是另行生成的可选兼容名称镜像，不是本轮 backport
   构建或实机结论所使用的官方镜像；
 - AP2D 已取消 C18 的外部 LED MCU。本轮不移植 AP2D 直驱 LED/RGB 代码，
-  只保证 C18 原灯控路径不被修改并等待实机回归。
+  保持 C18 原灯控 driver 不变；共享的 `20/07` Caps 逻辑状态由 QMK 标准
+  host LED 接口桥接到现有 C18 LED MCU keymap 行为。
 
 ## 需求覆盖
 
@@ -27,7 +28,7 @@
 | 配对 | 部分通过 | 四槽 broadcast/tap-hold/ACK/HID-ready 状态路径 host 测试通过；此前 BLE 2.13 slot 1 新配对成功 | slot 2–4 以及 BLE 2.05 实机配对 |
 | 四主机切换 | 软件通过 | 四个 slot 的 connect、broadcast、ACK、HID-ready、持久化循环测试；latest-intent 和迟到 ACK 隔离测试 | 四台真实 host 的切换、超时和压力测试 |
 | 上电恢复 | 软件通过 | 保存 slot、被动握手、500 ms fallback、一次有界恢复和停止条件测试 | 两种 BLE 固件的多轮断电重连 |
-| 锁定灯/外部 LED MCU | 源码非回归通过 | `ap2_led.*`、`protocol.*`、`rgb_driver.*` 与分支基线逐字节无差异 | Caps/Num 状态和灯效的 C18 实机回归；不能用 AP2D LED 代码代替 |
+| 锁定灯/外部 LED MCU | 软件通过 | C18/AP2D 静态证据确认 `20/07 00/01` 为 Caps；严格 decoder host 测试；QMK host LED bit 1 桥接；`macvim` 使用 C18 既有 sticky-key API；LED driver 文件与基线逐字节相同 | 当前精确固件的 `20/07 01/00` 日志、Caps 实体灯亮灭与重连/切槽清理；Num/Scroll 尚无共享 UART 帧证据 |
 | UART RX 健壮性 | 软件通过 | 完整 24 位长度检查、32 字节上限、delimiter、20 ms 半帧超时、噪声重同步和 timer wrap host 测试 | 当前固件上的 UART 噪声/断帧压力测试 |
 | 日志与源码绑定 | 软件通过 | debug 启动日志包含 `QMK_GIT_HASH` 和可用的 `QMK_USERSPACE_VERSION` | 刷写后保存 revision 行 |
 | C15 非回归 | 构建通过 | C15 继续链接原 BLE 驱动，default 固件构建为 37,504 字节 | C15 实机回归 |
@@ -50,8 +51,8 @@ direnv exec . just annepro2-c15
 
 | 构建 | 大小 | SHA-256 |
 |---|---:|---|
-| C18，BLE 2.05 默认 profile | 43,844 B | `6c4b180a2f80b5279043b53d2697b6888cec0f9ca5f7bc4e9567e6d9329bd049` |
-| C18，BLE 2.13 默认 profile | 43,844 B | `8733df1d4cae3d2a434316378a70b5bdfb1ef4844d346eb8ec12c41a731fa830` |
+| C18，BLE 2.05 默认 profile | 43,996 B | `3db6c726118643697f8d831b96d07f5a1913d07d2c566d5f6e2ee24e1e13fe41` |
+| C18，BLE 2.13 默认 profile | 43,996 B | `5ee4d1f46022c63fac4a5a29d3ecf631371da6094bc046d4bc8557da8c94d7f7` |
 | C15 default | 37,504 B | `4712f841f5c4b61ed583dfe862d822caa557c13f0a2485a50a6602ea33b0d306` |
 
 这些哈希只用于定位本次本机构建；QMK 构建元数据或工具链变化可能产生不同哈希。
@@ -59,6 +60,8 @@ direnv exec . just annepro2-c15
 host 测试使用 `-std=c11 -Wall -Wextra -Werror`，覆盖：
 
 - BLE 2.05/2.13 Consumer 编码和 release-all；
+- `20/07 00/01` Caps Lock 严格解码，以及错误长度、routing、opcode 和
+  value 不改变状态；
 - profile/slot EEPROM 编解码、损坏和边界输入；
 - tap/hold、四槽、命令重试、ACK/HID-ready 分离、快速切槽、断开/解绑、
   有界恢复和 32 位计时器回绕；
@@ -78,7 +81,9 @@ license header 和带连字符 keymap 名称问题；这些文件与命名均不
 1. 官方 BLE 2.13：slot 1–4 分别新配对、短按重连、快速交叉切换和断电恢复；
 2. 普通键盘及全部实际使用的媒体键；日志中只能在 `0x20/0x0C` 后出现
    `route ble`；
-3. C18 外部 LED MCU 的 Caps/锁定灯和现有灯效，不引入 AP2D LED 路径；
+3. C18 外部 LED MCU 的 Caps 灯和现有灯效：日志应出现
+   `rx caps lock=1/0`，物理灯位同步亮灭，切槽时不保留旧主机状态；不引入
+   AP2D LED 路径；
 4. 换回官方 BLE 2.05，重复普通键盘、媒体、配对、四槽和断电恢复；
 5. 记录非零 ACK、迟到 ACK、半帧超时或 parser 重同步样本。
 

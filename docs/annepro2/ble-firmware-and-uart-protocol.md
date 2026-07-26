@@ -112,8 +112,11 @@ USART1 IRQ vector +0xa0 -> 0xec83
 7b 12 43 00 03 00 00 7d 20 07 VV
 ```
 
-因此 `20/07` 是 BLE 发起、主控必须原值回复的状态同步请求。固件静态分析尚未
-确定 `VV` 的业务名称，但已足以实现兼容响应；它本身不改变 QMK host route。
+因此 `20/07` 是 BLE 发起、主控必须原值回复的状态同步请求。C18 KEY 2.36.3
+的 HID Output 路径 `0xC45E–0xC4CC` 会提取标准 LED Output bit 1，归一化为
+`0/1` 并发送相同 opcode；AP2D KEY 3.08 的 group `0x20` handler 也把
+opcode `0x07` 交给 Caps 状态函数。`VV` 因而可确定为 Caps Lock 布尔值，
+但该帧本身仍不改变 QMK host route。
 
 对 `0x7eac` 的全映像 callsite 检查还发现两处主动发送 opcode `0x0b`：
 `0xa42c` 发送 `(0x0b, value, 1)`，`0xa444` 发送
@@ -226,9 +229,18 @@ struct __attribute__((packed)) {
 会把 `40/01`、`40/04` ACK 或 `20/07`、`20/0c` 的末字节误当锁灯状态。旧
 host driver 又始终返回 0，因此这条路径没有真正提供 Caps Lock 同步。
 
-当前 QMK 已移除该伪兼容，只按 `8 + LL` 分帧并记录完整 debug 帧。1 字节
-`LED bits` 与 2 字节 `[Report ID, LED bits]` 的严格 decoder 已测试，但在
-Caps Lock 的 BLE→KEY group/opcode 被静态确认或抓包确认前不接入事件处理。
+当前 QMK 已移除该伪兼容，只按 `8 + LL` 分帧。独立、无硬件依赖的 decoder
+只接受：
+
+```text
+7B 12 35 00 03 00 00 7D 20 07 00
+7B 12 35 00 03 00 00 7D 20 07 01
+```
+
+匹配后把 value 映射为 QMK 标准 Caps Lock LED bit 1；错误 routing、长度、
+group/opcode 或 value `>1` 都不会改变状态。协议兼容回复仍保留原 value，
+避免把未来未知扩展静默吞掉。开始新 route 时清零旧 BLE LED 状态，防止换槽
+后沿用旧主机的锁定灯。
 
 ## 清洁室 BLE 实现契约
 
@@ -242,7 +254,7 @@ Caps Lock 的 BLE→KEY group/opcode 被静态确认或抓包确认前不接入�
 4. 提供 BLE HID keyboard 和 consumer-control 报告路径；至少覆盖表中的 boot keyboard 8-byte 和 consumer `C0` 位掩码。
 5. 建链/HID 配置到达相应阶段后向主控发送 11-byte `20/0c` handshake
    request，并等待 12-byte `20/0c 00 00` response；超时和重试参数仍需实机
-   测定。保持 Caps Lock 回包兼容，直到其 group/opcode 被抓包确认。
+   测定。对 `20/07 00/01` 提供 Caps Lock 状态同步并原值回包。
 6. IAP/bootloader 命令在完成抓包、失败恢复与映像格式确认前不实现或默认拒绝，避免把未验证的 `0x7b 10 51 10...` 帧暴露为刷写入口。
 7. 只使用有授权的 8051/BLE SDK、协议栈和自行编写的代码；官方二进制只作行为和接口参考。
 

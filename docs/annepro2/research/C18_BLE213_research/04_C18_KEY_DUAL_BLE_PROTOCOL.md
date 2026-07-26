@@ -98,7 +98,7 @@ Report ID 是否由外层 UART 命令携带，沿用现有 C18 KEY→BLE 封装�
 | 3 | Compose |
 | 4 | Kana |
 
-归一化输入：
+AP2D KEY 内部对主机 LED Output 的归一化输入：
 
 ```c
 bool decode_led_output(const uint8_t *buf, size_t len, uint8_t *bits) {
@@ -114,13 +114,16 @@ bool decode_led_output(const uint8_t *buf, size_t len, uint8_t *bits) {
 }
 ```
 
-解析成功后更新统一 `lock_state`，再分别通知：
+该 1/2 B decoder 是 AP2D KEY 内部来源证据，不直接复制到 C18。BLE↔KEY
+UART 已提供更窄的共同契约：
 
-- C18 LED MCU；
-- KEY 内部按键/层逻辑；
-- USB/BLE 模式切换后的重同步逻辑。
+```text
+7B 12 35 00 03 00 00 7D 20 07 00/01
+```
 
-重复收到相同状态时只做幂等更新，避免 Caps 灯重复翻转。
+C18 backport 只从该精确帧更新 Caps bit，经 QMK `host_driver.keyboard_leds`
+通知 C18 既有 LED MCU keymap 行为。新 route 前清零，重复值幂等；Num、
+Scroll、Compose 和 Kana 在没有共享 UART opcode 证据时不推断。
 
 ## Consumer Report ID 3
 
@@ -307,8 +310,9 @@ int ble_clear_all_slots(void);
 |---|---|---|
 | 普通键盘 | 原行为一致 | 6KRO 正常 |
 | Consumer | 4 B 位图 | 8 B Usage 数组 |
-| Vendor | 旧方向 | 新方向 |
-| Caps/Num/Scroll | 1/2 B 均正常 | 1/2 B 均正常 |
+| Vendor | 保留旧方向 | 首版关闭；确认业务 opcode 后适配新方向 |
+| Caps 锁定灯 | `20/07 00/01` | `20/07 00/01` |
+| Num/Scroll | 未确认独立 UART ABI | 未确认独立 UART ABI |
 | 四槽 | 原能力无回归 | 配对、切换、超时、重配完整 |
 | 串口异常 | 可重新同步 | 可重新同步 |
 | suspend | 第二阶段按 C18 语义实现 | 第二阶段使用同一 C18 语义 |
