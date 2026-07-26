@@ -164,10 +164,23 @@ BLE 2.13 的启动、slot 1 配对、HID-ready 和普通输入来自状态机演
 ## USB console 只能由一个进程占用
 
 已有 `qmk console` 运行时再启动一个实例会报无法打开设备，容易被误判为
-固件 USB 故障。
+固件 USB 故障。一次中断后的 wrapper 已退出，但实际 Python
+`.qmk-wrapped console -t -d AC20:8009:1` 继续存活并独占 HID；只搜索
+`just qmk console` 或 shell wrapper 会漏掉它。终止该精确进程后，同一 KEY
+的 console 立即成功连接，证明问题来自监听器泄露而不是固件接口。
 
-解决：继续读取原 console 会话；需要重启时先明确结束旧进程。console 日志
-证明 UART/QMK 路由和 report 提交，不单独证明无线主机已收到按键。
+处理流程：
+
+1. 用 `ps`/`pgrep` 同时搜索 `.qmk-wrapped.*console`、`hid_listen`、wrapper
+   和 `just qmk console`；
+2. 先确认 PID、启动时间和完整命令，只终止确定的遗留 listener，不使用宽泛
+   `killall`；
+3. 硬件测试优先直接运行
+   `direnv exec . qmk console -t -d AC20:8009:1`，结束时发送 Ctrl-C；
+4. 退出后再次搜索进程，确保 listener 没有残留。
+
+console 日志证明 UART/QMK 路由和 report 提交，不单独证明无线主机已收到
+按键。
 
 debug 固件现在会在启动时打印 `QMK_GIT_HASH` 和可用的
 `QMK_USERSPACE_VERSION`。USB 产品名不会随构建变化，不能用它判断硬件上是否
@@ -179,10 +192,12 @@ ACK、command-to-route 延迟、keyboard/consumer/Caps 和 parser fault，并可
 要求 QMK/userspace revision。显式指定的 revision 不存在时命令返回失败；
 `OBSERVED` 仍只表示 KEY↔BLE UART/状态机路径，不能代替 macOS/RF 观察。
 
-最近一次操作者确认 IAP 刷写后蓝牙正常使用，macOS 缓存条目显示
-`HEXCORE AnnePro 2D / BLE-1.5.2`，但 console 接口未能打开，也没有 revision
-行。这只能再次确认 BLE 2.13 方案可运行，不能证明当前精确 KEY 或 2C 名称
-变体。处理原则是保持可用 BLE 不动，需要完整回归时只补刷日志 KEY。
+最近一次操作者确认 IAP 刷写后蓝牙正常使用；macOS 当前分类随后确认
+`HEXCORE AnnePro 2D / BLE-1.5.2` 位于 `device_connected`。清理遗留
+console 后当前 KEY 的日志接口也可打开，但因监听晚于启动且没有采集新的操作，
+仍没有 revision 行或功能日志。这只能再次确认 BLE 2.13 方案可运行，不能
+证明当前精确 KEY 或 2C 名称变体。处理原则是保持可用 BLE 不动，需要完整
+回归时先用受控 console 取证；只有 revision 不符时才补刷日志 KEY。
 
 ## 2C 名称必须保持固定宽度
 

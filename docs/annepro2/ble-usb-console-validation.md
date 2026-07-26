@@ -36,6 +36,17 @@ direnv exec . just qmk console -l
 
 然后省略 `-d` 或使用列出的设备。监听器晚于键盘上电时可能看不到 wakeup 行。
 
+若设备可列出但反复出现 `HIDException: unable to open device`，先检查遗留
+监听器；wrapper 退出后 Python `.qmk-wrapped console` 仍可能存活：
+
+```sh
+ps -axo pid,ppid,lstart,command |
+  rg '[.]qmk-wrapped.*console|[h]id_listen|qmk-worktree.sh qmk console'
+```
+
+确认完整命令和 PID 后只结束该 listener，再重试 console。不要宽泛
+`killall qmk`。测试结束时 Ctrl-C 退出，并重复上述检查，确保没有监听器残留。
+
 ## 日志格式
 
 每行包含 MCU 毫秒时间戳。完整 RX 帧会同时输出原始字节和解码摘要：

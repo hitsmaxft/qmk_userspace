@@ -81,10 +81,13 @@ license header 和带连字符 keymap 名称问题；这些文件与命名均不
 USB 侧枚举为 `AC20:8009 Anne Pro 2 C18 (QMK)`。这与官方 BLE 2.13 正常启动
 一致，但 macOS 条目可能来自配对缓存，且 USB 产品名不包含 KEY revision。
 
-本次 `qmk console` 能列出设备但无法打开 console HID 接口，因而没有取得
-`build qmk=... userspace=...`。不能据此确认硬件上运行的是当前
-`e3dfb6829d` KEY，也不能把它算作 2C 名称变体验证。保持当前可用 BLE 不再
-重复刷写；后续只在需要完整矩阵时补刷当前日志 KEY。
+初次 `qmk console` 能列出设备但无法打开 console HID 接口。进程审计随后
+发现一个从先前会话遗留的 `.qmk-wrapped console` 正独占接口；终止该精确
+进程后，当前 KEY 的 console 立即连接成功。因此故障不表示 KEY 缺少日志
+接口。监听开始时启动 revision 已经错过，本轮也尚未采集新的按键事件，所以
+仍不能确认硬件上运行的是当前 `e3dfb6829d` KEY，也不能把它算作 2C 名称
+变体验证。保持当前可用 BLE 不再重复刷写；后续测试先启动受控 console，再
+触发按键或重启，并在结束时显式关闭监听器。
 
 旧的 `/tmp/annepro2-console-fast-switch.log` 经结构化审计只得到：
 
@@ -96,6 +99,13 @@ USB 侧枚举为 `AC20:8009 Anne Pro 2 C18 (QMK)`。这与官方 BLE 2.13 正常
 
 因此旧日志保留为协议演进证据，不关闭普通键、媒体键、Caps 或四槽的当前实机
 门禁。
+
+为下一次受控验证准备的 BLE 2.13 debug KEY 由已推送 userspace
+`6c6bf8ba2c` 和 QMK `e3dfb6829d` 构建，大小 43,080 B，SHA-256 为
+`82ab7fdb8a3b5fca620c074e8ad379a80c5ace09974bfe70ab1afa66f80291bd`；
+镜像内版本为 `latest-154-g6c6bf8` 与 `e3dfb6829d*`。构建时仅对 Git 状态
+忽略固件归档子模块中无关的工作树改动，未改动源文件。该镜像是忽略的本地
+产物，目前尚未刷入，不能作为硬件通过证据。
 
 ## 当前实机门禁
 
