@@ -179,6 +179,12 @@ BLE 2.13 的启动、slot 1 配对、HID-ready 和普通输入来自状态机演
    `direnv exec . qmk console -t -d AC20:8009:1`，结束时发送 Ctrl-C；
 4. 退出后再次搜索进程，确保 listener 没有残留。
 
+随后修复 `scripts/qmk-worktree.sh`：实际 QMK 命令通过可追踪 PID 运行；
+wrapper 的 `INT`、`TERM`、`HUP` trap 会先终止并回收该进程，再删除临时
+worktree。实机使用 `just qmk console -d AC20:8009 -t` 连接成功后发送
+Ctrl-C，wrapper 返回 130；复查没有 `.qmk-wrapped console`，也没有新增
+缓存 worktree。相同 wrapper 的 BLE 2.13 正常构建随后通过。
+
 console 日志证明 UART/QMK 路由和 report 提交，不单独证明无线主机已收到
 按键。
 

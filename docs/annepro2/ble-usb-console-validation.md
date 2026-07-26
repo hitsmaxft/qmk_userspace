@@ -46,6 +46,10 @@ ps -axo pid,ppid,lstart,command |
 
 确认完整命令和 PID 后只结束该 listener，再重试 console。不要宽泛
 `killall qmk`。测试结束时 Ctrl-C 退出，并重复上述检查，确保没有监听器残留。
+当前 `scripts/qmk-worktree.sh` 会跟踪实际 QMK PID，并在收到
+`INT`/`TERM`/`HUP` 时先终止、回收子进程，再移除临时 worktree。真实 console
+测试已确认 Ctrl-C 返回 130，且没有留下 Python listener 或新的 worktree；
+上述进程检查仍用于发现修复前已经存在的 listener。
 
 ## 日志格式
 

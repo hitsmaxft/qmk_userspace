@@ -39,6 +39,9 @@ direnv exec . just lily58
 ```
 
 `scripts/qmk-worktree.sh` builds in a disposable worktree of that checkout.
+The wrapper also terminates and reaps long-running QMK children on
+`INT`/`TERM`/`HUP`, so an interrupted `qmk console` does not retain the HID
+console interface.
 It presents userspace keyboard definitions at standard QMK keyboard paths and
 applies any future focused core patches in `patches/qmk/`. No global QMK
 configuration or `EXTRA_KEYBOARD_FOLDER_PATH` is required.

@@ -25,7 +25,11 @@ direnv exec . just annepro2
 - `scripts/qmk-worktree.sh` creates a disposable worktree from the pinned QMK
   submodule, reuses its initialized nested QMK dependencies, overlays
   local custom keyboards into its standard `keyboards/` directory, and applies
-  any optional `patches/qmk/*.patch` in lexical order.
+  any optional `patches/qmk/*.patch` in lexical order. It owns the spawned QMK
+  process: `INT`, `TERM`, and `HUP` terminate and reap the child before the
+  temporary worktree is removed. After interactive `qmk console` sessions,
+  still verify that no older `.qmk-wrapped console` listener owns the HID
+  interface.
 - Do not reintroduce `EXTRA_KEYBOARD_FOLDER_PATH`; it was a private fork
   extension. Add custom keyboard source under this userspace instead.
 - The AnnePro2 BLE fix and its optional USB instrumentation are part of the

@@ -21,12 +21,40 @@ qmk_revision=$(git -C "$qmk_repo" rev-parse HEAD)
 mkdir -p "$cache_root"
 worktree=$(mktemp -d "$cache_root/qmk.XXXXXX")
 rmdir "$worktree"
+command_pid=
+
+stop_command() {
+    if [[ -z "$command_pid" ]] || ! kill -0 "$command_pid" 2>/dev/null; then
+        command_pid=
+        return
+    fi
+
+    kill -TERM "$command_pid" 2>/dev/null || true
+    for _ in {1..20}; do
+        if ! kill -0 "$command_pid" 2>/dev/null; then
+            break
+        fi
+        sleep 0.1
+    done
+    if kill -0 "$command_pid" 2>/dev/null; then
+        kill -KILL "$command_pid" 2>/dev/null || true
+    fi
+    wait "$command_pid" 2>/dev/null || true
+    command_pid=
+}
 
 cleanup() {
+    # A long-running command such as `qmk console` must not outlive this
+    # wrapper and keep exclusive ownership of the HID console interface.
+    trap - INT TERM HUP
+    stop_command
     git -C "$qmk_repo" worktree remove --force "$worktree" 2>/dev/null || true
     git -C "$qmk_repo" worktree prune --expire now
 }
 trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
 
 git -C "$qmk_repo" worktree add --detach "$worktree" "$qmk_revision" >/dev/null
 
@@ -74,8 +102,14 @@ done
 exit_code=0
 (
     cd "$worktree"
-    QMK_USERSPACE="$repo_root" "$@"
-) || exit_code=$?
+    exec env QMK_USERSPACE="$repo_root" "$@"
+) &
+command_pid=$!
+set +e
+wait "$command_pid"
+exit_code=$?
+set -e
+command_pid=
 
 if [[ -f "$worktree/compile_commands.json" ]]; then
     cp "$worktree/compile_commands.json" "$repo_root/compile_commands.json"
