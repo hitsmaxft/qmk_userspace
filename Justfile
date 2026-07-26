@@ -94,6 +94,10 @@ annepro2-ble-crossflash-check:
     PYTHONDONTWRITEBYTECODE=1 python3 \
         tools/reverse/annepro2/validate_ble_crossflash.py
 
+annepro2-console-audit log *args='':
+    PYTHONDONTWRITEBYTECODE=1 python3 \
+        tools/reverse/annepro2/audit_console_log.py "{{ log }}" {{ args }}
+
 annepro2-ble213-name-image output='c18-ble-2.13-annepro2c.bin':
     PYTHONDONTWRITEBYTECODE=1 python3 \
         tools/reverse/annepro2/patch_ble213_name.py \

@@ -4,6 +4,22 @@
 输出 BLE UART 的完整 RX 帧、route 请求和首批键盘报告。日志用于验证主控
 parser 与状态转换；它不能单独证明 RF 链路质量。
 
+完成一次测试后可生成结构化摘要，并要求日志包含本次固件的 revision：
+
+```sh
+direnv exec . just annepro2-console-audit /tmp/ap2-console.log \
+  --expect-qmk "$(git -C modules/qmk_firmware rev-parse --short=10 HEAD)" \
+  --expect-userspace "$(git rev-parse --short=7 HEAD)"
+```
+
+若日志没有启动时的 `build qmk=... userspace=...`，审计结果会将
+`build_attributed` 标为 `MISSING`，并在指定 revision 时返回失败码。
+`latest-153-gc2130a` 这类 git-describe 字符串可以用其中的短 hash 匹配。
+`pairing_protocol_path` 只表示 broadcast、ACK 与 HID-ready/route 在
+KEY↔BLE 路径出现，不等于 macOS 配对已完成。普通键、媒体键与 Caps Lock
+分别要求日志出现 BLE route 后的 keyboard report、非零及归零 consumer
+report、以及 `caps lock=1/0` 两个方向；实际 RF 输入仍由主机端同步确认。
+
 ## 构建、刷写与监听
 
 ```sh

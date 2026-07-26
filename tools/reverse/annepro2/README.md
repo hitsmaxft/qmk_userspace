@@ -36,6 +36,24 @@ The self-test covers garbage-prefix resynchronization, variable frame lengths,
 the value-preserving `20/07` response, and the fixed `20/0c` response. This is
 a host-side protocol replay, not an RF or physical UART test.
 
+`audit_console_log.py` summarizes a debug firmware's USB console evidence,
+including the embedded QMK/userspace revisions, slots exercised, command ACK
+and command-to-route latency, HID reports, Caps Lock transitions, and parser
+faults:
+
+```sh
+direnv exec . just annepro2-console-audit ap2-console.log \
+  --expect-qmk "$(git -C modules/qmk_firmware rev-parse --short=10 HEAD)" \
+  --expect-userspace "$(git rev-parse --short=7 HEAD)"
+```
+
+The revision requirement prevents an old log from being attributed to the
+current firmware and makes the command fail if the expected revision is
+absent. Git-describe strings such as `latest-153-gc2130a` are accepted. An
+`OBSERVED` row is limited to the KEY-to-BLE UART and state machine path; macOS
+pairing, RF delivery, and the physical input source still need simultaneous
+host-side observation.
+
 `recover_ap2d_data.py` executes only AP2D KEY 3.08's position-independent
 Thumb decompressor at `0x13700`. It restores the initialized RAM image and
 prints the protocol group dispatch table at `0x20000414`:

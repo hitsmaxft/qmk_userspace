@@ -30,7 +30,7 @@
 | 上电恢复 | 软件通过 | 保存 slot、被动握手、500 ms fallback、一次有界恢复和停止条件测试 | 两种 BLE 固件的多轮断电重连 |
 | 锁定灯/外部 LED MCU | 软件通过 | C18/AP2D 静态证据确认 `20/07 00/01` 为 Caps；严格 decoder host 测试；QMK host LED bit 1 桥接；`macvim` 使用 C18 既有 sticky-key API；LED driver 文件与基线逐字节相同 | 当前精确固件的 `20/07 01/00` 日志、Caps 实体灯亮灭与重连/切槽清理；Num/Scroll 尚无共享 UART 帧证据 |
 | UART RX 健壮性 | 软件通过 | 完整 24 位长度检查、32 字节上限、delimiter、20 ms 半帧超时、噪声重同步和 timer wrap host 测试 | 当前固件上的 UART 噪声/断帧压力测试 |
-| 日志与源码绑定 | 软件通过 | debug 启动日志包含 `QMK_GIT_HASH` 和可用的 `QMK_USERSPACE_VERSION` | 刷写后保存 revision 行 |
+| 日志与源码绑定 | 软件通过 | debug 启动日志包含 `QMK_GIT_HASH` 和可用的 `QMK_USERSPACE_VERSION`；审计脚本可要求两个 revision 并在缺失时失败 | 刷写后保存 revision 行 |
 | C15 非回归 | 构建通过 | C15 继续链接原 BLE 驱动，default 固件构建为 37,504 字节 | C15 实机回归 |
 | BLE 2.13 二进制不变 | 通过 | 官方输入按精确大小与 SHA-256 校验；QMK 构建不修改或嵌入 BLE 镜像 | IAP 仍没有已验证的写后 readback |
 
@@ -73,6 +73,29 @@ host 测试使用 `-std=c11 -Wall -Wextra -Werror`，覆盖：
 `clang-format --dry-run --Werror`，两个 Git 仓库通过 `git diff --check`。
 `qmk lint -kb annepro2/c18` 仍会报告上游已有的 `ap2_led.h`/默认 keymap
 license header 和带连字符 keymap 名称问题；这些文件与命名均不在本分支差异中。
+
+## 2026-07-26 最新实机观察
+
+操作者确认一次 IAP 刷写已经完成，随后蓝牙可正常使用。当前 macOS
+`system_profiler` 条目为 `HEXCORE AnnePro 2D`、`BLE-1.5.2`、Keyboard，
+USB 侧枚举为 `AC20:8009 Anne Pro 2 C18 (QMK)`。这与官方 BLE 2.13 正常启动
+一致，但 macOS 条目可能来自配对缓存，且 USB 产品名不包含 KEY revision。
+
+本次 `qmk console` 能列出设备但无法打开 console HID 接口，因而没有取得
+`build qmk=... userspace=...`。不能据此确认硬件上运行的是当前
+`e3dfb6829d` KEY，也不能把它算作 2C 名称变体验证。保持当前可用 BLE 不再
+重复刷写；后续只在需要完整矩阵时补刷当前日志 KEY。
+
+旧的 `/tmp/annepro2-console-fast-switch.log` 经结构化审计只得到：
+
+- 无 build revision，无法归属当前固件；
+- 仅覆盖 slot 0/1，包含 5 次 broadcast、3 次 connect、4 次 HID-ready、
+  2 次 BLE route 和 3 次 handshake timeout；
+- 只见原始 `20/07 00`，没有 Caps on/off 解码、keyboard debug report 或
+  consumer report。
+
+因此旧日志保留为协议演进证据，不关闭普通键、媒体键、Caps 或四槽的当前实机
+门禁。
 
 ## 当前实机门禁
 

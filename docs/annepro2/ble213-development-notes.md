@@ -173,6 +173,17 @@ debug 固件现在会在启动时打印 `QMK_GIT_HASH` 和可用的
 `QMK_USERSPACE_VERSION`。USB 产品名不会随构建变化，不能用它判断硬件上是否
 已经运行最新固件；后续日志必须先保存 revision 行，再关联测试结果。
 
+为减少人工扫日志造成的误判，userspace 增加
+`tools/reverse/annepro2/audit_console_log.py`。它归纳 build、slot、命令
+ACK、command-to-route 延迟、keyboard/consumer/Caps 和 parser fault，并可
+要求 QMK/userspace revision。显式指定的 revision 不存在时命令返回失败；
+`OBSERVED` 仍只表示 KEY↔BLE UART/状态机路径，不能代替 macOS/RF 观察。
+
+最近一次操作者确认 IAP 刷写后蓝牙正常使用，macOS 缓存条目显示
+`HEXCORE AnnePro 2D / BLE-1.5.2`，但 console 接口未能打开，也没有 revision
+行。这只能再次确认 BLE 2.13 方案可运行，不能证明当前精确 KEY 或 2C 名称
+变体。处理原则是保持可用 BLE 不动，需要完整回归时只补刷日志 KEY。
+
 ## 2C 名称必须保持固定宽度
 
 兼容模式名称定义为 `HEXCORE AnnePro 2C`。BLE 2.13 中广播模板原文是拼写
