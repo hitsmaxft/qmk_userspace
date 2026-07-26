@@ -103,6 +103,47 @@ flash。
 工具仍没有经过验证的 BLE flash readback 命令，因此“传输完成”严格表示
 erase 和 4,864 次 write 都收到匹配的 status-zero 回复，不表示已逐字节读回。
 
+## 可复现的一次 IAP 刷写流程
+
+先在正常模式构建并记录将要刷入的 KEY artifact，避免设备进入 IAP 后才决定
+profile：
+
+```sh
+direnv exec . just annepro2-ble213-log
+stat -f '%N %z bytes' annepro2_c18_macvim.bin
+shasum -a 256 annepro2_c18_macvim.bin
+```
+
+进入 IAP 后先只读探测。必须看到设备报告的三个分区和 BLE mode，才进入写入：
+
+```sh
+direnv exec . just annepro2-iap-probe
+```
+
+核心 backport 使用未经修改的官方 2.13：
+
+```sh
+direnv exec . just annepro2-flash-ble213-official
+```
+
+需要验证另行管理的 `HEXCORE AnnePro 2C` 名称变体时，使用：
+
+```sh
+direnv exec . just annepro2-flash-ble213-2c
+```
+
+2C recipe 每次都从精确官方输入重新生成 `/tmp` 镜像，并校验输入/输出哈希、
+大小、两个固定偏移和仅四字节差异。两个 BLE recipe 都固定
+`--target ble`，且故意不传 `--boot`，使 main MCU 留在 IAP。随后在同一会话
+写入刚才构建的 KEY artifact，并由这一步重启：
+
+```sh
+direnv exec . just annepro2-flash-key annepro2_c18_macvim.bin
+```
+
+正常流程不传 `--base`；flasher 使用设备报告值，并在 target mode 为 2、回复
+不匹配、status 非零或超时时于 erase/write 边界停止。
+
 ## 硬件备份门禁
 
 在任何 BLE erase/write 前，使用 CC254x 调试接口完成两次独立读取，并确认两次

@@ -111,8 +111,38 @@ annepro2-ble-crossflash-backup-check full_flash information_page:
         --information-page-backup {{ information_page }} \
         --require-hardware-backups
 
+annepro2-iap-probe:
+    annepro2_tools --probe
+
+# Flash the exact official AP2D BLE 2.13 image and deliberately leave the
+# keyboard in IAP so the matching KEY image can be written in the same session.
+annepro2-flash-ble213-official:
+    PYTHONDONTWRITEBYTECODE=1 python3 \
+        tools/reverse/annepro2/validate_ble_crossflash.py
+    annepro2_tools --target ble \
+        assets/ap2_fw/annepro2d/firmware/3.08/annepro2_discovery_ble.bin
+
+# Regenerate the exact 2C compatibility-name image from the official input
+# before every write. The generator enforces size, input/output hashes, fixed
+# offsets, and the four-byte diff. Leave IAP active for the KEY write.
+annepro2-flash-ble213-2c:
+    PYTHONDONTWRITEBYTECODE=1 python3 \
+        tools/reverse/annepro2/patch_ble213_name.py \
+        --output /tmp/c18-ble-2.13-annepro2c.verified.bin
+    annepro2_tools --target ble \
+        /tmp/c18-ble-2.13-annepro2c.verified.bin
+
+# Flash an already-built C18 KEY artifact, then restart the keyboard. Build and
+# hash the intended normal/debug profile before entering IAP.
+annepro2-flash-key image='annepro2_c18_macvim.bin':
+    annepro2_tools --target main --boot "{{ image }}"
+
 flash-annepro2-log:
     ANNEPRO2_BLE_DEBUG=yes bash scripts/qmk-worktree.sh qmk flash -kb annepro2/c18 -km macvim
+
+flash-annepro2-ble213-log:
+    ANNEPRO2_BLE_PROFILE=ap2d213 ANNEPRO2_BLE_DEBUG=yes \
+        bash scripts/qmk-worktree.sh qmk flash -kb annepro2/c18 -km macvim
 
 lily58: ( _compile_kb kb_lily58 'macvim')
 

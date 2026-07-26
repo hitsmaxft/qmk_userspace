@@ -204,3 +204,13 @@ backport 验证。核心路径继续使用官方 SHA-256
 - Nix flasher 使用本地 `Cargo.lock` 的逐依赖校验，不依赖旧聚合 vendor
   下载流程；
 - 包装仓库通过四平台 flake 求值，并在 aarch64-darwin 实际构建。
+
+为避免进入 IAP 后手工拼接 target、base 和文件路径，userspace 另提供：
+
+- `just annepro2-iap-probe`：只读确认 layout/mode；
+- `just annepro2-flash-ble213-official`：精确校验并只写 BLE target；
+- `just annepro2-flash-ble213-2c`：从官方输入重建四字节名称变体后只写 BLE；
+- `just annepro2-flash-key <artifact>`：同一 IAP 会话写 KEY 并最终重启。
+
+BLE recipe 故意不自动 boot，这样 BLE 与匹配 KEY 可以在一次 IAP 会话内完成；
+只有最后的 KEY recipe 发送 main mode 2。

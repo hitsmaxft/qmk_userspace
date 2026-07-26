@@ -61,3 +61,41 @@ Before handing off changes, run `git diff --check` and the relevant QMK build.
 When `patches/qmk/` contains a patch, also verify it with
 `git -C modules/qmk_firmware apply --check "$(pwd)/patches/qmk/<patch>"`.
 Generated firmware files are build artifacts and should not be committed.
+
+## Anne Pro 2 IAP validation
+
+Build the intended KEY image before entering IAP, then record its size and
+SHA-256. For the BLE 2.13 debug profile:
+
+```sh
+direnv exec . just annepro2-ble213-log
+shasum -a 256 annepro2_c18_macvim.bin
+```
+
+After the keyboard is in IAP, always probe before writing:
+
+```sh
+direnv exec . just annepro2-iap-probe
+```
+
+The official and optional 2C BLE recipes validate or reproducibly generate the
+exact image, flash only the BLE target, and intentionally leave the keyboard in
+IAP:
+
+```sh
+direnv exec . just annepro2-flash-ble213-official
+# or, for the separately managed compatibility-name variant:
+direnv exec . just annepro2-flash-ble213-2c
+```
+
+Finish the same IAP session by flashing the already-built KEY artifact; this is
+the step that restarts the keyboard:
+
+```sh
+direnv exec . just annepro2-flash-key annepro2_c18_macvim.bin
+```
+
+Do not add `--base` during normal flashing. The hardened tool reads the target
+base from the device, rejects a non-IAP target, matches every response to its
+request, and stops at the first timeout or non-zero status. A successful
+transfer is not flash readback.
