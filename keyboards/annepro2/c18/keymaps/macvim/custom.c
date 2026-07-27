@@ -21,18 +21,18 @@
 
 #include QMK_KEYBOARD_H
 
+#include "annepro2_ble.h"
 #include "macvim.h"
 #include "print.h"
 
 #ifndef __INDICATOR_COLOR__
-//order BGR
-    #define __INDICATOR_COLOR__ {0xFF, 0x00, 0x00, 0xff}
+// order BGR
+#    define __INDICATOR_COLOR__ {0xFF, 0x00, 0x00, 0xff}
 #endif
-
 
 // store all masked layer
 const ap2_led_t no_color = {
-    .pv  = 0x00,
+    .pv = 0x00,
 };
 
 const ap2_led_t layer_color = {
@@ -46,12 +46,88 @@ const ap2_led_t caps_lock_color = {
     .p.alpha = 0xff,
 };
 
+/*
+ * BLE status uses the physical 1..4 keys for slots 1..4:
+ * blue = advertising/pairing, yellow = connecting, red = failed.
+ */
+const ap2_led_t ble_advertising_color = {
+    .p.blue  = 0xff,
+    .p.red   = 0x00,
+    .p.green = 0x00,
+    .p.alpha = 0xff,
+};
+
+const ap2_led_t ble_connecting_color = {
+    .p.blue  = 0x00,
+    .p.red   = 0xff,
+    .p.green = 0xb0,
+    .p.alpha = 0xff,
+};
+
+const ap2_led_t ble_failed_color = {
+    .p.blue  = 0x00,
+    .p.red   = 0xff,
+    .p.green = 0x00,
+    .p.alpha = 0xff,
+};
+
+#define BLE_STATUS_LED_ROW 0
+#define BLE_STATUS_LED_FIRST_COL 1
+#define BLE_STATUS_REFRESH_MS 3500
+
+static annepro2_ble_status_t ble_indicator_status = ANNEPRO2_BLE_STATUS_IDLE;
+static uint8_t               ble_indicator_slot;
+static uint32_t              ble_indicator_timer;
+
+static void clear_ble_status(uint8_t slot) {
+    ap2_led_blink(BLE_STATUS_LED_ROW, BLE_STATUS_LED_FIRST_COL + slot, no_color, 1, 1);
+}
+
+static void show_ble_status(void) {
+    const uint8_t col = BLE_STATUS_LED_FIRST_COL + ble_indicator_slot;
+
+    switch (ble_indicator_status) {
+        case ANNEPRO2_BLE_STATUS_ADVERTISING:
+            ap2_led_blink(BLE_STATUS_LED_ROW, col, ble_advertising_color, 8, 50);
+            break;
+        case ANNEPRO2_BLE_STATUS_CONNECTING:
+            ap2_led_blink(BLE_STATUS_LED_ROW, col, ble_connecting_color, 16, 25);
+            break;
+        case ANNEPRO2_BLE_STATUS_FAILED:
+            ap2_led_blink(BLE_STATUS_LED_ROW, col, ble_failed_color, 6, 15);
+            break;
+        case ANNEPRO2_BLE_STATUS_IDLE:
+        case ANNEPRO2_BLE_STATUS_CONNECTED:
+            clear_ble_status(ble_indicator_slot);
+            break;
+    }
+    ble_indicator_timer = timer_read32();
+}
+
+void annepro2_ble_status_changed_user(annepro2_ble_status_t status, uint8_t slot) {
+    if (slot > 3) {
+        return;
+    }
+
+    if (slot != ble_indicator_slot) {
+        clear_ble_status(ble_indicator_slot);
+    }
+    ble_indicator_status = status;
+    ble_indicator_slot   = slot;
+    show_ble_status();
+}
+
+void matrix_scan_user(void) {
+    if ((ble_indicator_status == ANNEPRO2_BLE_STATUS_ADVERTISING || ble_indicator_status == ANNEPRO2_BLE_STATUS_CONNECTING) && timer_elapsed32(ble_indicator_timer) >= BLE_STATUS_REFRESH_MS) {
+        show_ble_status();
+    }
+}
 
 /* layer settings */
-uint8_t layer_mask[20];
+uint8_t        layer_mask[20];
 static uint8_t last_layer_default = 0;
 
-void  reset_to_iap(void);
+void reset_to_iap(void);
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
@@ -65,16 +141,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
-
-void keyboard_pre_init_user(void) {
-}
+void keyboard_pre_init_user(void) {}
 
 void keyboard_post_init_user(void) {
     // Customise these values to desired behaviour
-    //debug_enable=true;
-    //debug_matrix=true;
-    //debug_keyboard=true;
-    //debug_mouse=true;
+    // debug_enable=true;
+    // debug_matrix=true;
+    // debug_keyboard=true;
+    // debug_mouse=true;
 }
 
 bool led_update_user(led_t led_state) {
@@ -91,10 +165,9 @@ bool led_update_user(led_t led_state) {
 }
 
 void reset_to_iap(void) {
-    //this will write eeprom make keyboard boot into iap mode
+    // this will write eeprom make keyboard boot into iap mode
     bootloader_jump();
 }
-
 
 const ap2_led_t leader_blink_color = {
     .p.blue  = 0xff,
@@ -129,22 +202,20 @@ void leader_end_user(void) {
     }
 }
 
-
 layer_state_t default_layer_state_set_user(layer_state_t state) {
-
     uint8_t layer_num = get_highest_layer(state);
     dprintf("set default layer to %d\n", layer_num);
     uint8_t last_dl = last_layer_default;
     ap2_led_mask_set_key(0, last_dl, no_color);
 
     last_layer_default = layer_num;
-    if (layer_num > 0 ) {
-        //will not reset by  layer_state_set_user
+    if (layer_num > 0) {
+        // will not reset by  layer_state_set_user
         layer_mask[layer_num] = 2;
         ap2_led_mask_set_key(0, layer_num, layer_color);
     }
 
-    //remove mark
+    // remove mark
     layer_mask[last_dl] = 0;
     return state;
 }
@@ -155,25 +226,24 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     if (IS_LAYER_ON_STATE(state, layer_num)) {
         dprintf("entering layer %d\n", layer_num);
         // light on number key
-        //reset other keys
-        for (int i =0 ; i <20 ; i++) {
+        // reset other keys
+        for (int i = 0; i < 20; i++) {
             if (layer_mask[i] == 1) {
-                //reset color
+                // reset color
                 layer_mask[i] = 0;
                 dprintf("reset layer %d led to off\n", i);
                 ap2_led_mask_set_key(0, i, no_color);
             }
         }
-        if ( 0 == layer_num) {
-            //default layer
-            //layer zero just blink
-            ap2_led_blink(0, last_layer_default , layer_color, 1, 20);
+        if (0 == layer_num) {
+            // default layer
+            // layer zero just blink
+            ap2_led_blink(0, last_layer_default, layer_color, 1, 20);
         } else {
-            //set color mask on key
+            // set color mask on key
             ap2_led_mask_set_key(0, layer_num, layer_color);
             layer_mask[layer_num] = 1;
         }
-
 
     } else if (IS_LAYER_OFF_STATE(state, layer_num)) {
         dprintf("leaving layer %d\n", layer_num);
@@ -182,7 +252,6 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     } else {
         dprintf("skip layer %d\n", layer_num);
     }
-
 
     return state;
 }
