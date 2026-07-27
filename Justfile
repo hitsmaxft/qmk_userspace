@@ -29,16 +29,20 @@ _compile_kb kb km=default_keymap *args='':
 
 
 annepro2: ( _compile_kb 'annepro2/c18')
+    cp annepro2_c18_macvim.bin annepro2_c18_macvim_ble205.bin
     echo "compile annepro2"
 
 annepro2-log:
     ANNEPRO2_BLE_DEBUG=yes bash scripts/qmk-worktree.sh qmk compile -kb annepro2/c18 -km macvim -j20
+    cp annepro2_c18_macvim.bin annepro2_c18_macvim_ble205_log.bin
 
 annepro2-ble213:
     ANNEPRO2_BLE_PROFILE=ap2d213 bash scripts/qmk-worktree.sh qmk compile -kb annepro2/c18 -km macvim -j20
+    cp annepro2_c18_macvim.bin annepro2_c18_macvim_ble213.bin
 
 annepro2-ble213-log:
     ANNEPRO2_BLE_PROFILE=ap2d213 ANNEPRO2_BLE_DEBUG=yes bash scripts/qmk-worktree.sh qmk compile -kb annepro2/c18 -km macvim -j20
+    cp annepro2_c18_macvim.bin annepro2_c18_macvim_ble213_log.bin
 
 annepro2-c15:
     bash scripts/qmk-worktree.sh qmk compile -kb annepro2/c15 -km default -j20
@@ -58,6 +62,14 @@ annepro2-state-test:
         modules/qmk_firmware/keyboards/annepro2/tests/ble_state_test.c \
         -o /tmp/annepro2_ble_state_test
     /tmp/annepro2_ble_state_test
+
+annepro2-ble213-slot-test:
+    cc -std=c11 -Wall -Wextra -Werror \
+        -I modules/qmk_firmware/keyboards/annepro2 \
+        modules/qmk_firmware/keyboards/annepro2/annepro2_ble_213_slot.c \
+        modules/qmk_firmware/keyboards/annepro2/tests/ble_213_slot_test.c \
+        -o /tmp/annepro2_ble_213_slot_test
+    /tmp/annepro2_ble_213_slot_test
 
 annepro2-parser-test:
     cc -std=c11 -Wall -Wextra -Werror \
@@ -79,7 +91,7 @@ annepro2-led-regression:
         keyboards/annepro2/rgb_driver.c \
         keyboards/annepro2/rgb_driver.h
 
-annepro2-test: annepro2-profile-test annepro2-state-test annepro2-parser-test annepro2-led-regression
+annepro2-test: annepro2-profile-test annepro2-state-test annepro2-ble213-slot-test annepro2-parser-test annepro2-led-regression
 
 annepro2-validate: annepro2-test annepro2 annepro2-ble213 annepro2-c15
 

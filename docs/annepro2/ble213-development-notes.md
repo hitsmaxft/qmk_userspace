@@ -100,6 +100,58 @@ slot 1 时，旧 ACK 或半帧可能落入新事务，表现为需要再按一�
 这降低了旧事务污染，但协议本身仍无法给 ACK 增加 transaction ID，四槽快速
 切换需要继续做实机压力测试。
 
+## 只发送最终 slot 命令会让 BLE 2.13 安全槽不同步
+
+2026-07-27 的 macOS 记录显示：
+
+- slot 1 使用公共地址尾字节 `F8`，可完成加密并正常输入；
+- slot 2、3 以及另一槽分别使用 `F9`、`FA`、`FB`，说明 BLE 确实切换了
+  广播身份；
+- 后三槽能进入连接/GATT 流程，但 `enc-state` 保持 OFF；主机接受配对请求
+  后，peer 返回 pairing failed reason 4，系统记录 status 4805 并立即断开。
+
+这排除了“所有 slot 使用同一地址”以及“macOS 完全没有收到广播”，但不能仅凭
+主机日志区分 BLE 内部 bond、active slot 和 confirm value 的具体错误。
+
+重新反汇编 AP2D KEY 3.08 后发现，先前方案遗漏了最终 `40/01` 或 `40/04`
+之前的内部槽选择事务：
+
+```text
+0x80F0  slot key handler
+  0xB096  TX c0/17                 query current slot
+  delay 5 ms
+  0xB10E  read current slot
+  if current != target:
+    0xB056  TX 40/17 target
+    0xB016  TX 02/01 01
+    delay 20 ms
+    0xAFD8  TX 02/01 02
+    delay 20 ms
+  0x7DF4  TX slot state + 40/01 or 40/04
+```
+
+group `0x40` 的 RX handler `0xB114` 只在 opcode `0x17` 且 group 高位设置时
+取一字节 payload，写入 `0x20002A0E`；`0xB10E` 读取同一字节。因此
+`c0/17` 的查询/回复用途、目标槽比较和精确顺序已经由 KEY 固件确认。
+`02/01` 两个值在 BLE 2.13 内部的业务名称仍未可靠恢复，文档只称“准备阶段”，
+不把它们臆称为清 bond。
+
+修复使用独立的 `annepro2_ble_213_slot` 非阻塞状态机：
+
+- 只有 `AP2D_BLE213` profile 的首次主命令进入；
+- 查询回复缺失或非法时保守执行完整选择/准备序列；
+- 同槽回复跳过不必要的 `40/17` 与准备阶段；
+- 新 slot 意图、disconnect、unpair 或 profile 切换会取消旧的 deferred
+  命令；
+- 主命令重试不重复前导序列；
+- BLE 2.05 profile gate 的负向测试明确要求永不进入该状态机，公共
+  `annepro2_ble_state.c` 未修改。
+
+原厂长按配对路径本身没有调用 `40/05`。因此当前 slot 2–4 的首要问题是遗漏
+槽选择事务，而不是先假设全局 unpair 失败。`KC_AP2_BT_UNPAIR` 仍只有
+`40/05` 发包和 KEY 本地状态清理，没有 BLE 结果回包；它是否清一槽或全部槽
+保持未确认，不能作为这次修复的成功条件。
+
 ## UART 半帧可能永久污染后续事件
 
 早期 parser 只看 payload length 的低 8 位，且没有帧间超时。如果 UART 丢失
@@ -144,10 +196,41 @@ BLE 2.13 的启动、slot 1 配对、HID-ready 和普通输入来自状态机演
 处理原则：
 
 - 旧日志继续作为 UART 语义和方案方向的证据；
-- 不把它写成当前 `e3dfb6829d` 固件已经完成硬件回归；
-- 当前精确二进制仍需重测普通键盘、媒体、四槽和外部 LED MCU；
+- 不把它写成当前 `01e6d3f18d` 固件已经完成全部硬件回归；
+- 当前正式 BLE 2.13 KEY 已在拔除 USB 后通过普通键、媒体键和 Caps 主机状态；
+  四槽、外部 LED MCU 和 BLE 2.05 仍需继续验证；
 - 验收状态集中记录在
   [C18 KEY 双 BLE 首版验证矩阵](ble213-validation-matrix.md)。
+
+## 启动日志早于 USB console 重新枚举
+
+KEY 上电后立即输出 revision，但 USB console listener 要等设备重新枚举后才能
+附着。一次冷启动日志成功捕获 504 ms 的自动广播，却已经错过最前面的 build
+行；后续按键和 UART 帧因此无法归属当前精确镜像。
+
+解决：
+
+- debug 固件仍在启动入口立即打印 revision；
+- 同一 build 行在启动 2 秒后只重复一次，不持续刷屏；
+- 审计器在显式要求 QMK/userspace revision 时，找不到同一 build 行就返回
+  失败；
+- USB 产品名不随构建变化，不能代替 revision。
+
+## 不同 profile 会覆盖同名 KEY 产物
+
+QMK 的 C18 构建无论 profile 和 debug 开关都输出
+`annepro2_c18_macvim.bin`。在准备好日志版后执行正式 BLE 2.05/2.13 验证，
+通用文件会被最后一次构建覆盖；若进入 IAP 后仍按通用名称刷写，就可能把正式
+版误当作日志版。
+
+解决：
+
+- `just annepro2`、`annepro2-log`、`annepro2-ble213` 和
+  `annepro2-ble213-log` 在成功构建后立即复制到各自的 profile-specific
+  文件名；
+- 进入 IAP 前对稳定文件名记录大小与 SHA-256；
+- KEY 刷写命令显式传入稳定文件名；
+- 生成物仍由 `*.bin` ignore，不提交 Git。
 
 ## macOS 名称缓存会造成误判
 

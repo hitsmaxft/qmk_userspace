@@ -44,6 +44,8 @@ QMK 分支：`codex/annepro2-ble213-backport`
 - `7d3d33a8aa Extract and test Anne Pro 2 BLE state parsing`
 - `7c344d4e7d Scope the BLE backport to Anne Pro 2 C18`
 - `e3dfb6829d Handle Anne Pro 2 BLE Caps Lock state`
+- `01e6d3f18d Add Anne Pro 2 BLE status diagnostics`
+- `11c08ff0dc Fix Anne Pro 2D BLE 2.13 slot selection`
 
 - 同一 C18 KEY 源码内置 `C18_BLE205` 和 `AP2D_BLE213` profile。
 - 完整 BLE 2.05/2.13 实现只由 C18 的 `rules.mk` 链接；C15 继续使用原
@@ -61,6 +63,10 @@ QMK 分支：`codex/annepro2-ble213-backport`
   `0x20/0x0B slot,0/1`；BLE 2.13 使用 AP2D 3.08 汇编确认的
   `0x20/0x0B slot,1` 与 `0x20/0x24 slot,2`。状态通知先于主命令发送，仍只
   在动作边沿发送一次，不随 `0x40/0x01` 或 `0x40/0x04` 重试。
+- 新恢复的 AP2D 3.08 slot 选择前导只在 BLE 2.13 profile 启用：
+  `c0/17` 查询；不同槽时发送 `40/17 slot`、`02/01 01`、等待 20 ms、
+  `02/01 02`、再等待 20 ms，最后才投递已有状态帧和主命令。BLE 2.05
+  不进入此状态机，公共 BLE state 实现未改动。
 - 四槽事务已提取为无 QMK/ChibiOS 依赖的状态机。UART、EEPROM 和 host
   driver 只是执行状态机给出的动作，host 测试与固件使用同一份迁移逻辑。
 - 快速切槽只保留最后一次意图。新意图入队时立即停止旧事务重试并切回 USB
@@ -137,15 +143,18 @@ profile 切换会清除自动连接 slot。随后应按目标 slot 重新连接�
 
 - host 测试以 `-std=c11 -Wall -Wextra -Werror` 编译并通过。
 - `annepro2` 与 `annepro2-ble213` 均通过，当前两个普通构建均为
-  43,996 字节；二者只改变无有效 EEPROM 记录时的默认 profile。
+  44,844 字节；二者只改变无有效 EEPROM 记录时的默认 profile。
 - C15 default 继续链接原 BLE 驱动并构建通过，大小为 37,504 字节。
 - C18 的 `ap2_led.*`、`protocol.*`、`rgb_driver.*` 与 QMK 分支基线逐字节
   无差异。
 - 新增/修改的 C18、parser、profile、state 和 host test 文件通过
   `clang-format --dry-run --Werror`；两个仓库通过 `git diff --check`。
 - debug 固件启动时输出 `QMK_GIT_HASH` 与可用的
-  `QMK_USERSPACE_VERSION`，后续实机日志可以绑定到实际构建来源；普通固件不
-  包含这些字符串，大小与哈希不受影响。
+  `QMK_USERSPACE_VERSION`，并在 2 秒后只重复一次以跨过 USB console
+  重新枚举窗口；后续实机日志可以绑定到实际构建来源。
+- 可选 BLE 状态回调向 keymap 报告 advertising、connecting、connected 和
+  有界恢复失败。C18 `macvim` 只调用现有外置 LED MCU API，在物理
+  slot 1–4 上显示蓝/黄/红提示；没有移植 AP2D 直驱 LED/RGB。
 - `qmk lint` 仍报告上游已有的 license header 和带连字符 keymap 名称问题；
   报告涉及的文件/名称不在本分支差异中。
 
@@ -164,12 +173,20 @@ profile 切换会清除自动连接 slot。随后应按目标 slot 重新连接�
 - macOS 显示 `HEXCORE AnnePro 2D`、`BLE-1.5.2` 且已连接；用户确认普通
   键盘输入正常。旧的 `AnnePro2 / BLE-1.5.0` 条目来自 macOS 配对缓存。
 
-这些结果证明 BLE 2.13 已在目标板上完成启动、连接和普通键盘输入。IAP
-协议没有可用的 flash readback，所以 status-zero 传输不能解释成逐字节写回
-验证；媒体键、完整四槽和外部 LED MCU 回归也仍需单独验收。`7c344d4e7d`
-debug 固件后来已重新刷入，并记录到 BLE 2.13 的 `20/07 00`、HID-ready 和
-ACTIVE route；但新加入 Caps 状态桥接的 `e3dfb6829d` 尚未刷入，不能把旧记录
-写成当前精确二进制的锁定灯验证。
+这些结果证明 BLE 2.13 已在目标板上完成启动和连接。2026-07-27 又刷入
+userspace `378e305896` / QMK `01e6d3f18d` 的正式 BLE 2.13 KEY；拔除 USB
+后，操作者准确输入 `ap2ble-1234567890-qwerty`，确认音量加、音量减和静音，
+并以两次 Caps 操作得到 `ABCabc`，C18 外置 LED MCU 的红灯同步亮灭。因此
+当前正式版的普通键、三种实际媒体键、Caps 主机状态和实体锁定灯通过实机验证。
+
+IAP 协议没有可用的 flash readback，所以 status-zero 传输仍不能解释成逐字节
+写回验证。随后四槽回归发现 slot 1 可以加密并输入，而 slot 2–4 能连接后
+立刻在 SMP 失败。macOS 记录显示三者分别使用地址尾字节 `F9/FA/FB`，但
+`enc-state: OFF`，并由 peer 返回 pairing failed reason 4/status 4805。
+重新反汇编发现先前只移植了 slot 最终命令，遗漏 AP2D 3.08 的
+query/select/prepare 前导事务；代码已按 2.13-only 边界补齐，尚待重新刷写
+验证。BLE 2.05 回归也仍需单独验收。之前没有 revision 的日志只保留为 UART
+协议证据，不覆盖当前精确 debug 镜像。
 
 核心 backport 的实机使用官方 BLE 2.13 原始镜像。另行提供的
 `HEXCORE AnnePro 2C` 固定宽度名称变体只用于兼容模式显示，不参与上述结论，
@@ -177,12 +194,15 @@ ACTIVE route；但新加入 Caps 状态桥接的 `e3dfb6829d` 尚未刷入，不
 
 ## 下一步门禁
 
-1. 依次验证 Consumer、清除配对、四个 slot 的
-   广播/连接/超时/迟到事件。
-2. 用当前精确日志固件重新验证普通键盘，并换回 BLE 2.05 重复全部用例。
-3. 刷入 `e3dfb6829d` 日志固件，验证 `20/07 00/01`、QMK Caps bit 与 C18
-   外置 LED MCU 的实体灯位一致；不移植 AP2D 直驱 LED/RGB。
-4. 若要把刷写从“status-zero 传输”提升到完整验证，仍需 CC254x 调试接口保存
+1. 刷入包含 2.13 slot query/select/prepare 的 debug KEY，依次新配对
+   slot 2–4；确认日志顺序、macOS `enc-state: ON`、HID-ready 和实际输入。
+2. 再验证清除配对、四个 slot 的连接/超时/迟到事件，并检查切槽后不保留
+   旧 Caps 状态。
+3. 使用当前精确日志固件记录 build revision、`20/07 00/01` 和四槽状态机；
+   不移植 AP2D 直驱 LED/RGB。
+4. 换回 BLE 2.05，重复普通键盘、媒体、Caps、配对、四槽和断电恢复；确认
+   日志中绝不出现 2.13 slot 前导。
+5. 若要把刷写从“status-zero 传输”提升到完整验证，仍需 CC254x 调试接口保存
    256 KiB flash 与 Information Page，并完成写后 readback。
-5. Vendor Report ID 2 的方向适配保持关闭，直到业务 UART opcode 被确认。
-6. 验证通过后再考虑把 BLE 2.13 profile 纳入上游 PR；在此之前它保持实验性。
+6. Vendor Report ID 2 的方向适配保持关闭，直到业务 UART opcode 被确认。
+7. 验证通过后再考虑把 BLE 2.13 profile 纳入上游 PR；在此之前它保持实验性。

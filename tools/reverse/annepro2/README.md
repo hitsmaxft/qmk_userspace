@@ -19,6 +19,25 @@ Useful entries for the BLE UART path:
 | `0x8606` | append group/opcode/payload |
 | `0xacac` | protocol transmit path |
 
+For AP2D KEY 3.08, use the same raw Cortex-M import at base `0x4000`.
+`FindFunctionsWithScalars.java` lists functions whose instructions contain all
+requested scalar values:
+
+```sh
+ghidra-analyzeHeadless /tmp/ap2d-ghidra ap2d-key \
+  -import assets/ap2_fw/annepro2d/firmware/3.08/annepro2_discovery_KEY_APP.bin \
+  -loader BinaryLoader -loader-baseAddr 0x4000 \
+  -processor ARM:LE:32:Cortex -cspec default \
+  -scriptPath tools/reverse/annepro2 \
+  -postscript FindFunctionsWithScalars.java 0x40 0x17
+```
+
+Relevant AP2D slot entries are `0x80F0` (key event), `0xB096` (query),
+`0xB114` (query response), `0xB056` (select), `0xB016` and `0xAFD8`
+(two preparation phases). `DecompileAt.java` can reproduce each one. The
+CC254x BLE image is banked 8051 code; importing it as one flat 64 KiB program
+clips banks and is not sufficient evidence for handler semantics.
+
 The firmware images are analysis inputs provided by the `assets/ap2_fw`
 submodule; the helper does not modify them or export proprietary code.
 

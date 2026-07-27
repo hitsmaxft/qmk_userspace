@@ -73,8 +73,14 @@ SHA-256. For the BLE 2.13 debug profile:
 
 ```sh
 direnv exec . just annepro2-ble213-log
-shasum -a 256 annepro2_c18_macvim.bin
+shasum -a 256 annepro2_c18_macvim_ble213_log.bin
 ```
+
+Each C18 recipe also preserves a profile-specific copy:
+`annepro2_c18_macvim_ble205.bin`, `annepro2_c18_macvim_ble205_log.bin`,
+`annepro2_c18_macvim_ble213.bin`, or
+`annepro2_c18_macvim_ble213_log.bin`. Use that stable name for IAP; the generic
+`annepro2_c18_macvim.bin` is overwritten by every subsequent C18 build.
 
 After the keyboard is in IAP, always probe before writing:
 
@@ -96,7 +102,7 @@ Finish the same IAP session by flashing the already-built KEY artifact; this is
 the step that restarts the keyboard:
 
 ```sh
-direnv exec . just annepro2-flash-key annepro2_c18_macvim.bin
+direnv exec . just annepro2-flash-key annepro2_c18_macvim_ble213_log.bin
 ```
 
 Do not add `--base` during normal flashing. The hardened tool reads the target

@@ -110,8 +110,8 @@ profile：
 
 ```sh
 direnv exec . just annepro2-ble213-log
-stat -f '%N %z bytes' annepro2_c18_macvim.bin
-shasum -a 256 annepro2_c18_macvim.bin
+stat -f '%N %z bytes' annepro2_c18_macvim_ble213_log.bin
+shasum -a 256 annepro2_c18_macvim_ble213_log.bin
 ```
 
 进入 IAP 后先只读探测。必须看到设备报告的三个分区和 BLE mode，才进入写入：
@@ -138,8 +138,13 @@ direnv exec . just annepro2-flash-ble213-2c
 写入刚才构建的 KEY artifact，并由这一步重启：
 
 ```sh
-direnv exec . just annepro2-flash-key annepro2_c18_macvim.bin
+direnv exec . just annepro2-flash-key annepro2_c18_macvim_ble213_log.bin
 ```
+
+QMK 总是先生成通用文件 `annepro2_c18_macvim.bin`，而 2.05、2.13、正式版和
+debug 版都会覆盖它。userspace 的各 C18 recipe 会立即复制出带 profile 的稳定
+文件名；进入 IAP 后只使用该稳定文件，避免验证期间的后续构建悄悄改变待刷
+镜像。
 
 正常流程不传 `--base`；flasher 使用设备报告值，并在 target mode 为 2、回复
 不匹配、status 非零或超时时于 erase/write 边界停止。
@@ -204,14 +209,15 @@ target mode 为 1。修复版工具随后：
 
 修复版 IAP status-zero 传输：**PASS**。
 
-官方 BLE 2.13 启动、macOS 连接与普通按键：**PASS**。USB console 收到
-`0x20/0x0C` HID-ready 后切到 BLE route，并记录 keyboard report；macOS
-同时显示已连接，用户确认输入正常。
+官方 BLE 2.13 启动、macOS 连接、普通按键、音量加减/静音与 Caps：
+**PASS**。USB console 曾收到 `0x20/0x0C` HID-ready 后切到 BLE route；
+2026-07-27 正式 KEY 又在拔除 USB 后完成普通输入、三种媒体键和 Caps
+`ABCabc`，C18 外置 LED MCU 红灯同步亮灭。
 
 硬件全量备份与逐字节 readback：**未完成**。工具协议仍无法证明物理擦除边界
 或写后字节完全一致。
 
-媒体键、清配对、四槽切换与 C18 外部 LED MCU 非回归：**待验收**。
+清配对、四槽切换、切槽后的 Caps 清理与 BLE 2.05 全量回归：**待验收**。
 
 因此 BLE 2.13 已从“仅构建”推进到“实机可启动、连接、普通输入”，但在剩余
 行为测试及 readback 边界解决前仍按实验功能管理。
