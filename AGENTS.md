@@ -102,12 +102,23 @@ direnv exec . just annepro2-flash-ble213-official
 direnv exec . just annepro2-flash-ble213-2c
 ```
 
+Restore the exact official C18 BLE 2.05 image through the same guarded path:
+
+```sh
+direnv exec . just annepro2-flash-ble205-official
+```
+
 Finish the same IAP session by flashing the already-built KEY artifact; this is
 the step that restarts the keyboard:
 
 ```sh
 direnv exec . just annepro2-flash-key annepro2_c18_macvim_ble213_log.bin
 ```
+
+For a BLE 2.05 regression, use
+`annepro2_c18_macvim_ble205_log.bin` instead. A valid profile saved in EEPROM
+overrides the build default; after booting on USB, explicitly select
+`KC_AP2_BLE205` before starting the Bluetooth test.
 
 Do not add `--base` during normal flashing. The hardened tool reads the target
 base from the device, rejects a non-IAP target, matches every response to its

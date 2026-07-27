@@ -51,6 +51,40 @@ ps -axo pid,ppid,lstart,command |
 测试已确认 Ctrl-C 返回 130，且没有留下 Python listener 或新的 worktree；
 上述进程检查仍用于发现修复前已经存在的 listener。
 
+### BLE 2.05 最终回归输入
+
+2026-07-28 的干净日志 KEY 产物为：
+
+```text
+annepro2_c18_macvim_ble205_log.bin
+size:      44,416 bytes
+sha256:    35bc984130886e3270aea12f41fc1eb33315536fbbb2fef3b2a8cd13224e5875
+userspace: latest-161-g1ed47e
+QMK:       11c08ff0dc
+```
+
+先构建并记录哈希，再进入 IAP：
+
+```sh
+direnv exec . just annepro2-log
+shasum -a 256 annepro2_c18_macvim_ble205_log.bin
+direnv exec . just annepro2-iap-probe
+direnv exec . just annepro2-flash-ble205-official
+direnv exec . just annepro2-flash-key annepro2_c18_macvim_ble205_log.bin
+```
+
+`annepro2-flash-ble205-official` 会先验证官方输入大小与 SHA-256
+`52dc5c6542ad9b30915ea07f042b46ef19cd8acf4f2dce286a0dbdf11ce7cb92`，
+只写 BLE target，并把最终重启留给 KEY 写入步骤。有效 EEPROM profile 优先于
+构建默认值；重启进入 USB 后必须用维护层的 `KC_AP2_BLE205` 显式选择 2.05，
+该操作同时清除 KEY 侧旧 slot，之后再开始四槽配对。当前 `macvim` keymap 的
+操作是保持 `MO(9)`，再保持物理 Tab（`MO(10)`），然后按物理 `1`；
+物理 `2` 对应 `KC_AP2_BLE213`，不要在 2.05 回归中误触。
+
+双 profile 固件会把 2.13 helper 一同链接进 C18，因此 2.05 二进制中能找到
+`tx 213 slot ...` 格式字符串是预期现象。实际 2.05 回归日志中出现任何一条
+此类运行时日志才表示 profile gate 失败。
+
 ## 日志格式
 
 每行包含 MCU 毫秒时间戳。完整 RX 帧会同时输出原始字节和解码摘要：

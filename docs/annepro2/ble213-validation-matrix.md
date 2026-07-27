@@ -54,6 +54,7 @@ direnv exec . just annepro2-ble213-log
 | 构建 | 大小 | SHA-256 |
 |---|---:|---|
 | C18，BLE 2.05 默认 profile | 44,844 B | `3f714f36b26a72eac7f225a039c4ef44464b456e26683ab5c5d01f814b0d2017` |
+| C18，BLE 2.05 debug | 44,416 B | `35bc984130886e3270aea12f41fc1eb33315536fbbb2fef3b2a8cd13224e5875` |
 | C18，BLE 2.13 默认 profile | 44,844 B | `288ebd293fe40e53de89ad7619c45d5f6f398b717b56dae6b1fe81b127442560` |
 | C18，BLE 2.13 debug | 44,416 B | `c70d942b18fbb7ecea04a2386476abb7bef3134da58d5140a0ca4bb7add89c84` |
 | C15 default | 37,504 B | `4712f841f5c4b61ed583dfe862d822caa557c13f0a2485a50a6602ea33b0d306` |
@@ -62,6 +63,9 @@ direnv exec . just annepro2-ble213-log
 构建。最终干净 debug 镜像的 strings 包含 userspace
 `latest-159-g2b75b1`、QMK `11c08ff0dc` 和四条 2.13 slot 前导日志格式。
 哈希只用于定位本机构建；QMK 构建元数据或工具链变化可能产生不同哈希。
+BLE 2.05 debug 镜像由干净 userspace `1ed47ef` / QMK `11c08ff0dc` 构建。
+它包含双 profile 共用的 2.13 日志格式字符串，但 2.05 运行时不得输出这些
+日志。
 
 host 测试使用 `-std=c11 -Wall -Wextra -Werror`，覆盖：
 

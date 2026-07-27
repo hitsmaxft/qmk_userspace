@@ -138,6 +138,14 @@ annepro2-flash-ble213-official:
     annepro2_tools --target ble \
         assets/ap2_fw/annepro2d/firmware/3.08/annepro2_discovery_ble.bin
 
+# Restore the exact official C18 BLE 2.05 image and deliberately leave the
+# keyboard in IAP so the matching 2.05-profile KEY can be written next.
+annepro2-flash-ble205-official:
+    PYTHONDONTWRITEBYTECODE=1 python3 \
+        tools/reverse/annepro2/validate_ble_crossflash.py
+    annepro2_tools --target ble \
+        assets/ap2_fw/annepro2/c18/firmware/2.36.3/ap2_c18_0205_ble.bin
+
 # Regenerate the exact 2C compatibility-name image from the official input
 # before every write. The generator enforces size, input/output hashes, fixed
 # offsets, and the four-byte diff. Leave IAP active for the KEY write.

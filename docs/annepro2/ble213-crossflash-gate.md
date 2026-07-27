@@ -196,6 +196,16 @@ target mode 为 1。修复版工具随后：
 `1702b86607f4b641fbd16004952f07654f4c8a72c55c1b476fbac5725485b1ba`；
 日志是本机验证产物，不提交仓库。
 
+恢复官方 C18 BLE 2.05 时使用：
+
+```sh
+direnv exec . just annepro2-flash-ble205-official
+```
+
+该 recipe 先执行相同的静态镜像门禁，然后只写
+`annepro2/c18/firmware/2.36.3/ap2_c18_0205_ble.bin`；匹配的 KEY 仍需在同一
+IAP 会话中单独写入并负责最后重启。
+
 任一步失败时的恢复原则仍是：
 
 1. 不继续启动或配对；
