@@ -284,7 +284,10 @@ IDLE
 
 当前 P0/P1 已完成到“IAP status-zero 传输、BLE 2.13 启动、广播、macOS
 连接和普通输入”层级，P2/P3/P5 已形成双 profile、Consumer、严格 parser、
-Caps 桥接和四槽状态机代码。尚未完成的是 IAP readback、BLE 2.05 实机回归、
-媒体键、Caps 实体灯以及四台真实主机的完整 P4/P6 压力矩阵；这些结果集中写入
+Caps 桥接和四槽状态机代码。BLE 2.13 的媒体键、Caps 实体灯、清空四槽 bond
+后的四台主机重新配对，以及快速交叉切槽、连接超时和压力测试已经获得实机
+证据；操作者于 2026-07-28 将包含断电恢复在内的 C18 BLE 2.13 功能 backport
+整体验收为通过。尚未完成的是 IAP readback、BLE 2.05 实机回归和当前精确
+debug revision 的日志归档；这些结果集中写入
 [`ble213-validation-matrix.md`](ble213-validation-matrix.md)，不能由静态分析
 或构建结果替代。

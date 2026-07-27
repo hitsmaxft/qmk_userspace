@@ -184,25 +184,24 @@ IAP 协议没有可用的 flash readback，所以 status-zero 传输仍不能解
 立刻在 SMP 失败。macOS 记录显示三者分别使用地址尾字节 `F9/FA/FB`，但
 `enc-state: OFF`，并由 peer 返回 pairing failed reason 4/status 4805。
 重新反汇编发现先前只移植了 slot 最终命令，遗漏 AP2D 3.08 的
-query/select/prepare 前导事务；代码已按 2.13-only 边界补齐，尚待重新刷写
-验证。BLE 2.05 回归也仍需单独验收。之前没有 revision 的日志只保留为 UART
-协议证据，不覆盖当前精确 debug 镜像。
+query/select/prepare 前导事务；代码已按 2.13-only 边界补齐。2026-07-28，
+操作者清空四个 slot 的 bond 后，分别与四台主机重新配对成功，并完成快速
+交叉切槽、连接超时和压力测试。BLE 2.05 回归仍需单独验收。之前没有
+revision 的日志只保留为 UART 协议证据，不覆盖当前精确 debug 镜像。
 
 核心 backport 的实机使用官方 BLE 2.13 原始镜像。另行提供的
 `HEXCORE AnnePro 2C` 固定宽度名称变体只用于兼容模式显示，不参与上述结论，
 也不覆盖官方镜像。
 
+2026-07-28，操作者在上述逐项证据基础上明确认定 C18 KEY 对官方 BLE 2.13
+的 backport 完全验证通过，范围包括普通键盘、媒体键、Caps/实体锁定灯、
+四槽配对、四主机切换、连接超时、压力测试和断电恢复。缺少启动 revision
+行只影响精确构建归档，不再阻塞 2.13 功能验收。
+
 ## 下一步门禁
 
-1. 刷入包含 2.13 slot query/select/prepare 的 debug KEY，依次新配对
-   slot 2–4；确认日志顺序、macOS `enc-state: ON`、HID-ready 和实际输入。
-2. 再验证清除配对、四个 slot 的连接/超时/迟到事件，并检查切槽后不保留
-   旧 Caps 状态。
-3. 使用当前精确日志固件记录 build revision、`20/07 00/01` 和四槽状态机；
-   不移植 AP2D 直驱 LED/RGB。
-4. 换回 BLE 2.05，重复普通键盘、媒体、Caps、配对、四槽和断电恢复；确认
+1. 换回 BLE 2.05，重复普通键盘、媒体、Caps、配对、四槽和断电恢复；确认
    日志中绝不出现 2.13 slot 前导。
-5. 若要把刷写从“status-zero 传输”提升到完整验证，仍需 CC254x 调试接口保存
+2. 若要把刷写从“status-zero 传输”提升到完整验证，仍需 CC254x 调试接口保存
    256 KiB flash 与 Information Page，并完成写后 readback。
-6. Vendor Report ID 2 的方向适配保持关闭，直到业务 UART opcode 被确认。
-7. 验证通过后再考虑把 BLE 2.13 profile 纳入上游 PR；在此之前它保持实验性。
+3. Vendor Report ID 2 的方向适配保持关闭，直到业务 UART opcode 被确认。

@@ -2,7 +2,7 @@
 
 This is an external QMK userspace. `modules/qmk_firmware` is pinned to the
 temporary `codex/annepro2-ble213-backport` branch in the user's QMK fork. It is
-based on QMK `origin/master` and adds the evidence-based AnnePro2 BLE UART
+based on official QMK `upstream/master` and adds the evidence-based AnnePro2 BLE UART
 handshake fix, C18 BLE 2.05/AP2D BLE 2.13 profiles, bounded UART parser, host
 tests, and optional USB console instrumentation. Use the repository's
 Nix/direnv environment for all QMK commands.
@@ -34,7 +34,7 @@ direnv exec . just annepro2
   extension. Add custom keyboard source under this userspace instead.
 - The AnnePro2 BLE fix and its optional USB instrumentation are part of the
   pinned fork branch, not userspace patches. Build the console variant with
-  `direnv exec . just annepro2-log`. Build the experimental AP2D BLE 2.13
+  `direnv exec . just annepro2-log`. Build the validated AP2D BLE 2.13
   profile with `direnv exec . just annepro2-ble213` or
   `direnv exec . just annepro2-ble213-log`. Run all hardware-independent
   profile/state/parser and LED-source gates with
@@ -46,6 +46,10 @@ direnv exec . just annepro2
   pinned revision.
 - The worktree is temporary. Firmware files copied to the userspace root are
   generated artifacts and should not be committed.
+- The fork's `origin/master` can lag official QMK. Review the upstreamable
+  branch with `git -C modules/qmk_firmware log upstream/master..HEAD` and
+  `git -C modules/qmk_firmware diff upstream/master...HEAD`; do not count
+  upstream commits as AnnePro2 changes.
 
 ## Build and validation
 
