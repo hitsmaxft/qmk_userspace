@@ -25,8 +25,8 @@
 | BLE 2.05 与 2.13 双 profile | 软件通过 | profile/slot EEPROM 全组合 host 测试；两种默认 profile 均完成 C18 构建 | 两种 BLE 模块各自的完整硬件回归 |
 | 普通键盘报告 | BLE 2.13 实机通过 | 8 字节键盘报告路径保持不变；操作者刷入本轮正式 KEY、拔除 USB 后通过 BLE 准确输入 `ap2ble-1234567890-qwerty`，无报告漏键或重复键 | BLE 2.05 尚未重测 |
 | Consumer/媒体键 | BLE 2.13 实机通过 | BLE 2.05 八个 bitmap bit 与组合 `0xFF`；BLE 2.13 四个有序 16 位 Usage golden vector 均通过；拔除 USB 后，`MO(8)+Z/X/C` 的音量加、音量减、静音均由操作者确认 | BLE 2.05 实机尚未重测 |
-| 配对 | 修复待实测 | BLE 2.13 slot 1 新配对成功；slot 2–4 实测能连接但 SMP 失败。AP2D 3.08 静态分析恢复了遗漏的 `c0/17`、`40/17`、两阶段 `02/01` 前导；精确 wire vector、时序、缺失回复和 2.05 负向 gate host 测试通过 | 刷入新 KEY 后重测 slot 2–4；BLE 2.05 实机配对 |
-| 四主机切换 | 修复待实测 | 四个 slot 的主状态机、latest-intent 和迟到 ACK 隔离测试；新增 2.13-only 内部槽选择状态机；活动 keymap 已提供 `MO(9)+1…4` | 四台真实 host 的配对、切换、超时和压力测试 |
+| 配对 | BLE 2.13 基本实机通过 | BLE 2.13 slot 1 新配对成功；修复前 slot 2–4 能连接但 SMP 失败。AP2D 3.08 静态分析恢复遗漏的 `c0/17`、`40/17`、两阶段 `02/01` 前导后，操作者确认切换 slot 已恢复正常；精确 wire vector、时序、缺失回复和 2.05 负向 gate host 测试通过 | 四槽清空 bond 后的完整新配对回归；BLE 2.05 实机配对 |
+| 四主机切换 | BLE 2.13 基本实机通过 | 四个 slot 的主状态机、latest-intent 和迟到 ACK 隔离测试；新增 2.13-only 内部槽选择状态机；活动 keymap 已提供 `MO(9)+1…4`；操作者确认本轮切换 slot 正常 | 四台真实 host 的超时、快速交叉切换和压力测试 |
 | 上电恢复 | 软件通过 | 保存 slot、被动握手、500 ms fallback、一次有界恢复和停止条件测试 | 两种 BLE 固件的多轮断电重连 |
 | 锁定灯/外部 LED MCU | BLE 2.13 实机通过 | C18/AP2D 静态证据确认 `20/07 00/01` 为 Caps；严格 decoder host 测试；QMK host LED bit 1 桥接；拔除 USB 后，操作者经 `MO(9)+物理 Caps` 得到准确的 `ABCabc` 开/关结果，C18 外置 LED MCU 的红灯同步亮灭 | 当前 debug 固件的 `20/07 01/00` 与切槽清理仍待日志验证；BLE 2.05 尚未重测 |
 | UART RX 健壮性 | 软件通过 | 完整 24 位长度检查、32 字节上限、delimiter、20 ms 半帧超时、噪声重同步和 timer wrap host 测试 | 当前固件上的 UART 噪声/断帧压力测试 |
@@ -55,13 +55,13 @@ direnv exec . just annepro2-ble213-log
 |---|---:|---|
 | C18，BLE 2.05 默认 profile | 44,844 B | `3f714f36b26a72eac7f225a039c4ef44464b456e26683ab5c5d01f814b0d2017` |
 | C18，BLE 2.13 默认 profile | 44,844 B | `288ebd293fe40e53de89ad7619c45d5f6f398b717b56dae6b1fe81b127442560` |
-| C18，BLE 2.13 debug | 44,420 B | `4fa7a18054dd88167d1b082f431432cdffd4aab8b05fa0a7a5c4a858d8a1d2d7` |
+| C18，BLE 2.13 debug | 44,416 B | `c70d942b18fbb7ecea04a2386476abb7bef3134da58d5140a0ca4bb7add89c84` |
 | C15 default | 37,504 B | `4712f841f5c4b61ed583dfe862d822caa557c13f0a2485a50a6602ea33b0d306` |
 
 三个 C18 产物与 C15 产物由 QMK `11c08ff0dc` 和本页所在 userspace 工作树
-构建。debug 镜像的 strings 同时包含 `11c08ff0dc` 和四条 2.13 slot 前导
-日志格式。哈希只用于定位本机构建；QMK 构建元数据或工具链变化可能产生
-不同哈希。
+构建。最终干净 debug 镜像的 strings 包含 userspace
+`latest-159-g2b75b1`、QMK `11c08ff0dc` 和四条 2.13 slot 前导日志格式。
+哈希只用于定位本机构建；QMK 构建元数据或工具链变化可能产生不同哈希。
 
 host 测试使用 `-std=c11 -Wall -Wextra -Werror`，覆盖：
 
@@ -118,6 +118,12 @@ Consumer 日志，其中明确包含：
 
 这三项不再依赖插线状态或 UART 推断。需要精确 UART 取证时应改刷上表 debug
 镜像；切槽后旧 Caps 状态的清理仍要在四槽回归中检查。
+
+加入 AP2D 原厂 slot query/select/two-stage prepare 前导后，操作者确认此前
+异常的 slot 切换已经恢复正常。这是 BLE 2.13 实机行为证据；由于本次反馈
+没有同时保存启动 revision 行，仍不把它绑定为上表 SHA-256 镜像的精确
+二进制验证。四槽清空 bond 后的新配对、快速交叉切换和超时压力测试继续
+保留为门禁。
 
 此前发现的遗留 `.qmk-wrapped console` 独占问题已经通过 wrapper 的
 子进程回收修复；每次测试结束仍需复查 listener，防止旧进程污染结论。
