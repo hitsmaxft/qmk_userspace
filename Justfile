@@ -5,6 +5,7 @@ set positional-arguments
 default_keymap := 'macvim'
 
 kb_ap2 := 'annepro2/c18'
+kb_ap2d := 'annepro2/c2d'
 kb_lily58 := 'lily58_2040/rp'
 kb_gh60 := 'gh60/gh60'
 
@@ -46,6 +47,8 @@ annepro2-ble213-log:
 
 annepro2-c15:
     bash scripts/qmk-worktree.sh qmk compile -kb annepro2/c15 -km default -j20
+
+annepro2-c2d: ( _compile_kb kb_ap2d 'default')
 
 annepro2-profile-test:
     cc -std=c11 -Wall -Wextra -Werror \
@@ -93,7 +96,7 @@ annepro2-led-regression:
 
 annepro2-test: annepro2-profile-test annepro2-state-test annepro2-ble213-slot-test annepro2-parser-test annepro2-led-regression
 
-annepro2-validate: annepro2-test annepro2 annepro2-ble213 annepro2-c15
+annepro2-validate: annepro2-test annepro2 annepro2-ble213 annepro2-c15 annepro2-c2d
 
 annepro2-recover-ap2d-data output='/tmp/ap2d-key-3.08.data.bin':
     python3 tools/reverse/annepro2/recover_ap2d_data.py \
