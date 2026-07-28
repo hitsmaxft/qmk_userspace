@@ -55,8 +55,15 @@ annepro2-profile-test:
         -I modules/qmk_firmware/keyboards/annepro2 \
         modules/qmk_firmware/keyboards/annepro2/annepro2_ble_profile.c \
         modules/qmk_firmware/keyboards/annepro2/tests/ble_profile_test.c \
-        -o /tmp/annepro2_ble_profile_test
-    /tmp/annepro2_ble_profile_test
+        -o /tmp/annepro2_ble_profile_205_test
+    /tmp/annepro2_ble_profile_205_test
+    cc -std=c11 -Wall -Wextra -Werror \
+        -DANNEPRO2_BLE_PROFILE=ANNEPRO2_BLE_PROFILE_AP2D_213 \
+        -I modules/qmk_firmware/keyboards/annepro2 \
+        modules/qmk_firmware/keyboards/annepro2/annepro2_ble_profile.c \
+        modules/qmk_firmware/keyboards/annepro2/tests/ble_profile_test.c \
+        -o /tmp/annepro2_ble_profile_213_test
+    /tmp/annepro2_ble_profile_213_test
 
 annepro2-state-test:
     cc -std=c11 -Wall -Wextra -Werror \
