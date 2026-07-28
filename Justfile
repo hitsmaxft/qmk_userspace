@@ -89,6 +89,14 @@ annepro2-parser-test:
         -o /tmp/annepro2_ble_parser_test
     /tmp/annepro2_ble_parser_test
 
+annepro2-vendor-hid-test:
+    cc -std=c11 -Wall -Wextra -Werror \
+        -I modules/qmk_firmware/keyboards/annepro2 \
+        modules/qmk_firmware/keyboards/annepro2/annepro2_vendor_hid.c \
+        modules/qmk_firmware/keyboards/annepro2/tests/vendor_hid_test.c \
+        -o /tmp/annepro2_vendor_hid_test
+    /tmp/annepro2_vendor_hid_test
+
 annepro2-led-regression:
     # AP2D removed C18's external LED MCU. Keep the C18 LED protocol and
     # driver files byte-identical to the branch base.
@@ -101,7 +109,7 @@ annepro2-led-regression:
         keyboards/annepro2/rgb_driver.c \
         keyboards/annepro2/rgb_driver.h
 
-annepro2-test: annepro2-profile-test annepro2-state-test annepro2-ble213-slot-test annepro2-parser-test annepro2-led-regression
+annepro2-test: annepro2-profile-test annepro2-state-test annepro2-ble213-slot-test annepro2-parser-test annepro2-vendor-hid-test annepro2-led-regression
 
 annepro2-validate: annepro2-test annepro2 annepro2-ble213 annepro2-c15 annepro2-c2d
 
