@@ -99,15 +99,17 @@ annepro2-vendor-hid-test:
 
 annepro2-led-regression:
     # AP2D removed C18's external LED MCU. Keep the C18 LED protocol and
-    # driver files byte-identical to the branch base.
+    # driver implementation byte-identical to the branch base. ap2_led.h only
+    # differs by the leading whitespace removed to satisfy QMK's license lint.
     base="$(git -C modules/qmk_firmware merge-base origin/master HEAD)"; \
       git -C modules/qmk_firmware diff --exit-code "$base" -- \
         keyboards/annepro2/ap2_led.c \
-        keyboards/annepro2/ap2_led.h \
         keyboards/annepro2/protocol.c \
         keyboards/annepro2/protocol.h \
         keyboards/annepro2/rgb_driver.c \
-        keyboards/annepro2/rgb_driver.h
+        keyboards/annepro2/rgb_driver.h; \
+      git -C modules/qmk_firmware diff --ignore-all-space --exit-code "$base" -- \
+        keyboards/annepro2/ap2_led.h
 
 annepro2-test: annepro2-profile-test annepro2-state-test annepro2-ble213-slot-test annepro2-parser-test annepro2-vendor-hid-test annepro2-led-regression
 
