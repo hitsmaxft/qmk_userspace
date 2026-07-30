@@ -87,7 +87,7 @@
     // layer 9: configuration layer
     [
       "KC_AP2_BT_UNPAIR", "KC_AP2_BT1", "KC_AP2_BT2", "KC_AP2_BT3", "KC_AP2_BT4", "DF(1)", "DF(0)", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
-      "MO(10)", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_PSCR", "KC_NO", "KC_NO", "KC_NO",
+      "MO(10)", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_AP2_OUTPUT_TOGGLE", "KC_NO", "KC_NO", "KC_PSCR", "KC_NO", "KC_NO", "KC_NO",
       "KC_CAPS", "RM_NEXT", "RM_VALU", "RM_HUEU", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "RM_TOGG", "RM_PREV", "RM_VALD", "RM_HUED", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO"

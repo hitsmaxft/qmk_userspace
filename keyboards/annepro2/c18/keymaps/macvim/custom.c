@@ -146,6 +146,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 reset_to_iap();
             }
             return false;
+        case KC_AP2_OUTPUT_TOGGLE:
+            if (record->event.pressed) {
+                annepro2_ble_toggle_output();
+            }
+            return false;
         default:
             return true; // Process all other keycodes normally
     }
