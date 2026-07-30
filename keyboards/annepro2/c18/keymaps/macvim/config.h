@@ -48,6 +48,7 @@
 #undef PERMISSIVE_HOLD
 #undef HOLD_ON_OTHER_KEY_PRESS
 #define CHORDAL_HOLD
+#define FLOW_TAP_TERM 120
 
 /*
  * The USB console leaves little flash headroom on the C18. Keep the normal

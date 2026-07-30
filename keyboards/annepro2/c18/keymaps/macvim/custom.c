@@ -123,6 +123,16 @@ void matrix_scan_user(void) {
     }
 }
 
+uint16_t get_flow_tap_term(uint16_t keycode, keyrecord_t *record, uint16_t prev_keycode) {
+    (void)record;
+
+    if (keycode == LT(8, KC_SPC)) {
+        return 0;
+    }
+
+    return is_flow_tap_key(keycode) && is_flow_tap_key(prev_keycode) ? FLOW_TAP_TERM : 0;
+}
+
 /* layer settings */
 uint8_t        layer_mask[20];
 static uint8_t last_layer_default = 0;
