@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -18,14 +19,13 @@ from typing import Iterable
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+ARCHIVE_ROOT = Path(os.environ.get("AP2_FW_SOURCE", REPOSITORY_ROOT / "assets/ap2_fw"))
 
 DEFAULT_C18_BLE205 = (
-    REPOSITORY_ROOT
-    / "assets/ap2_fw/annepro2/c18/firmware/2.36.3/ap2_c18_0205_ble.bin"
+    ARCHIVE_ROOT / "annepro2/c18/firmware/2.36.3/ap2_c18_0205_ble.bin"
 )
 DEFAULT_AP2D_BLE213 = (
-    REPOSITORY_ROOT
-    / "assets/ap2_fw/annepro2d/firmware/3.08/annepro2_discovery_ble.bin"
+    ARCHIVE_ROOT / "annepro2d/firmware/3.08/annepro2_discovery_ble.bin"
 )
 
 CC2541_F256_FLASH_SIZE = 0x40000

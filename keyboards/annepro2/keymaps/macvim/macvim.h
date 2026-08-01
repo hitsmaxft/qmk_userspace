@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 BHE
+ * Copyright (c) 2024-2026 BHE
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,33 +19,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#pragma once
+
 #include QMK_KEYBOARD_H
 
 
-bool process_detected_host_os_kb(os_variant_t detected_os) {
-    if (!process_detected_host_os_user(detected_os)) {
-        return false;
-    }
+enum macvim_keycodes {
+  KC_AP_NOP = SAFE_RANGE,
+  KC_AP_IAP
+};
 
-    eeconfig_read_keymap(&keymap_config);
-
-    switch (detected_os) {
-        case OS_WINDOWS:
-            if (!keymap_config.swap_lalt_lgui){
-                keymap_config.swap_lalt_lgui = true;
-                eeconfig_update_keymap(&keymap_config);
-            }
-            break;
-        case OS_MACOS:
-        case OS_IOS:
-        case OS_LINUX:
-        case OS_UNSURE:
-            if (keymap_config.swap_lalt_lgui){
-                keymap_config.swap_lalt_lgui = false;
-                eeconfig_update_keymap(&keymap_config);
-            }
-            break;
-    }
-
-    return true;
-}
+//max to 20 is enough
+extern uint8_t layer_mask[20];

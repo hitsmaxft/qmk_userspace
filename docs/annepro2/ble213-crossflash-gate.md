@@ -105,13 +105,13 @@ erase 和 4,864 次 write 都收到匹配的 status-zero 回复，不表示已�
 
 ## 可复现的一次 IAP 刷写流程
 
-先在正常模式构建并记录将要刷入的 KEY artifact，避免设备进入 IAP 后才决定
-profile：
+先在正常模式构建并记录将要刷入的 C18D KEY artifact，避免设备进入 IAP 后
+才决定型号：
 
 ```sh
-direnv exec . just annepro2-ble213-log
-stat -f '%N %z bytes' annepro2_c18_macvim_ble213_log.bin
-shasum -a 256 annepro2_c18_macvim_ble213_log.bin
+direnv exec . just annepro2-c18d-log
+stat -f '%N %z bytes' annepro2_c18d_macvim.bin
+shasum -a 256 annepro2_c18d_macvim.bin
 ```
 
 进入 IAP 后先只读探测。必须看到设备报告的三个分区和 BLE mode，才进入写入：
@@ -138,13 +138,12 @@ direnv exec . just annepro2-flash-ble213-2c
 写入刚才构建的 KEY artifact，并由这一步重启：
 
 ```sh
-direnv exec . just annepro2-flash-key annepro2_c18_macvim_ble213_log.bin
+direnv exec . just annepro2-flash-key annepro2_c18d_macvim.bin
 ```
 
-QMK 总是先生成通用文件 `annepro2_c18_macvim.bin`，而 2.05、2.13、正式版和
-debug 版都会覆盖它。userspace 的各 C18 recipe 会立即复制出带 profile 的稳定
-文件名；进入 IAP 后只使用该稳定文件，避免验证期间的后续构建悄悄改变待刷
-镜像。
+C18 与 C18D 是不同 QMK 型号，分别生成 `annepro2_c18_macvim.bin` 和
+`annepro2_c18d_macvim.bin`。进入 IAP 前记录目标型号文件的大小与 SHA-256，
+不要用另一个型号的 KEY 产物。
 
 正常流程不传 `--base`；flasher 使用设备报告值，并在 target mode 为 2、回复
 不匹配、status 非零或超时时于 erase/write 边界停止。
@@ -211,7 +210,7 @@ IAP 会话中单独写入并负责最后重启。
 1. 不继续启动或配对；
 2. 通过 CC254x 调试接口恢复写前完整 flash；
 3. 再读完整 flash 与 Information Page，比对原备份哈希；
-4. 恢复 C18 BLE 2.05 后清理 KEY 侧 profile/slot，并重新配对。
+4. 恢复 C18 BLE 2.05 后重新刷入 C18 KEY，重新选择 slot 并配对。
 
 ## 当前结论
 
@@ -230,11 +229,11 @@ IAP 会话中单独写入并负责最后重启。
 清空四槽 bond 后分别与四台主机重新配对，以及快速交叉切槽、连接超时和压力
 测试：**PASS（2026-07-28 操作者实机确认，未保存启动 revision 行）**。
 
-操作者于 2026-07-28 将 C18 KEY 对官方 BLE 2.13 的完整功能回归判定为
+操作者于 2026-07-28 将拆分前 C18 KEY 对官方 BLE 2.13 的完整功能回归判定为
 **PASS**，其中包括切槽后的状态、断电恢复及上述四主机压力项目。
 
 BLE 2.05 全量回归：**待验收**。
 
-因此 C18 KEY 对官方 BLE 2.13 的功能 backport 已完成实机验收。BLE 2.05
-非回归仍是双 profile 首版的剩余门禁；readback 是 IAP 工具链证据边界，不
-否定已经通过的 2.13 功能结论。
+因此 BLE 2.13 协议方案已有实机验收证据，但新拆分出的 C18D 精确二进制仍需
+复测。C18 BLE 2.05 非回归和 C18D BLE 2.13 复测是型号拆分后的剩余门禁；
+readback 是 IAP 工具链证据边界，不否定此前已经通过的 2.13 功能结论。

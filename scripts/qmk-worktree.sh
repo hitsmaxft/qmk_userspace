@@ -8,16 +8,21 @@ if [[ $# -eq 0 ]]; then
 fi
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-qmk_repo="$repo_root/modules/qmk_firmware"
+local_qmk_repo="$repo_root/modules/qmk_firmware"
+qmk_repo=$(bash "$repo_root/scripts/qmk-source-path.sh")
 patch_dir="$repo_root/patches/qmk"
 cache_root="$repo_root/.cache/qmk-worktrees"
 
-if ! git -C "$qmk_repo" diff --quiet || ! git -C "$qmk_repo" diff --cached --quiet; then
+if [[ -n $(git -C "$local_qmk_repo" status --porcelain --untracked-files=normal) ]]; then
     echo "qmk_firmware must be clean; put local changes in patches/qmk first" >&2
     exit 1
 fi
+if [[ -n $(git -C "$qmk_repo" status --porcelain --untracked-files=normal) ]]; then
+    echo "resolved QMK checkout must be clean; commit core changes or put temporary changes in patches/qmk first" >&2
+    exit 1
+fi
 
-qmk_revision=$(git -C "$qmk_repo" rev-parse HEAD)
+qmk_revision=$(git -C "$local_qmk_repo" rev-parse HEAD)
 mkdir -p "$cache_root"
 worktree=$(mktemp -d "$cache_root/qmk.XXXXXX")
 rmdir "$worktree"
@@ -56,7 +61,9 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 trap 'exit 129' HUP
 
-git -C "$qmk_repo" worktree add --detach "$worktree" "$qmk_revision" >/dev/null
+# A full QMK checkout has more than 20,000 files. Parallel checkout materially
+# reduces setup time, and --quiet keeps non-interactive logs focused on builds.
+git -C "$qmk_repo" -c checkout.workers=0 worktree add --quiet --detach "$worktree" "$qmk_revision"
 
 # The pinned source checkout owns initialized QMK submodules.  Reuse them as
 # read-only links instead of recloning ChibiOS for every disposable worktree.
@@ -67,8 +74,15 @@ while IFS= read -r submodule_path; do
     fi
     source_path="$qmk_repo/$submodule_path"
     destination_path="$worktree/$submodule_path"
-    if [[ ! -d "$source_path" ]]; then
+    if [[ ! -e "$source_path/.git" ]] || ! git -C "$source_path" rev-parse --verify HEAD >/dev/null 2>&1; then
         echo "missing initialized QMK submodule: $source_path" >&2
+        exit 1
+    fi
+    expected_revision=$(git -C "$worktree" ls-tree HEAD "$submodule_path" | awk '{print $3}')
+    actual_revision=$(git -C "$source_path" rev-parse HEAD)
+    if [[ "$actual_revision" != "$expected_revision" ]]; then
+        echo "QMK submodule revision mismatch: $submodule_path" >&2
+        echo "expected $expected_revision, found $actual_revision" >&2
         exit 1
     fi
     rmdir "$destination_path"

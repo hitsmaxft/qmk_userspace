@@ -94,7 +94,7 @@
     ],
     // layer 10: debug layer
     [
-      "KC_0", "KC_NO", "KC_NO", "KC_AP2_USB", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
+      "KC_0", "KC_AP2_USB", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "KC_TRNS", "KC_NO", "KC_NO", "KC_NO", "QK_BOOT", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "KC_NO", "KC_NO", "KC_NO", "DB_TOGG", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",
       "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "QK_BOOT", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO", "KC_NO",

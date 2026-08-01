@@ -58,14 +58,14 @@ sequenceDiagram
     participant K as HT32 keyboard MCU
     participant B as CC254x-class BLE MCU
     K->>B: wakeup command
-    K->>K: wait 100 ms
+    K->>K: asynchronously drain and parse UART RX
     K->>B: pair/connect/profile or HID report frames
     B->>Host: BLE HID over GATT
     B-->>K: variable frame: 8-byte header + payload
     K->>K: dispatch frame[8] group and frame[9] opcode
 ```
 
-源码依据：[引脚定义](../../modules/qmk_firmware/keyboards/annepro2/c18/config.h)、[初始化与接收](../../modules/qmk_firmware/keyboards/annepro2/annepro2.c)、[BLE 发送路径](../../modules/qmk_firmware/keyboards/annepro2/annepro2_ble.c)。
+源码依据：[引脚定义](../../modules/qmk_firmware/keyboards/annepro2/c18/config.h)、[初始化与接收](../../modules/qmk_firmware/keyboards/annepro2/annepro2.c)、[公共 BLE 发送路径](../../modules/qmk_firmware/keyboards/annepro2/annepro2_ble_v2.c)、[C18 BLE 2.05 编码器](../../modules/qmk_firmware/keyboards/annepro2/c18/annepro2_ble_protocol.c)和 [C18D BLE 2.13 编码器](../../modules/qmk_firmware/keyboards/annepro2/c18d/annepro2_ble_protocol.c)。
 
 ## 官方键盘主控的 BLE UART 接收路径
 
@@ -89,7 +89,8 @@ USART1 IRQ vector +0xa0 -> 0xec83
 | `0x10` | `0x5b57` | `0x50` | `0x5acd` |
 | `0x12` | `0x62fd` | `0x80` | `0x67e3` |
 
-`0x11`、`0x21`、`0x60` 的 handler 为空。group `0x20` 再按 `frame[9]`
+`0x11`、`0x21`、`0x60` 的 BLE→KEY 接收 handler 为空；这不影响 KEY→BLE
+使用 `0x60/0x04` 发送鼠标报告。group `0x20` 再按 `frame[9]`
 跳转；opcode `0x07` 进入 `0x6612`，opcode `0x0c` 的 `0x66d6` 分支用
 `(12, 0, 0)` 调用 `0x7eac`。
 
@@ -147,9 +148,9 @@ opcode `0x07` 交给 Caps 状态函数。`VV` 因而可确定为 Caps Lock 布�
 | --- | --- | --- |
 | 唤醒 BLE | `7b 12 53 00 03 00 01 7d 02 01 02` | 系统组（推断）`0x02/0x01`，值 `0x02`。 |
 | 请求 BLE IAP/bootloader | `7b 10 51 10 03 00 00 7d 02 01 01` | 特殊前缀/版本字段；不要与普通帧合并解释。尚未在实机捕获验证。 |
-| 广播/选择 slot | `7b 12 53 00 03 00 00 7d 40 01 S` | profile/pairing 组 `0x40/0x01`；AP2D KEY 3.08 `0x7DF4` 也只编码一个 slot 字节。 |
-| 连接 slot | `7b 12 53 00 03 00 00 7d 40 04 S` | profile/pairing 组 `0x40/0x04`；AP2D KEY 3.08 `0x7DF4` 也只编码一个 slot 字节。 |
-| AP2D 查询当前 slot | `7b 12 53 00 02 00 00 7d c0 17` | AP2D KEY 3.08 `0xB096`；回复 payload 被 `0xB114` 写入当前槽变量。仅用于 BLE 2.13 profile。 |
+| 广播/选择 slot | `7b 12 53 00 03 00 00 7d 40 01 S [00]` | 协议/配对组 `0x40/0x01`；方括号内尾字节只由 C18 型号发送，C18D/AP2D 在 slot 结束。 |
+| 连接 slot | `7b 12 53 00 03 00 00 7d 40 04 S [00]` | 协议/配对组 `0x40/0x04`；尾字节同上，AP2D KEY 3.08 `0x7DF4` 只编码一个 slot 字节。 |
+| AP2D 查询当前 slot | `7b 12 53 00 02 00 00 7d c0 17` | AP2D KEY 3.08 `0xB096`；回复 payload 被 `0xB114` 写入当前槽变量。仅由 C18D/C2D 型号使用。 |
 | AP2D 选择内部 slot | `7b 12 53 00 03 00 00 7d 40 17 S` | AP2D KEY 3.08 `0xB056`；仅当查询值与目标不同才发送。 |
 | AP2D slot 准备阶段 1 | `7b 10 53 00 03 00 00 7d 02 01 01` | AP2D KEY 3.08 `0xB016`；与下一阶段之间约 20 ms。业务名称未确认。 |
 | AP2D slot 准备阶段 2 | `7b 10 53 00 03 00 00 7d 02 01 02` | AP2D KEY 3.08 `0xAFD8`；约 20 ms 后才发送状态帧和最终广播/连接命令。业务名称未确认。 |
@@ -174,13 +175,13 @@ AP2D KEY 3.08 的按键事件处理函数 `0x80F0` 对目标 slot 执行：
 安全槽未同步一致。该相关性仍需新 KEY 实机复测，不能把静态序列本身写成
 射频修复已经通过。
 
-QMK 的实现只在显式 `AP2D_BLE213` profile 首次发送主命令时执行上述非阻塞
-序列。C18 BLE 2.05 不发送 `c0/17`、`40/17` 或这两个 `02/01` 帧，重试也不
+QMK 的实现只在 C18D/C2D 首次发送主命令时执行上述非阻塞序列。C18 不链接
+该实现，不发送 `c0/17`、`40/17` 或这两个 `02/01` 帧；C18D/C2D 重试也不
 重复前导序列。
 
 ### C18 历史 slot 命令的特殊尾字节
 
-**已确认（QMK 历史）**：QMK 的多配对修复将 broadcast/connect 模板改为 10 字节头，并在 slot 后显式再发送 `0x00`。因此即使 `LL=0x03` 看起来只覆盖组、操作和 slot，实际线上帧仍必须含该尾字节。它是兼容性必需字节，语义未确认，不能假定为 checksum。
+**已确认（QMK 历史）**：QMK 的 C18 多配对修复将 broadcast/connect 模板改为 10 字节头，并在 slot 后显式再发送 `0x00`。因此即使 `LL=0x03` 看起来只覆盖组、操作和 slot，C18 实际线上帧仍必须含该尾字节。它是兼容性必需字节，语义未确认，不能假定为 checksum。AP2D KEY 3.08 没有该字节，所以 C18D 不发送它。
 
 历史依据：QMK commit [`37c271460a`](https://github.com/qmk/qmk_firmware/commit/37c271460a)（“fix bluetooth multi-pairing issue”）。
 
@@ -197,7 +198,28 @@ QMK 的 4-byte consumer payload 只使用 `C0`，其余三字节始终为 0：
 | 下一曲 | `0x10` |
 | 上一曲 | `0x20` |
 
-鼠标报告在现有 QMK BLE host driver 中为空实现。选择 “USB” 主机模式时，QMK 只在本地切换 host driver，没有发送一个已知的 BLE disconnect UART 命令。
+### 鼠标报告
+
+C18 KEY 2.36.3 与 AP2D KEY 3.08 都通过 `0x60/0x04 + 8-byte payload`
+向 BLE 模块发送鼠标报告，但 payload 与各自 USB Mouse Report 的布局一致，不能
+共用：
+
+| 目标 | 8-byte payload |
+|---|---|
+| C18 / BLE 2.05 | 3-bit buttons，`int16 LE X/Y`，`int8 wheel`，`int8 pan`，pad |
+| C18D / BLE 2.13 | 16-bit buttons，`int16 LE X/Y`，`int8 wheel`，pad；未确认 pan 字段 |
+
+QMK 的固定型号编码器分别生成上述 wire frame；公共 host driver 在前面保留既有
+UART 重同步 `0x00`，并用一次 `sdWrite` 原子提交同步字节和完整帧。全零 release
+报告不被省略。超出 BLE ABI 的按键/滚轮值会被裁剪或丢弃并设置 loss flag，debug
+构建才记录该事件，正常鼠标移动不产生额外日志。
+
+三份 BLE 固件的静态 HID Report Map 没有独立标准 Mouse Collection，但官方 KEY
+固件中的这条业务 UART 路径和 AP2D 发布记录中的“虚拟鼠标释放”修复共同证明，
+不能据 Report Map 缺项推断 BLE 模块不支持鼠标。
+
+选择 “USB” 主机模式时，QMK 只在本地切换 host driver，没有发送一个已知的 BLE
+disconnect UART 命令。
 
 ## BLE → 主控：状态回传
 

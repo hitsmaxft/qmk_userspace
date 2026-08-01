@@ -1,4 +1,8 @@
-# Anne Pro 2 C18 KEY 兼容 BLE 2.05 与 AP2D BLE 2.13 升级方案
+# Anne Pro 2 C18 KEY 兼容 BLE 2.05 与 AP2D BLE 2.13 升级方案（已归档）
+
+> 2026-08-01：本方案已由独立型号设计取代。当前 `annepro2/c18` 固定 BLE
+> 2.05，`annepro2/c18d` 固定 BLE 2.13，不再提供运行时或 EEPROM 协议切换。
+> 以下内容仅保留为历史设计记录。
 
 日期：2026-07-25  
 改造对象：Anne Pro 2 C18 KEY 源码  

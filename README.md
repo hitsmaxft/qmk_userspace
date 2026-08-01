@@ -29,19 +29,42 @@ This is a template repository which allows for an external set of QMK keymaps to
 ## Howto build locally
 
 This repository pins the user's AnnePro2 QMK fork branch as a submodule and
-provides its toolchain through Nix. From the repository root:
+provides its toolchain through Nix. Initialize QMK and its nested dependencies
+once from the primary `main` checkout:
 
 ```sh
 git submodule update --init --recursive modules/qmk_firmware
+```
+
+Then, from either the primary checkout or a linked worktree:
+
+```sh
 direnv allow .
 direnv exec . just annepro2
+direnv exec . just annepro2-c18d
 direnv exec . just lily58
 ```
 
+`annepro2` is the fixed BLE 2.05 C18 target. `annepro2-c18d` is the separate
+fixed BLE 2.13 C18D target. They share the `macvim` keymap and reliable UART
+transport, but link different protocol objects; BLE versions cannot be changed
+at runtime or through EEPROM.
+
 `scripts/qmk-worktree.sh` builds in a disposable worktree of that checkout.
+In a linked Git worktree, `scripts/qmk-source-path.sh` reuses the primary
+`main` worktree's initialized QMK checkout instead of cloning QMK's nested
+submodules again. It accepts that checkout only when its QMK revision exactly
+matches the linked worktree's gitlink and verifies every reused nested
+submodule revision. `scripts/ap2-fw-source-path.sh` applies the same exact
+gitlink check to the firmware archive used by validation and flash recipes.
+Linked worktrees must not repeat the recursive submodule initialization.
 The wrapper also terminates and reaps long-running QMK children on
 `INT`/`TERM`/`HUP`, so an interrupted `qmk console` does not retain the HID
 console interface.
+`just annepro2-validate` builds all four AnnePro2 targets in one disposable
+QMK worktree, avoiding four repeated checkouts; individual target recipes still
+create isolated worktrees. Set `QMK_JOBS` to override the matrix's default
+parallelism of 20 jobs.
 It presents userspace keyboard definitions at standard QMK keyboard paths and
 applies any future focused core patches in `patches/qmk/`. No global QMK
 configuration or `EXTRA_KEYBOARD_FOLDER_PATH` is required.

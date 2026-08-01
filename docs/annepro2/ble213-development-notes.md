@@ -4,6 +4,10 @@
 “静态证据、传输结果、运行结果”分层，避免把构建或 status-zero 回复误写成
 射频与 flash readback 结论。
 
+2026-08-01 起，当前实现改为 `annepro2/c18` 固定 BLE 2.05、
+`annepro2/c18d` 固定 BLE 2.13。下文提到的旧双配置实现和 C18 + BLE 2.13
+实机结果只作为演进记录，不能直接归属新的 C18D 二进制。
+
 ## IAP 地址不是镜像文件偏移
 
 最初按“BLE 文件从 offset 0 开始”把 erase/write base 设为 `0`，传输停滞。
@@ -139,14 +143,12 @@ group `0x40` 的 RX handler `0xB114` 只在 opcode `0x17` 且 group 高位设置
 
 修复使用独立的 `annepro2_ble_213_slot` 非阻塞状态机：
 
-- 只有 `AP2D_BLE213` profile 的首次主命令进入；
+- 只有 C18D/C2D 的首次主命令进入；
 - 查询回复缺失或非法时保守执行完整选择/准备序列；
 - 同槽回复跳过不必要的 `40/17` 与准备阶段；
-- 新 slot 意图、disconnect、unpair 或 profile 切换会取消旧的 deferred
-  命令；
+- 新 slot 意图、disconnect 或 unpair 会取消旧的 deferred 命令；
 - 主命令重试不重复前导序列；
-- BLE 2.05 profile gate 的负向测试明确要求永不进入该状态机，公共
-  `annepro2_ble_state.c` 未修改。
+- C18 的构建规则不引用该状态机，并由静态隔离门禁保护。
 
 原厂长按配对路径本身没有调用 `40/05`。因此当前 slot 2–4 的首要问题是遗漏
 槽选择事务，而不是先假设全局 unpair 失败。`KC_AP2_BT_UNPAIR` 仍只有
@@ -180,13 +182,12 @@ cannot move location counter backwards (from 20002030 to 20001ffc)
 C15 的 RAM magic 位于 `0x20001FFC`，新增静态状态越过了可用 RAM 上界。这也
 说明“源码能被两个型号共同看到”不等于“两个型号都应承担同一实现”。
 
-解决：
+当前解决：
 
-- C18 的 BLE 2.05/2.13 适配移到
-  `keyboards/annepro2/c18/annepro2_ble.c`；
-- parser/profile/state 只由 `c18/rules.mk` 链接；
+- C18/C18D 共用有界 parser 和传输状态机，但分别链接固定协议对象；
+- 2.13 slot 前导只位于 `c18d/`，C18 的规则不引用该目录；
 - C15 继续链接原 `annepro2_ble.c`，只补齐公共调用所需的无状态兼容 API；
-- 增加 `just annepro2-c15` 门禁，当前 default 构建为 37,504 字节。
+- 增加 `just annepro2-c15` 门禁，当前 default 构建为 37,508 字节。
 
 ## 构建成功不能证明当前二进制通过实机
 
@@ -204,7 +205,7 @@ BLE 2.13 的启动、slot 1 配对、HID-ready 和普通输入来自状态机演
 - 操作者于 2026-07-28 将 C18 KEY 对官方 BLE 2.13 的功能 backport 整体
   验收为通过，其中包括断电恢复；BLE 2.05 仍需继续验证；
 - 验收状态集中记录在
-  [C18 KEY 双 BLE 首版验证矩阵](ble213-validation-matrix.md)。
+  [C18/C18D 固定 BLE 型号验证矩阵](ble213-validation-matrix.md)。
 
 ## 启动日志早于 USB console 重新枚举
 
@@ -220,20 +221,17 @@ KEY 上电后立即输出 revision，但 USB console listener 要等设备重新
   失败；
 - USB 产品名不随构建变化，不能代替 revision。
 
-## 不同 profile 会覆盖同名 KEY 产物
+## C18 与 C18D 使用独立 KEY 产物
 
-QMK 的 C18 构建无论 profile 和 debug 开关都输出
-`annepro2_c18_macvim.bin`。在准备好日志版后执行正式 BLE 2.05/2.13 验证，
-通用文件会被最后一次构建覆盖；若进入 IAP 后仍按通用名称刷写，就可能把正式
-版误当作日志版。
+QMK 将固定 BLE 2.05 的 C18 与固定 BLE 2.13 的 C18D 作为两个型号构建，分别
+输出 `annepro2_c18_macvim.bin` 和 `annepro2_c18d_macvim.bin`。debug 开关不
+改变文件名，因此同一型号的后续构建仍会覆盖该型号的上一份产物。
 
 解决：
 
-- `just annepro2`、`annepro2-log`、`annepro2-ble213` 和
-  `annepro2-ble213-log` 在成功构建后立即复制到各自的 profile-specific
-  文件名；
-- 进入 IAP 前对稳定文件名记录大小与 SHA-256；
-- KEY 刷写命令显式传入稳定文件名；
+- 分别使用 `just annepro2[-log]` 和 `just annepro2-c18d[-log]`；
+- 进入 IAP 前对目标型号文件记录大小与 SHA-256；
+- KEY 刷写命令显式传入对应型号文件；
 - 生成物仍由 `*.bin` ignore，不提交 Git。
 
 ## macOS 名称缓存会造成误判

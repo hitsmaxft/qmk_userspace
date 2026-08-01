@@ -10,14 +10,15 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
 import sys
 from pathlib import Path
 from typing import Iterable
 
 
-SOURCE = Path(
-    "assets/ap2_fw/annepro2d/firmware/3.08/annepro2_discovery_ble.bin"
-)
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+ARCHIVE_ROOT = Path(os.environ.get("AP2_FW_SOURCE", REPOSITORY_ROOT / "assets/ap2_fw"))
+SOURCE = ARCHIVE_ROOT / "annepro2d/firmware/3.08/annepro2_discovery_ble.bin"
 DEFAULT_OUTPUT = Path("c18-ble-2.13-annepro2c.bin")
 IMAGE_SIZE = 0x26000
 SOURCE_SHA256 = "1b904ae9cd8bf6835c0b77c72618256b701a2c3b74dc04e9dddb8a388bdfc73d"

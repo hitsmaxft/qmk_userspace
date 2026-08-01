@@ -1,4 +1,8 @@
-# Anne Pro 2 C18 适配 BLE 2.13 技术调研
+# Anne Pro 2 C18 适配 BLE 2.13 技术调研（历史方案）
+
+> 2026-08-01：报告中的双配置设计已由型号隔离方案取代。当前
+> `annepro2/c18` 固定 BLE 2.05，`annepro2/c18d` 固定 BLE 2.13；EEPROM
+> 只保存带型号 tag 的 slot。本文保留逆向证据和历史决策过程。
 
 分析日期：2026-07-25  
 研究对象：Anne Pro 2 C18 KEY 2.36 / BLE 2.05 与 Anne Pro 2D KEY 3.08 / BLE 2.13  

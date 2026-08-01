@@ -51,39 +51,32 @@ ps -axo pid,ppid,lstart,command |
 测试已确认 Ctrl-C 返回 130，且没有留下 Python listener 或新的 worktree；
 上述进程检查仍用于发现修复前已经存在的 listener。
 
-### BLE 2.05 最终回归输入
+### C18 固定 BLE 2.05 回归输入
 
 2026-07-28 的干净日志 KEY 产物为：
 
 ```text
-annepro2_c18_macvim_ble205_log.bin
-size:      44,416 bytes
-sha256:    35bc984130886e3270aea12f41fc1eb33315536fbbb2fef3b2a8cd13224e5875
-userspace: latest-161-g1ed47e
-QMK:       11c08ff0dc
+annepro2_c18_macvim.bin
 ```
 
 先构建并记录哈希，再进入 IAP：
 
 ```sh
 direnv exec . just annepro2-log
-shasum -a 256 annepro2_c18_macvim_ble205_log.bin
+shasum -a 256 annepro2_c18_macvim.bin
 direnv exec . just annepro2-iap-probe
 direnv exec . just annepro2-flash-ble205-official
-direnv exec . just annepro2-flash-key annepro2_c18_macvim_ble205_log.bin
+direnv exec . just annepro2-flash-key annepro2_c18_macvim.bin
 ```
 
 `annepro2-flash-ble205-official` 会先验证官方输入大小与 SHA-256
 `52dc5c6542ad9b30915ea07f042b46ef19cd8acf4f2dce286a0dbdf11ce7cb92`，
-只写 BLE target，并把最终重启留给 KEY 写入步骤。有效 EEPROM profile 优先于
-构建默认值；重启进入 USB 后必须用维护层的 `KC_AP2_BLE205` 显式选择 2.05，
-该操作同时清除 KEY 侧旧 slot，之后再开始四槽配对。当前 `macvim` keymap 的
-操作是保持 `MO(9)`，再保持物理 Tab（`MO(10)`），然后按物理 `1`；
-物理 `2` 对应 `KC_AP2_BLE213`，不要在 2.05 回归中误触。
+只写 BLE target，并把最终重启留给 KEY 写入步骤。C18 固件没有协议版本选择；
+旧双配置 EEPROM 记录会在首次启动时失效，重新选择目标 slot 即可。C18 的
+二进制和日志中都不应出现 `tx 213 slot ...`。
 
-双 profile 固件会把 2.13 helper 一同链接进 C18，因此 2.05 二进制中能找到
-`tx 213 slot ...` 格式字符串是预期现象。实际 2.05 回归日志中出现任何一条
-此类运行时日志才表示 profile gate 失败。
+C18D 固定 BLE 2.13 的对应流程使用 `just annepro2-c18d-log`、
+`annepro2_c18d_macvim.bin` 和 `just annepro2-flash-ble213-official`。
 
 ## 日志格式
 
@@ -106,7 +99,7 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
 | `auto ... after passive window` | 500 ms 内没有被动握手，启动冷启动 broadcast |
 | `tx broadcast slot=... attempt=...` | 发出或重试 `40/01` |
 | `tx connect slot=... attempt=...` | 发出或重试 `40/04` |
-| `tx slot state command=0B/24 action=0/1/2` | profile 对应的一次 slot 动作边沿通知；重试中不得重复 |
+| `tx slot state command=0B/24 action=0/1/2` | 当前型号协议的一次 slot 动作边沿通知；重试中不得重复 |
 | `queue ...`、`dispatch ...` | 切槽期间只保留最后一次意图，并在 1 秒后启动 |
 | `rx command ack=... value=... state=...` | 与当前 pending 命令关联的 ACK；value 语义未知 |
 | `command timeout ...` | 两次重试仍无 ACK；继续等可能迟到的握手，不切 driver |
@@ -137,8 +130,8 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
 
 ### 已配对 slot 重连
 
-1. 短按已配对 slot，确认发送一次 `40/04`；2.05 profile 同时只出现一次
-   `tx slot state command=0B action=0`，2.13 profile 同时只出现一次
+1. 短按已配对 slot，确认发送一次 `40/04`；C18 同时只出现一次
+   `tx slot state command=0B action=0`，C18D 同时只出现一次
    `tx slot state command=24 action=2`，不得先发
    `40/01`。
 2. 命令 ACK 丢失时，只允许重发 `40/04`；`20/0b` 不得随重试再次发送。
@@ -190,7 +183,7 @@ AP2 BLE 00001234 rx decoded group=40 command=04 value=00 state=2
 2. `tx connect` 前应出现 `route pending`；等待期间不能继续打印
    `tx keyboard report` 到旧链路。
 3. 在上一事务 pending 时连续短按多个 slot，日志可以记录多条 `queue`，但
-   1 秒窗口后只能 `dispatch` 最后一个 slot，不能同时发送多个 profile 命令。
+   1 秒窗口后只能 `dispatch` 最后一个 slot，不能同时发送多个 slot 命令。
 4. 新 slot 完成 `20/0c` 握手后才重新出现 `route ble`。由于 `20/0c` 不含
    slot/transaction ID，切槽窗口后的迟到旧握手仍是必须抓日志验证的协议边界。
 
