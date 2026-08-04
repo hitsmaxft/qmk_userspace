@@ -7,16 +7,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1785002154,
-        "narHash": "sha256-JPWDihN3S2EuDqSVKa3MNZftiBoLohwjB7nn2+r7OXw=",
-        "ref": "refs/heads/master",
-        "rev": "3a1602d652180c72930d1fb82b56069f43004d30",
-        "revCount": 19,
+        "lastModified": 1785718224,
+        "narHash": "sha256-ClpCh3ev3VS/JTdXZH0k0iVgXEncImA6pyXr7chZEas=",
+        "ref": "refs/heads/codex/ble-iap-hardening",
+        "rev": "9dc2fd2cb9c5fe533b76028b5e4f187aa3b39f7c",
+        "revCount": 21,
         "type": "git",
         "url": "https://github.com/hitsmaxft/nix-annepro2-tools.git"
       },
       "original": {
-        "rev": "3a1602d652180c72930d1fb82b56069f43004d30",
+        "ref": "refs/heads/codex/ble-iap-hardening",
         "type": "git",
         "url": "https://github.com/hitsmaxft/nix-annepro2-tools.git"
       }

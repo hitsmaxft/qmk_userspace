@@ -7,7 +7,7 @@
       annepro2-tools = {
           # Hardened IAP transport: device-reported bases, strict reply/status
           # checks, bounded timeouts, and read-only probing.
-          url = "git+https://github.com/hitsmaxft/nix-annepro2-tools.git?rev=3a1602d652180c72930d1fb82b56069f43004d30";
+          url = "git+https://github.com/hitsmaxft/nix-annepro2-tools.git?ref=refs/heads/codex/ble-iap-hardening";
           inputs = {
               nixpkgs.follows = "nixpkgs";
           };
